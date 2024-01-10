@@ -8,30 +8,33 @@ void Inputs::init(void){
     
     vTaskDelay(20 / portTICK_PERIOD_MS);
     mod_a1019.init();
+    mod_a1019.setType(0, Mod_a1019::TYPE_THERMOCOUPLE_K);
+    mod_a1019.setType(1, Mod_a1019::TYPE_THERMOCOUPLE_K);
+    mod_a1019.setType(2, Mod_a1019::TYPE_THERMOCOUPLE_K);
+    mod_a1019.setType(3, Mod_a1019::TYPE_THERMOCOUPLE_K);
+    mod_a1019.setType(4, Mod_a1019::TYPE_THERMOCOUPLE_K);
+    mod_a1019.setType(5, Mod_a1019::TYPE_0_20MA);
+    mod_a1019.setType(6, Mod_a1019::TYPE_0_20MA);
+    mod_a1019.setType(7, Mod_a1019::TYPE_0_20MA);
+    mod_a1019.getType();
     vTaskDelay(20 / portTICK_PERIOD_MS);
-    mod_evd.init();
-    vTaskDelay(20 / portTICK_PERIOD_MS);
-    if (gpioExpander.begin() == false) {
-        USBSerial.println("Check Connections. No I2C GPIO Expander detected.");
-    }
 
-    bool pinModes[8] = {GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN};
-    gpioExpander.pinMode(pinModes);
+    // if (gpioExpander.begin() == false) {
+    //     USBSerial.println("Check Connections. No I2C GPIO Expander detected.");
+    // }
+
+    // bool pinModes[8] = {GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN};
+    // gpioExpander.pinMode(pinModes);
 }
 
 void Inputs::pollSensorData(void){
     float tc[8];
-    float evd_sensors[4];
     float voltage;
     mod_a1019.readTC_float(tc);
     // Delay seems to be needed to prevent Modbus errors
-    // It fails at around 3ms or faster. So setting to 20ms
     vTaskDelay(20 / portTICK_PERIOD_MS);
-    mod_evd.getSensors(evd_sensors);
-    vTaskDelay(20 / portTICK_PERIOD_MS);
-    voltage = mod_sdm120.readRegister(SDM120_VOLTAGE);
 
-    powerData["P1_Supply"] = mod_sdm120.readRegister(SDM120_APPARENT_POWER);
+    // powerData["P1_Supply"] = mod_sdm120.readRegister(SDM120_APPARENT_POWER);
     temperatureData["Tr1_CompressorOut"]    = tc[0];
     temperatureData["Tr2_CondenserOut"]     = tc[1];
     temperatureData["Tr3_FlexStore"]        = tc[2];
@@ -51,27 +54,27 @@ void Inputs::pollPhysicalControls(void){
     gpioval = gpioExpander.digitalReadPort(gpioStatus);
 
     USBSerial.println(gpioval, BIN);
-    if (gpioStatus[1] == 1){
-        physicalControls.handOffAuto = AUTO;
-    }
-    else if (gpioStatus[0] == 1){
-        physicalControls.handOffAuto = HAND;
-    }
-    else {
-        physicalControls.handOffAuto = OFF;
-    }
+    // if (gpioStatus[1] == 1){
+    //     physicalControls.handOffAuto = AUTO;
+    // }
+    // else if (gpioStatus[0] == 1){
+    //     physicalControls.handOffAuto = HAND;
+    // }
+    // else {
+    //     physicalControls.handOffAuto = OFF;
+    // }
 
-    if (gpioStatus[7] == 1){
-        physicalControls.manualState = DISCHARGING;
-    }
-    else if (gpioStatus[6] == 1){
-        physicalControls.manualState = DEFROST;
-    }
-    else {
-        physicalControls.manualState = CHARGING;
-    }
+    // if (gpioStatus[7] == 1){
+    //     physicalControls.manualState = DISCHARGING;
+    // }
+    // else if (gpioStatus[6] == 1){
+    //     physicalControls.manualState = DEFROST;
+    // }
+    // else {
+    //     physicalControls.manualState = CHARGING;
+    // }
 
-    USBSerial.printf("HandOffAuto: %i, ManualState: %i\n", physicalControls.handOffAuto, physicalControls.manualState);
+    // USBSerial.printf("HandOffAuto: %i, ManualState: %i\n", physicalControls.handOffAuto, physicalControls.manualState);
     // physicalControls.handOffAuto = HAND;
     // physicalControls.manualState = CHARGING;
 }
@@ -82,7 +85,7 @@ void Inputs::serviceFlowMeters(void){
 
     if (millis() - previousPulseTime != 0){
         flowPPS = ((counterVal - previousPulseCount)*1000)/(millis() - previousPulseTime);
-        inputs.flowData["Fl1_DHW_lpm"] = flowPPS * 60 / 4600; //4600 pulses per litre
+        inputs.flowData["WaterFlow"] = flowPPS * 60 / 4600; //4600 pulses per litre
     }
 
     previousPulseCount = counterVal;
