@@ -5,13 +5,13 @@ SemaphoreHandle_t modbus_mutex = xSemaphoreCreateMutex();
 
 void setupRtos(void){
 
-    // xTaskCreate(
-    //     runStateMachine, // task function
-    //     "State Machine", // task name
-    //     16384, // stack size in bytes
-    //     NULL, // pointer to parameters
-    //     1, // priority
-    //     NULL); // out pointer to task handle
+    xTaskCreate(
+        runStateMachine, // task function
+        "State Machine", // task name
+        16384, // stack size in bytes
+        NULL, // pointer to parameters
+        1, // priority
+        NULL); // out pointer to task handle
     
     // xTaskCreate(
     //     readFlowMeters, // task function
@@ -185,7 +185,6 @@ void debugTask(void * pvParameters){
         //     set_compressor_speed(qo_vars.compressor_target_speed);
         // }
         USBSerial.printf("5 second debug print %d\n", millis());
-        outputs.mod_inverter.init();
         // bool relays[16];
         // outputs.mod_16RO.getRelays(relays);
         // // relays[0] = !relays[0];
