@@ -97,7 +97,7 @@ void display_pid_info(lv_timer_t * timer){
         sprintf(text_buffer, "%.3g", stateMachine.compressorPID->GetDterm());
         lv_label_set_text(ui_Label4_Dterm_val, text_buffer);
 
-        sprintf(text_buffer, "%.3g", inputs.speedData["S1_Compressor"]);
+        sprintf(text_buffer, "%.3g", "TBD / blank");
         lv_label_set_text(ui_Label4_Output_val, text_buffer);
 
         sprintf(text_buffer, "%.3g", *stateMachine.compressorPIDsetpoint);

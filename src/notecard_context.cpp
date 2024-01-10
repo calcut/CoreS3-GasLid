@@ -39,7 +39,6 @@ void sendSensorData(void){
 
     JAddFloatMapToObject(body, inputs.temperatureData);
     JAddFloatMapToObject(body, inputs.pressureData);
-    JAddFloatMapToObject(body, inputs.speedData);
     JAddFloatMapToObject(body, inputs.flowData);
     JAddFloatMapToObject(body, inputs.powerData);
 
