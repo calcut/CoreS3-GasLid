@@ -11,7 +11,7 @@ void StateMachine::tunePID(void){
 void StateMachine::init(void){
     USBSerial.println("Init state machine");
 
-    // inputs.init();
+    inputs.init();
     vTaskDelay(20 / portTICK_PERIOD_MS);
     outputs.init();
 
@@ -42,7 +42,7 @@ void StateMachine::run(void){
     USBSerial.println("Running state machine");
     previousState = currentState;
 
-    // inputs.pollSensorData();
+    inputs.pollSensorData();
     // inputs.pollPhysicalControls();
     // USBSerial.printf("Compressor PID input = %f\n", *compressorPIDinput);
     // USBSerial.printf("Compressor PID setpoint = %f\n", *compressorPIDsetpoint);
