@@ -55,6 +55,17 @@ void Mod_a1019::readTC_int_decimal(int32_t tc[8]) {
         }
 }
 
+void Mod_a1019::setType(int channel, channelType type){
+
+    USBSerial.printf("Setting input %i to type %i, ", channel, type);
+
+    if (!ModbusRTUClient.holdingRegisterWrite(id, 64 + channel, type)){
+        USBSerial.print("failed! ");
+        USBSerial.println(ModbusRTUClient.lastError());
+    } else {
+        USBSerial.println("Success!");
+    }
+}
 
 
 void Mod_a1019::setTypeTC(){
@@ -104,7 +115,4 @@ void Mod_a1019::init(){
         USBSerial.print("A-1019 Module not detected! ");
         USBSerial.println(ModbusRTUClient.lastError());
     }
-
-    setTypeTC();
-    getType();
 }
