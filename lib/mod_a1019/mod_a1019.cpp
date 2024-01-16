@@ -3,7 +3,7 @@
 
 void Mod_a1019::readTC_float(float_t tc[8]) {
 
-    USBSerial.print("Reading input values:\n");
+    Serial.print("Reading input values:\n");
     if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                                 736, 16)) {  //ABCD
 
@@ -18,26 +18,26 @@ void Mod_a1019::readTC_float(float_t tc[8]) {
 
             // Convert to float and print
             memcpy(&tc[i], &byte_array, 4);
-            USBSerial.printf("TC[%i]: ", i);
-            USBSerial.println(tc[i]);
+            Serial.printf("TC[%i]: ", i);
+            Serial.println(tc[i]);
         }
     }
     else {
-        USBSerial.print("failed! ");
-        USBSerial.println(ModbusRTUClient.lastError());
+        Serial.print("failed! ");
+        Serial.println(ModbusRTUClient.lastError());
     }
 }
 void Mod_a1019::readTC_int(int32_t tc[8]) {
 
         if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                                     96, 8)) {
-            USBSerial.print("Input Values integer: ");
+            Serial.print("Input Values integer: ");
             while (ModbusRTUClient.available()) {
                 int16_t temperature = ModbusRTUClient.read();
-                USBSerial.print(temperature, DEC);
-                USBSerial.print(' ');
+                Serial.print(temperature, DEC);
+                Serial.print(' ');
             }
-            USBSerial.println();
+            Serial.println();
         }
 }
 
@@ -45,25 +45,25 @@ void Mod_a1019::readTC_int_decimal(int32_t tc[8]) {
 
         if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                                 128, 8)) {
-            USBSerial.print("Input Values integer_decimal" );
+            Serial.print("Input Values integer_decimal" );
             while (ModbusRTUClient.available()) {
                 int16_t temperature = ModbusRTUClient.read();
-                USBSerial.print(temperature, DEC);
-                USBSerial.print(' ');
+                Serial.print(temperature, DEC);
+                Serial.print(' ');
             }
-            USBSerial.println();
+            Serial.println();
         }
 }
 
 void Mod_a1019::setType(int channel, channelType type){
 
-    USBSerial.printf("Setting input %i to type %i, ", channel, type);
+    Serial.printf("Setting input %i to type %i, ", channel, type);
 
     if (!ModbusRTUClient.holdingRegisterWrite(id, 64 + channel, type)){
-        USBSerial.print("failed! ");
-        USBSerial.println(ModbusRTUClient.lastError());
+        Serial.print("failed! ");
+        Serial.println(ModbusRTUClient.lastError());
     } else {
-        USBSerial.println("Success!");
+        Serial.println("Success!");
     }
 }
 
@@ -71,7 +71,7 @@ void Mod_a1019::setType(int channel, channelType type){
 void Mod_a1019::setTypeTC(){
 
     // Set the input types to K type thermocouple
-    USBSerial.println("Setting input types to K type thermocouple");
+    Serial.println("Setting input types to K type thermocouple");
 
     ModbusRTUClient.beginTransmission(id, HOLDING_REGISTERS, 64, 8);
     for (int i = 0; i < 8; i++) {
@@ -82,37 +82,37 @@ void Mod_a1019::setTypeTC(){
 
 void Mod_a1019::getType(){
     // Read the input types
-    USBSerial.println("Reading input types");
+    Serial.println("Reading input types");
 
     if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                                 64, 8)) {
-        USBSerial.print("Input types: 0x ");
+        Serial.print("Input types: 0x ");
         while (ModbusRTUClient.available()) {
-            USBSerial.print(ModbusRTUClient.read(), HEX);
-            USBSerial.print(' ');
+            Serial.print(ModbusRTUClient.read(), HEX);
+            Serial.print(' ');
         }
-        USBSerial.println();
+        Serial.println();
     }
     else {
-        USBSerial.print("failed! ");
-        USBSerial.println(ModbusRTUClient.lastError());
+        Serial.print("failed! ");
+        Serial.println(ModbusRTUClient.lastError());
     }
 }
 
 void Mod_a1019::init(){
-    USBSerial.println("\n**** Mod_a1019 init ****");
+    Serial.println("\n**** Mod_a1019 init ****");
 
     if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                                 MODULE_NAME_ADDR, 1)) {
-        USBSerial.print("Module Detected: A-");
+        Serial.print("Module Detected: A-");
         while (ModbusRTUClient.available()) {
-            USBSerial.print(ModbusRTUClient.read(), HEX);
-            USBSerial.print(' ');
+            Serial.print(ModbusRTUClient.read(), HEX);
+            Serial.print(' ');
         }
-        USBSerial.println();
+        Serial.println();
     }
     else {
-        USBSerial.print("A-1019 Module not detected! ");
-        USBSerial.println(ModbusRTUClient.lastError());
+        Serial.print("A-1019 Module not detected! ");
+        Serial.println(ModbusRTUClient.lastError());
     }
 }

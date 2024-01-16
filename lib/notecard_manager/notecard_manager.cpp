@@ -12,7 +12,7 @@ void NotecardManager::begin(Stream &serial_stream){
     envVarManager = NotecardEnvVarManager_alloc();
     if (envVarManager == NULL) {
         // Handle failed allocation.
-        USBSerial.println("Failed to allocate NotecardEnvVarManager.");
+        Serial.println("Failed to allocate NotecardEnvVarManager.");
     }
 }
 
@@ -31,7 +31,7 @@ void NotecardManager::init(const char *uid, const char *mode, int inbound, int o
 
         if (!notecard.sendRequest(req)) {
             notecard.logDebug("FATAL: Failed to configure Notecard!\n");
-            USBSerial.println("FATAL: Failed to configure Notecard!");
+            Serial.println("FATAL: Failed to configure Notecard!");
             while(1);
         }
     }
@@ -126,13 +126,13 @@ void NotecardManager::getEnvironment(){
     else {
         notecard.logDebug(JConvertToJSONString(rsp));
         env_modified_time = JGetInt(rsp, "time");
-        USBSerial.printf("modified time: %d\n", env_modified_time);
+        Serial.printf("modified time: %d\n", env_modified_time);
         notecard.deleteResponse(rsp);
 
         notecard.logDebug("Fetching environment variables...\n");
         if (NotecardEnvVarManager_fetch(envVarManager, NULL, NEVM_ENV_VAR_ALL)
                 != NEVM_SUCCESS) {
-                USBSerial.println("NotecardEnvVarManager_fetch failed.");
+                Serial.println("NotecardEnvVarManager_fetch failed.");
             }
     }   
 }   

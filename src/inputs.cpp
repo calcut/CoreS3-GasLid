@@ -4,7 +4,7 @@ Inputs inputs;
 
 void Inputs::init(void){
 
-    USBSerial.println("\n**** Mod_a1019 init ****");
+    Serial.println("\n**** Mod_a1019 init ****");
     
     vTaskDelay(20 / portTICK_PERIOD_MS);
     mod_a1019.init();
@@ -20,7 +20,7 @@ void Inputs::init(void){
     vTaskDelay(20 / portTICK_PERIOD_MS);
 
     // if (gpioExpander.begin() == false) {
-    //     USBSerial.println("Check Connections. No I2C GPIO Expander detected.");
+    //     Serial.println("Check Connections. No I2C GPIO Expander detected.");
     // }
 
     // bool pinModes[8] = {GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN};
@@ -47,13 +47,13 @@ void Inputs::pollSensorData(void){
 
 void Inputs::pollPhysicalControls(void){
 
-    USBSerial.print("Polling physical controls\n");
+    Serial.print("Polling physical controls\n");
 
     bool gpioStatus[8];
     uint8_t gpioval;
     gpioval = gpioExpander.digitalReadPort(gpioStatus);
 
-    USBSerial.println(gpioval, BIN);
+    Serial.println(gpioval, BIN);
     // if (gpioStatus[1] == 1){
     //     physicalControls.handOffAuto = AUTO;
     // }
@@ -74,7 +74,7 @@ void Inputs::pollPhysicalControls(void){
     //     physicalControls.manualState = CHARGING;
     // }
 
-    // USBSerial.printf("HandOffAuto: %i, ManualState: %i\n", physicalControls.handOffAuto, physicalControls.manualState);
+    // Serial.printf("HandOffAuto: %i, ManualState: %i\n", physicalControls.handOffAuto, physicalControls.manualState);
     // physicalControls.handOffAuto = HAND;
     // physicalControls.manualState = CHARGING;
 }
@@ -108,5 +108,5 @@ void Inputs::initFlowMeters(int pin){
     };
     pcnt_unit_config(&pcntCh1);
     pcnt_counter_clear(PCNT_UNIT_0);
-    USBSerial.printf("Flow meter initialised on pin %d\n", pin);
+    Serial.printf("Flow meter initialised on pin %d\n", pin);
 }

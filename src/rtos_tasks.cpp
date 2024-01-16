@@ -106,7 +106,7 @@ void readFlowMeters(void *pvParameters)
 void serviceGUI(void * pvParameters){
 
     setupGui();
-    USBSerial.println("GUI setup complete");
+    Serial.println("GUI setup complete");
     while(1){
         int delay_ms = lv_timer_handler();
         vTaskDelay(delay_ms / portTICK_PERIOD_MS);
@@ -123,18 +123,18 @@ void serviceNotecard(void * pvParameters){
     if (NotecardEnvVarManager_setEnvVarCb(notecardManager.envVarManager,
                              myEnvVarCb, NULL) != NEVM_SUCCESS)
     {
-    USBSerial.println("Failed to set callback for NotecardEnvVarManager.");
+    Serial.println("Failed to set callback for NotecardEnvVarManager.");
     }
     else{
         setDefaultEnvironment();
-        USBSerial.println("NotecardManager started");
+        Serial.println("NotecardManager started");
     }
     xSemaphoreGive(nc_mutex);
 
     while(1){
 
         if (notecardManager.serviceEnabled){
-            USBSerial.printf("Notecard info service\n");
+            Serial.printf("Notecard info service\n");
             xSemaphoreTake(nc_mutex, portMAX_DELAY);
             notecardManager.hubGet();
             vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -164,21 +164,21 @@ void timeSyncNotecard(void * pvParameters){
     notecardManager.cardStatus();
 
     if(notecardManager.connected){
-        USBSerial.printf("Notecard time sync\n");
+        Serial.printf("Notecard time sync\n");
 
         notecardManager.getTime();
         setRTC(notecardManager.epoch_time, notecardManager.utc_offset_minutes);
     }
     else{
-        USBSerial.printf("Notecard not connected, skipping time sync\n");
+        Serial.printf("Notecard not connected, skipping time sync\n");
     }
-    USBSerial.printf("Notecard getEnvironment...\n");
+    Serial.printf("Notecard getEnvironment...\n");
     notecardManager.getEnvironment();
-    USBSerial.printf("... Notecard getEnvironment done\n");
+    Serial.printf("... Notecard getEnvironment done\n");
 
-    USBSerial.printf("Notecard sendSensorData...\n");
+    Serial.printf("Notecard sendSensorData...\n");
     sendSensorData();
-    USBSerial.printf("... Notecard sendSensorData done\n");
+    Serial.printf("... Notecard sendSensorData done\n");
 
     xSemaphoreGive(nc_mutex);
     vTaskDelay(notecardManager.envVars["timeSyncInterval_s"]*1000 / portTICK_PERIOD_MS);
@@ -195,7 +195,7 @@ void debugTask(void * pvParameters){
         //     compressorPID->Compute();
         //     set_compressor_speed(qo_vars.compressor_target_speed);
         // }
-        USBSerial.printf("5 second debug print %d\n", millis());
+        Serial.printf("5 second debug print %d\n", millis());
         // bool relays[16];
         // outputs.mod_16RO.getRelays(relays);
         // // relays[0] = !relays[0];
@@ -233,7 +233,7 @@ uint32_t calculateNextDelay() {
     time(&now);
     struct tm *now_tm = localtime(&now);
 
-    USBSerial.printf("Current time: %s", asctime(now_tm));
+    Serial.printf("Current time: %s", asctime(now_tm));
 
     // Define the three fixed times
     struct tm fixedTimes[3];
@@ -252,12 +252,12 @@ uint32_t calculateNextDelay() {
             fixedTime += 24 * 60 * 60; // add 24 hours if the time has passed today
         }
         uint32_t diff = (fixedTime - now) * 1000; // convert to milliseconds
-        USBSerial.printf("Fixed time %d in %d seconds\n", i, diff / 1000);
+        Serial.printf("Fixed time %d in %d seconds\n", i, diff / 1000);
         if (diff < delay) {
             delay = diff;
         }
     }
 
-    USBSerial.printf("Next run in %d seconds\n", delay / 1000);
+    Serial.printf("Next run in %d seconds\n", delay / 1000);
     return delay / portTICK_PERIOD_MS; // convert to ticks
 }

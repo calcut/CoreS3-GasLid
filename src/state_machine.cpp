@@ -9,7 +9,7 @@ void StateMachine::tunePID(void){
 }
 
 void StateMachine::init(void){
-    USBSerial.println("Init state machine");
+    Serial.println("Init state machine");
 
     inputs.init();
     vTaskDelay(20 / portTICK_PERIOD_MS);
@@ -39,42 +39,42 @@ void StateMachine::init(void){
 
 void StateMachine::run(void){
 
-    USBSerial.println("Running state machine");
+    Serial.println("Running state machine");
 
     inputs.pollSensorData();
     // inputs.pollPhysicalControls();
-    // USBSerial.printf("Compressor PID input = %f\n", *compressorPIDinput);
-    // USBSerial.printf("Compressor PID setpoint = %f\n", *compressorPIDsetpoint);
+    // Serial.printf("Compressor PID input = %f\n", *compressorPIDinput);
+    // Serial.printf("Compressor PID setpoint = %f\n", *compressorPIDsetpoint);
     // stateMachine.compressorPID->Compute();
-    // USBSerial.printf("Compressor PID output = %f\n", compressorPIDoutput);
+    // Serial.printf("Compressor PID output = %f\n", compressorPIDoutput);
 
 }
 
 
 void StateMachine::sampleGasCards(){
 
-    USBSerial.printf("Gas Card Sample Sequence starting...\n");
+    Serial.printf("Gas Card Sample Sequence starting...\n");
 
     for (int i = 0; i <= 3; i++){
-        USBSerial.printf("Opening valves %d\n", i);
+        Serial.printf("Opening valves %d\n", i);
         outputs.setFlowValve(i, outputs.ValveState::OPEN);
         outputs.setReturnValve(i, outputs.ValveState::OPEN);
         
-        USBSerial.printf("Running pump %d\n", i);
+        Serial.printf("Running pump %d\n", i);
         outputs.setGasPumpSpeed(50);
 
 
         vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-        USBSerial.printf("Sampling gas cards now %d\n", i);
+        Serial.printf("Sampling gas cards now %d\n", i);
         //Actually do it here
 
         outputs.setGasPumpSpeed(0);
-        USBSerial.printf("Closing valves %d\n", i);
+        Serial.printf("Closing valves %d\n", i);
         outputs.setFlowValve(i, outputs.ValveState::CLOSED);
         outputs.setReturnValve(i, outputs.ValveState::CLOSED);
 
-        USBSerial.printf("Purging for 2s\n", i);
+        Serial.printf("Purging for 2s\n", i);
         outputs.setFlowValve(4, outputs.ValveState::OPEN);
         outputs.setReturnValve(4, outputs.ValveState::OPEN);
         outputs.setGasPumpSpeed(50);
@@ -86,7 +86,7 @@ void StateMachine::sampleGasCards(){
         outputs.setFlowValve(4, outputs.ValveState::CLOSED);
         outputs.setReturnValve(4, outputs.ValveState::CLOSED);
         vTaskDelay(500 / portTICK_PERIOD_MS);
-        USBSerial.printf("Purge Complete %d\n", i);
+        Serial.printf("Purge Complete %d\n", i);
     }
 }
 

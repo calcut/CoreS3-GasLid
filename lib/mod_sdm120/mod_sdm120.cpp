@@ -7,7 +7,7 @@ void Mod_sdm120::init() {
 }
 
 // void Mod_sdm120::readVoltage(float *voltage) {
-//     USBSerial.print("Reading voltage, ");
+//     Serial.print("Reading voltage, ");
 //     // ModbusRTUClient.end();
 //     // ModbusRTUClient.begin(2400);
 //     // readRegister(SDM120_VOLTAGE);
@@ -30,12 +30,12 @@ void Mod_sdm120::init() {
 
 
 float Mod_sdm120::readRegister(int reg) {
-    USBSerial.printf("Reading register %i, ", reg);
+    Serial.printf("Reading register %i, ", reg);
     float floatval = -1;
 
     if (ModbusRTUClient.requestFrom(id, INPUT_REGISTERS,
                                 reg, 2)) {
-        USBSerial.print("Success: ");
+        Serial.print("Success: ");
     
         byte byte_array[4];
         uint16_t msbs = ModbusRTUClient.read();
@@ -47,24 +47,24 @@ float Mod_sdm120::readRegister(int reg) {
 
         // Convert to float and print
         memcpy(&floatval, &byte_array, 4);
-        USBSerial.printf("Floatval: %f\n", floatval);
+        Serial.printf("Floatval: %f\n", floatval);
     }
     else {
-        USBSerial.print("failed! ");
-        USBSerial.println(ModbusRTUClient.lastError());
+        Serial.print("failed! ");
+        Serial.println(ModbusRTUClient.lastError());
     }
     return floatval;
 }
 
 void Mod_sdm120::writeRegister(int reg, int value) {
-    USBSerial.printf("Writing register %i = %i, ", reg, value);
+    Serial.printf("Writing register %i = %i, ", reg, value);
     ModbusRTUClient.beginTransmission(id, HOLDING_REGISTERS,
                                         reg, 1);
     ModbusRTUClient.write(value);
     if (!ModbusRTUClient.endTransmission()) {
-        USBSerial.print("failed! ");
-        USBSerial.println(ModbusRTUClient.lastError());
+        Serial.print("failed! ");
+        Serial.println(ModbusRTUClient.lastError());
     } else {
-        USBSerial.println("Success");
+        Serial.println("Success");
     }
 }

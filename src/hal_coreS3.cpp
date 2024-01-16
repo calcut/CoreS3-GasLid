@@ -4,12 +4,12 @@ RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, -1, -1);
 // RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, PIN_DE_RS485, -1);
 
 void hal_setup(void){
-    USBSerial.begin();
+    Serial.begin();
 
     // For DEBUG ONLY, otherwise it won't boot without a USB cable
     #ifdef DEBUG
-    while (!USBSerial) {;}
-    USBSerial.println("USB Serial Started");
+    while (!Serial) {;}
+    Serial.println("USB Serial Started");
     #endif
 
     M5.begin();
@@ -31,7 +31,17 @@ void hal_setup(void){
     // M5.In_I2C.bitOn(AW9523_ADDR, 0x02, 0b00100000, 100000L);  // USB_OTG_EN = 1
 
     Wire.begin(PIN_SDA_I2C_EXT, PIN_SCL_I2C_EXT, 400000);  //Init I2C_EXT
-    USBSerial.println("hal_setup complete");
+
+    Serial.println("Setting log levels");
+    esp_log_level_set("*", ESP_LOG_WARN);
+    esp_log_level_set("HAL", ESP_LOG_INFO);
+    // esp_log_set_vprintf(sdCardLogOutput);
+
+    ESP_LOGE("HAL", "Error message");
+    ESP_LOGW("HAL", "Warning message");
+    ESP_LOGI("HAL", "Info message");
+
+    ESP_LOGI("HAL", "hal_setup complete");
 
 };
 
@@ -51,7 +61,7 @@ void setSystemTime(){
 
     struct timeval tv;
     tv.tv_sec = mktime(&time_info);
-    USBSerial.printf("Setting sys time to %02d:%02d:%02d\n", dt.time.hours, dt.time.minutes, dt.time.seconds);
+    Serial.printf("Setting sys time to %02d:%02d:%02d\n", dt.time.hours, dt.time.minutes, dt.time.seconds);
     settimeofday(&tv, NULL);
 }
 
