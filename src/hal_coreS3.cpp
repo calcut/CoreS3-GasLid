@@ -34,12 +34,13 @@ void hal_setup(void){
 
     Serial.println("Setting log levels");
     esp_log_level_set("*", ESP_LOG_WARN);
-    esp_log_level_set("HAL", ESP_LOG_INFO);
-    // esp_log_set_vprintf(sdCardLogOutput);
+    esp_log_level_set("HAL", ESP_LOG_DEBUG);
+    // esp_log_set_vprintf(sdCardLogOutput); // Maybe in future
 
     ESP_LOGE("HAL", "Error message");
     ESP_LOGW("HAL", "Warning message");
     ESP_LOGI("HAL", "Info message");
+    ESP_LOGD("HAL", "Debug message");
 
     ESP_LOGI("HAL", "hal_setup complete");
 
@@ -61,7 +62,7 @@ void setSystemTime(){
 
     struct timeval tv;
     tv.tv_sec = mktime(&time_info);
-    Serial.printf("Setting sys time to %02d:%02d:%02d\n", dt.time.hours, dt.time.minutes, dt.time.seconds);
+    ESP_LOGI("HAL", "Setting sys time to %02d:%02d:%02d\n", dt.time.hours, dt.time.minutes, dt.time.seconds);
     settimeofday(&tv, NULL);
 }
 

@@ -5,6 +5,13 @@ SemaphoreHandle_t modbus_mutex = xSemaphoreCreateMutex();
 
 void setupRtos(void){
 
+    esp_log_level_set("HAL", ESP_LOG_DEBUG);
+    esp_log_level_set("RTOS", ESP_LOG_DEBUG);
+    esp_log_level_set("SM", ESP_LOG_DEBUG);
+    esp_log_level_set("IN", ESP_LOG_DEBUG);
+    esp_log_level_set("OUT", ESP_LOG_DEBUG);
+    esp_log_level_set("a1019", ESP_LOG_DEBUG);
+
     xTaskCreate(
         runStateMachine, // task function
         "State Machine", // task name
@@ -195,7 +202,7 @@ void debugTask(void * pvParameters){
         //     compressorPID->Compute();
         //     set_compressor_speed(qo_vars.compressor_target_speed);
         // }
-        Serial.printf("5 second debug print %d\n", millis());
+        ESP_LOGD("RTOS", "5 second debug print %d\n", millis());
         // bool relays[16];
         // outputs.mod_16RO.getRelays(relays);
         // // relays[0] = !relays[0];
