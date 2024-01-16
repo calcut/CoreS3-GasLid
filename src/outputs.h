@@ -12,7 +12,7 @@ public:
         CLOSED = 0
     };
 
-    Qwiic_Relay quadRelay = Qwiic_Relay(0x6D); // Alternate address 0x6C
+    Qwiic_Relay quadRelay = Qwiic_Relay(0x6C); // Alternate address 0x6C
 
     Adafruit_MotorShield MS1 = Adafruit_MotorShield(0x6F);
     Adafruit_MotorShield MS2 = Adafruit_MotorShield(0x6E);

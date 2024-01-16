@@ -41,8 +41,6 @@ public:
         {"N2O", nan("0")},
     };
 
-
-
     enum HandOffAuto {
         OFF,
         HAND,
@@ -72,7 +70,6 @@ public:
     Mod_sdm120 mod_sdm120;
 
 private:
-
     int previousPulseCount = 0;
     int previousPulseTime = 0;
     int16_t counterVal;

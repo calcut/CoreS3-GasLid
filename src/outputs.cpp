@@ -3,7 +3,9 @@
 Outputs outputs;
 
 void Outputs::init() {
+
     USBSerial.println("Outputs init");
+    ESP_LOGW("Outputs", "Outputs init");
 
     if (!MS1.begin()) {         // create with the default frequency 1.6KHz
         // if (!MS1.begin(1000)) {  // OR with a different frequency, say 1KHz
@@ -21,26 +23,19 @@ void Outputs::init() {
     }
     else USBSerial.println("Motor Shield 3 found.");
 
-    setFlowValve(0, true);
-    setFlowValve(1, true);
-    setFlowValve(2, false);
-    setFlowValve(3, false);
-    setFlowValve(4, true);
-    setGasPumpSpeed(0.5);
+    setFlowValve(0, ValveState::CLOSED);
+    setFlowValve(1, ValveState::CLOSED);
+    setFlowValve(2, ValveState::CLOSED);
+    setFlowValve(3, ValveState::CLOSED);
+    setFlowValve(4, ValveState::CLOSED);
+    setGasPumpSpeed(0);
 
     if(!quadRelay.begin())
     USBSerial.println("Could not find Qwiic Relay. Check wiring.");
     else
     USBSerial.println("Qwiic Relay Found.");
 
-    quadRelay.turnRelayOn(1); 
-    delay(200);
-    quadRelay.turnRelayOn(2); 
-    delay(200);
-    quadRelay.turnRelayOn(3); 
-    delay(200);
-    quadRelay.turnRelayOn(4); 
-    delay(1000);
+    quadRelay.turnAllRelaysOff(); 
 }
 
 void Outputs::setFlowValve(int index, bool ValveState) {

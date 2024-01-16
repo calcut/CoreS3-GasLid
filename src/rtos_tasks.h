@@ -4,6 +4,7 @@
 #include "config.h"
 #include "hal_coreS3.h"
 #include "state_machine.h"
+#include "esp_log.h"
 
 #ifdef USE_NOTECARD
 #include "notecard_context.h"
@@ -21,5 +22,7 @@ void debugTask(void * pvParameters);
 void runStateMachine(void * pvParameters);
 void serviceGUI(void * pvParameters);
 void readFlowMeters(void *pvParameters);
+void serviceGasCards(void *pvParameters);
+uint32_t calculateNextDelay();
 
 #endif

@@ -20,6 +20,8 @@ public:
 
     void init(void);
     void run();
+    void sampleGasCards();
+
     bool enabled = false;
 
 

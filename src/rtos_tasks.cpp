@@ -12,7 +12,15 @@ void setupRtos(void){
         NULL, // pointer to parameters
         1, // priority
         NULL); // out pointer to task handle
-    
+
+    xTaskCreate(
+        serviceGasCards, // task function
+        "Service Gas Cards", // task name
+        16384, // stack size in bytes
+        NULL, // pointer to parameters
+        1, // priority
+        NULL); // out pointer to task handle
+
     // xTaskCreate(
     //     readFlowMeters, // task function
     //     "Read Flow Meters", // task name
@@ -70,9 +78,12 @@ void runStateMachine(void * pvParameters){
         xSemaphoreTake(modbus_mutex, portMAX_DELAY);
         stateMachine.run();
         xSemaphoreGive(modbus_mutex);
+        
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
+
+
 
 void computePID(void * pvParameters){
     while(1){
@@ -205,3 +216,48 @@ void debugTask(void * pvParameters){
 }
 #endif
 
+void serviceGasCards(void * pvParameters){
+
+    //Check if init has been run here?
+
+    while(1){
+        // vTaskDelay(calculateNextDelay() / portTICK_PERIOD_MS);
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
+        stateMachine.sampleGasCards();
+    }
+}
+
+uint32_t calculateNextDelay() {
+    // Get the current time
+    time_t now;
+    time(&now);
+    struct tm *now_tm = localtime(&now);
+
+    USBSerial.printf("Current time: %s", asctime(now_tm));
+
+    // Define the three fixed times
+    struct tm fixedTimes[3];
+    for (int i = 0; i < 3; i++) {
+        fixedTimes[i] = *now_tm; // copy current time structure
+    }
+    fixedTimes[0].tm_hour = 8;  fixedTimes[0].tm_min = 0;  fixedTimes[0].tm_sec = 0;
+    fixedTimes[1].tm_hour = 14; fixedTimes[1].tm_min = 0;  fixedTimes[1].tm_sec = 0;
+    fixedTimes[2].tm_hour = 20; fixedTimes[2].tm_min = 0;  fixedTimes[2].tm_sec = 0;
+
+    // Calculate the delay for the next run
+    uint32_t delay = UINT32_MAX;
+    for (int i = 0; i < 3; i++) {
+        time_t fixedTime = mktime(&fixedTimes[i]);
+        if (fixedTime < now) {
+            fixedTime += 24 * 60 * 60; // add 24 hours if the time has passed today
+        }
+        uint32_t diff = (fixedTime - now) * 1000; // convert to milliseconds
+        USBSerial.printf("Fixed time %d in %d seconds\n", i, diff / 1000);
+        if (diff < delay) {
+            delay = diff;
+        }
+    }
+
+    USBSerial.printf("Next run in %d seconds\n", delay / 1000);
+    return delay / portTICK_PERIOD_MS; // convert to ticks
+}
