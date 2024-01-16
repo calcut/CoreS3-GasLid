@@ -6,7 +6,6 @@
 #include <QuickPID.h>
 #include <unordered_map>
 
-
 class StateMachine {
 public:
 
@@ -35,18 +34,18 @@ public:
     float* defrostSensor;
     float* flexStoreSensor;
 
-    std::unordered_map<std::string, float> envVars = {
-        {"demandThreshold", 0.0},
-        {"demandHysteresis", 1.0},
-        {"defrostThreshold", 5.0},
-        {"flexStoreLow", 20.0},
-        {"flexStoreHigh", 30.0},
-        {"compressorSpeedIdle", 20.0},
-        {"fanSpeedEnabled", 50.0},
-        {"defrostInterval_s", 60},
-        {"compressorPID_P", 0.1},
-        {"compressorPID_I", 0.0},
-        {"compressorPID_D", 0.0}
+    std::unordered_map<std::string, int> envVars = {
+        {"gasPurgeTime_s", 10},
+        {"gasPumpTime_s", 10},
+        {"gasPumpSpeed_pc", 50},
+        {"gasSampleChannels", 4},
+        {"sampleTime1_hour", 12},
+        {"sampleTime1_minute", 12},
+        {"sampleTime2_hour", 12},
+        {"sampleTime2_minute", 12},
+        {"sampleTime3_hour", 12},
+        {"sampleTime3_minute", 12},
+        
     };
 
     // This will be equal to either flexStoreLow or flexStoreHigh

@@ -1,5 +1,7 @@
 #include "state_machine.h"
 
+#define TAG "SM"
+
 StateMachine stateMachine;
 
 void StateMachine::tunePID(void){
@@ -9,7 +11,7 @@ void StateMachine::tunePID(void){
 }
 
 void StateMachine::init(void){
-    Serial.println("Init state machine");
+    ESP_LOGI(TAG, "Init state machine");
 
     inputs.init();
     vTaskDelay(20 / portTICK_PERIOD_MS);
@@ -39,55 +41,57 @@ void StateMachine::init(void){
 
 void StateMachine::run(void){
 
-    Serial.println("Running state machine");
+    ESP_LOGI(TAG, "Running state machine");
 
     inputs.pollSensorData();
     // inputs.pollPhysicalControls();
-    // Serial.printf("Compressor PID input = %f\n", *compressorPIDinput);
-    // Serial.printf("Compressor PID setpoint = %f\n", *compressorPIDsetpoint);
+    // ESP_LOGI(TAG, "Compressor PID input = %f", *compressorPIDinput);
+    // ESP_LOGI(TAG, "Compressor PID setpoint = %f", *compressorPIDsetpoint);
     // stateMachine.compressorPID->Compute();
-    // Serial.printf("Compressor PID output = %f\n", compressorPIDoutput);
+    // ESP_LOGI(TAG, "Compressor PID output = %f", compressorPIDoutput);
 
 }
 
 
 void StateMachine::sampleGasCards(){
 
-    Serial.printf("Gas Card Sample Sequence starting...\n");
+    ESP_LOGI(TAG, "Gas Card Sample Sequence starting...");
 
-    for (int i = 0; i <= 3; i++){
-        Serial.printf("Opening valves %d\n", i);
+    int pumpTime_s = envVars["gasPumpTime_s"];
+    int purgeTime_s = envVars["gasPurgeTime_s"];
+    int pumpSpeed_pc = envVars["gasPumpSpeed_pc"];
+    int sampleChannels = envVars["gasSampleChannels"];
+
+
+    for (int i = 0; i < sampleChannels; i++){
+        ESP_LOGI(TAG, "Opening valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::OPEN);
         outputs.setReturnValve(i, outputs.ValveState::OPEN);
         
-        Serial.printf("Running pump %d\n", i);
-        outputs.setGasPumpSpeed(50);
+        ESP_LOGI(TAG, "Running pump at %d%% for %d seconds", pumpSpeed_pc, pumpTime_s);
+        outputs.setGasPumpSpeed(pumpSpeed_pc);
+        vTaskDelay(pumpTime_s*1000 / portTICK_PERIOD_MS);
 
-
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-
-        Serial.printf("Sampling gas cards now %d\n", i);
+        ESP_LOGI(TAG, "Sampling gas cards now %d", i);
         //Actually do it here
 
         outputs.setGasPumpSpeed(0);
-        Serial.printf("Closing valves %d\n", i);
+        ESP_LOGI(TAG, "Closing valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::CLOSED);
         outputs.setReturnValve(i, outputs.ValveState::CLOSED);
 
-        Serial.printf("Purging for 2s\n", i);
+        ESP_LOGI(TAG, "Purging at %d%% for %d seconds", pumpSpeed_pc, purgeTime_s);
         outputs.setFlowValve(4, outputs.ValveState::OPEN);
         outputs.setReturnValve(4, outputs.ValveState::OPEN);
-        outputs.setGasPumpSpeed(50);
-
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
-
-
+        outputs.setGasPumpSpeed(pumpSpeed_pc);
+        vTaskDelay(purgeTime_s*1000 / portTICK_PERIOD_MS);
         outputs.setGasPumpSpeed(0);
         outputs.setFlowValve(4, outputs.ValveState::CLOSED);
         outputs.setReturnValve(4, outputs.ValveState::CLOSED);
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-        Serial.printf("Purge Complete %d\n", i);
+
+        ESP_LOGI(TAG, "Purge Complete");
     }
 }
+
 
 
