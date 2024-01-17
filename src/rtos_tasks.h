@@ -2,7 +2,6 @@
 #define RTOS_TASKS_H
 
 #include "config.h"
-#include "hal_coreS3.h"
 #include "state_machine.h"
 #include "esp_log.h"
 

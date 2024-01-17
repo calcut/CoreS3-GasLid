@@ -1,5 +1,6 @@
 #include "notecard_manager.h"
 
+
 NotecardManager notecardManager;
 
 
