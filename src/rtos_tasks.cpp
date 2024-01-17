@@ -2,6 +2,7 @@
 
 SemaphoreHandle_t nc_mutex = xSemaphoreCreateMutex();
 SemaphoreHandle_t modbus_mutex = xSemaphoreCreateMutex();
+SemaphoreHandle_t alarmSemaphore = xSemaphoreCreateBinary();
 
 void setupRtos(void){
 
@@ -228,43 +229,53 @@ void serviceGasCards(void * pvParameters){
     //Check if init has been run here?
 
     while(1){
-        // vTaskDelay(calculateNextDelay() / portTICK_PERIOD_MS);
-        vTaskDelay(10000 / portTICK_PERIOD_MS);
+        vTaskDelay(calculateNextAlarm() / portTICK_PERIOD_MS);
+        // vTaskDelay(10000 / portTICK_PERIOD_MS);
         stateMachine.sampleGasCards();
     }
 }
 
-uint32_t calculateNextDelay() {
+uint32_t calculateNextAlarm() {
     // Get the current time
     time_t now;
     time(&now);
     struct tm *now_tm = localtime(&now);
+    char logbuf[80];
 
-    Serial.printf("Current time: %s", asctime(now_tm));
+    ESP_LOGD("RTOS", "Current time: %s", asctime(now_tm));
 
     // Define the three fixed times
-    struct tm fixedTimes[3];
+    struct tm alarmTimes[3];
     for (int i = 0; i < 3; i++) {
-        fixedTimes[i] = *now_tm; // copy current time structure
+        alarmTimes[i] = *now_tm; // copy current time structure
     }
-    fixedTimes[0].tm_hour = 8;  fixedTimes[0].tm_min = 0;  fixedTimes[0].tm_sec = 0;
-    fixedTimes[1].tm_hour = 14; fixedTimes[1].tm_min = 0;  fixedTimes[1].tm_sec = 0;
-    fixedTimes[2].tm_hour = 20; fixedTimes[2].tm_min = 0;  fixedTimes[2].tm_sec = 0;
+    alarmTimes[0].tm_hour = stateMachine.envVars["sampleTime1_hour"];
+    alarmTimes[0].tm_min = stateMachine.envVars["sampleTime1_min"];
+    alarmTimes[0].tm_sec = 0;
+
+    alarmTimes[1].tm_hour = stateMachine.envVars["sampleTime2_hour"];
+    alarmTimes[1].tm_min = stateMachine.envVars["sampleTime2_min"];
+    alarmTimes[1].tm_sec = 0;
+
+    alarmTimes[2].tm_hour = stateMachine.envVars["sampleTime3_hour"];
+    alarmTimes[2].tm_min = stateMachine.envVars["sampleTime3_min"];
+    alarmTimes[2].tm_sec = 0;
 
     // Calculate the delay for the next run
     uint32_t delay = UINT32_MAX;
     for (int i = 0; i < 3; i++) {
-        time_t fixedTime = mktime(&fixedTimes[i]);
-        if (fixedTime < now) {
-            fixedTime += 24 * 60 * 60; // add 24 hours if the time has passed today
+        time_t alarmTime = mktime(&alarmTimes[i]);
+        if (alarmTime < now) {
+            alarmTime += 24 * 60 * 60; // add 24 hours if the time has passed today
         }
-        uint32_t diff = (fixedTime - now) * 1000; // convert to milliseconds
-        Serial.printf("Fixed time %d in %d seconds\n", i, diff / 1000);
+        uint32_t diff = (alarmTime - now) * 1000; // convert to milliseconds
+        ESP_LOGD("RTOS", "Alarm time %d in %d seconds", i, diff / 1000);
         if (diff < delay) {
             delay = diff;
+            strftime(logbuf, sizeof(logbuf), "%H:%M", localtime(&alarmTime));
+            
         }
     }
-
-    Serial.printf("Next run in %d seconds\n", delay / 1000);
-    return delay / portTICK_PERIOD_MS; // convert to ticks
+    ESP_LOGI("RTOS", "Next gas sample at %s (in %d seconds)", logbuf, delay/1000);
+    return delay;
 }

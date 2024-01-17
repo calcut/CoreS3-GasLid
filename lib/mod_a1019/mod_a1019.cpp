@@ -94,7 +94,7 @@ void Mod_a1019::getType(){
 }
 
 void Mod_a1019::init(){
-    ESP_LOGI(TAG, "\n**** Mod_a1019 init ****");
+    ESP_LOGI(TAG, "**** Mod_a1019 init ****");
 
     if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                                 MODULE_NAME_ADDR, 1)) {

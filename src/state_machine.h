@@ -40,11 +40,11 @@ public:
         {"gasPumpSpeed_pc", 50},
         {"gasSampleChannels", 4},
         {"sampleTime1_hour", 12},
-        {"sampleTime1_minute", 12},
-        {"sampleTime2_hour", 12},
-        {"sampleTime2_minute", 12},
-        {"sampleTime3_hour", 12},
-        {"sampleTime3_minute", 12},
+        {"sampleTime1_min", 0},
+        {"sampleTime2_hour", 13},
+        {"sampleTime2_min", 30},
+        {"sampleTime3_hour", 15},
+        {"sampleTime3_min", 0},
         
     };
 
