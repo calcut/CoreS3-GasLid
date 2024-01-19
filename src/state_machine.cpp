@@ -13,9 +13,8 @@ void StateMachine::tunePID(void){
 void StateMachine::init(void){
     ESP_LOGI(TAG, "Init state machine");
 
-    inputs.init();
     vTaskDelay(20 / portTICK_PERIOD_MS);
-    outputs.init();
+    // outputs.init();
 
     // demandSensor = &inputs.temperatureData["Tw2_DHWFlow"];
     // defrostSensor = &inputs.temperatureData["Ta1_EvaporatorIn"];

@@ -4,15 +4,28 @@
 #include <M5Unified.h>
 #include "config.h"
 
+#include "input_data.h"
+
 #include <FFat.h>
 #include <Wire.h>
 #include <ArduinoModbus.h>
+
+// OUTPUTS
 #include <Adafruit_MotorShield.h>
 #include <SparkFun_Qwiic_Relay.h>
+
+// INPUTS
+#include "mod_a1019.h"  //Temperature sensors
+#include "mod_sdm120.h" //Power meter
+#include "SparkFun_TCA9534.h" //GPIO Expander for physical Controls
+#include <driver/pcnt.h> //ESP32 Pulse counter
 
 #ifndef TERMINAL_LOG_LENGTH
 #define TERMINAL_LOG_LENGTH 512
 #endif
+
+#define JACKET_HEATER_RELAY 1
+#define WATER_PUMP_RELAY 2
 
 // Sets up I2C, Serial, Display etc
 void hal_setup(void);
@@ -31,14 +44,17 @@ public:
         OPEN = 1,
         CLOSED = 0
     };
-    Qwiic_Relay quadRelay = Qwiic_Relay(0x6C); // Alternate address 0x6C
 
     void init();
     void setFlowValve(int index, bool ValveState);
     void setReturnValve(int index, bool ValveState);
     void setGasPumpSpeed(float percent);
+    void enableJacketHeater(bool enable);
+    void enableWaterPump(bool enable);
 
 private:
+    Qwiic_Relay quadRelay = Qwiic_Relay(0x6C); // Alternate address 0x6C
+
     Adafruit_MotorShield MS1 = Adafruit_MotorShield(0x6F);
     Adafruit_MotorShield MS2 = Adafruit_MotorShield(0x6E);
     Adafruit_MotorShield MS3 = Adafruit_MotorShield(0x6D);
@@ -65,6 +81,27 @@ private:
 
 };
 extern Outputs outputs;
+
+class Inputs {
+public:
+
+    void init(void);
+    void serviceFlowMeters(void);
+    void pollSensorData(void);
+    void pollPhysicalControls(void);
+
+private:
+    void initFlowMeters(int pin);
+    TCA9534 gpioExpander;
+    Mod_a1019 mod_a1019;
+    Mod_sdm120 mod_sdm120;
+
+    int previousPulseCount = 0;
+    int previousPulseTime = 0;
+    int16_t counterVal;
+    int flowPPS;
+};
+extern Inputs inputs;
 
 
 class SerialDisplay : public HWCDC

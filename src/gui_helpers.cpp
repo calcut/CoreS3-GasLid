@@ -209,7 +209,7 @@ void display_sensor_info(lv_timer_t * timer){
         // loop over all ui_Label2_valueX objects and update with new values
         char* key;
         int i = 0;
-        for (auto& keyval : inputs.temperatureData) {
+        for (auto& keyval : inputData.temperatureData) {
             key = const_cast<char*>(keyval.first.c_str());
             sprintf(text_buffer, "%0.1f C", keyval.second);
             lv_label_set_text(tc_values[i], text_buffer);

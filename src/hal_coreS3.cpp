@@ -2,6 +2,8 @@
 
 RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, -1, -1);
 Outputs outputs;
+Inputs inputs;
+InputData inputData;
 
 // RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, PIN_DE_RS485, -1);
 
@@ -44,7 +46,7 @@ void hal_setup(void){
     ESP_LOGI("HAL", "Info message");
     ESP_LOGD("HAL", "Debug message");
 
-
+    outputs.init();
 
 
     ESP_LOGI("HAL", "hal_setup complete");
@@ -100,7 +102,138 @@ void Outputs::setGasPumpSpeed(float percent) {
     gasPump[0]->run(FORWARD);
 }
 
+void Outputs::enableJacketHeater(bool enable) {
+    quadRelay.turnRelayOn(JACKET_HEATER_RELAY);
+}
 
+void Outputs::enableWaterPump(bool enable) {
+    quadRelay.turnRelayOn(WATER_PUMP_RELAY);
+}
+
+
+void Inputs::init(void){
+
+    ESP_LOGI("HAL", "**** Mod_a1019 init ****");
+    
+    vTaskDelay(20 / portTICK_PERIOD_MS);
+    mod_a1019.init();
+    mod_a1019.setType(0, Mod_a1019::TYPE_THERMOCOUPLE_K);
+    mod_a1019.setType(1, Mod_a1019::TYPE_THERMOCOUPLE_K);
+    mod_a1019.setType(2, Mod_a1019::TYPE_THERMOCOUPLE_K);
+    mod_a1019.setType(3, Mod_a1019::TYPE_THERMOCOUPLE_K);
+    mod_a1019.setType(4, Mod_a1019::TYPE_THERMOCOUPLE_K);
+    mod_a1019.setType(5, Mod_a1019::TYPE_0_20MA);
+    mod_a1019.setType(6, Mod_a1019::TYPE_0_20MA);
+    mod_a1019.setType(7, Mod_a1019::TYPE_0_20MA);
+    mod_a1019.getType();
+    vTaskDelay(20 / portTICK_PERIOD_MS);
+
+    initFlowMeters(PIN_PULSE_COUNT);
+
+    ESP_LOGI("HAL", "Inputs init complete");
+
+    // if (gpioExpander.begin() == false) {
+    //     Serial.println("Check Connections. No I2C GPIO Expander detected.");
+    // }
+
+    // bool pinModes[8] = {GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN};
+    // gpioExpander.pinMode(pinModes);
+}
+
+void Inputs::initFlowMeters(int pin){
+    ESP_LOGI("HAL", "Init Flow Meters");
+
+    pcnt_config_t pcntCh1 = {
+        .pulse_gpio_num = pin,
+        .ctrl_gpio_num = PCNT_PIN_NOT_USED,
+        .lctrl_mode = PCNT_MODE_KEEP,
+        .hctrl_mode = PCNT_MODE_KEEP,
+        .pos_mode = PCNT_COUNT_DIS,
+        .neg_mode = PCNT_COUNT_INC,
+        .counter_h_lim = 32767,
+        .counter_l_lim = -32768,
+        .unit = PCNT_UNIT_0,
+        .channel = PCNT_CHANNEL_0,
+    };
+    pcnt_unit_config(&pcntCh1);
+    pcnt_counter_clear(PCNT_UNIT_0);
+    ESP_LOGI("HAL", "Flow meter initialised on pin %d\n", pin);
+}
+
+void Inputs::serviceFlowMeters(void){
+
+    pcnt_get_counter_value(PCNT_UNIT_0, &counterVal);
+
+    if (millis() - previousPulseTime != 0){
+        flowPPS = ((counterVal - previousPulseCount)*1000)/(millis() - previousPulseTime);
+        inputData.flowData["WaterFlow"] = flowPPS * 60 / 4600; //4600 pulses per litre
+    }
+
+    previousPulseCount = counterVal;
+    previousPulseTime = millis();
+    
+}
+
+void Inputs::pollPhysicalControls(void){
+
+    Serial.print("Polling physical controls\n");
+
+    bool gpioStatus[8];
+    uint8_t gpioval;
+    gpioval = gpioExpander.digitalReadPort(gpioStatus);
+
+    Serial.println(gpioval, BIN);
+    // if (gpioStatus[1] == 1){
+    //     physicalControls.handOffAuto = AUTO;
+    // }
+    // else if (gpioStatus[0] == 1){
+    //     physicalControls.handOffAuto = HAND;
+    // }
+    // else {
+    //     physicalControls.handOffAuto = OFF;
+    // }
+
+    // if (gpioStatus[7] == 1){
+    //     physicalControls.manualState = DISCHARGING;
+    // }
+    // else if (gpioStatus[6] == 1){
+    //     physicalControls.manualState = DEFROST;
+    // }
+    // else {
+    //     physicalControls.manualState = CHARGING;
+    // }
+
+    // Serial.printf("HandOffAuto: %i, ManualState: %i\n", physicalControls.handOffAuto, physicalControls.manualState);
+    // physicalControls.handOffAuto = HAND;
+    // physicalControls.manualState = CHARGING;
+}
+
+void Inputs::pollSensorData(void){
+    ESP_LOGD("HAL", "Polling Sensor Data (needs fixed)");
+
+    float tc[8];
+    float voltage;
+    mod_a1019.readTC_float(tc);
+    // Delay seems to be needed to prevent Modbus errors
+    vTaskDelay(20 / portTICK_PERIOD_MS);
+
+    inputData.temperatureData["Tc1"]    = 0.1;
+    inputData.temperatureData["Tc2"]    = 0.1;
+    inputData.temperatureData["Tc3"]    = 0.1;
+    inputData.temperatureData["Tc4"]    = 0.1;
+    inputData.temperatureData["Tc5"]    = 0.1;
+    inputData.pressureData["Pr1"]       = 0.2;
+    inputData.pressureData["Pr2"]       = 0.2;
+    inputData.pressureData["Pr3"]       = 0.2;
+    inputData.pressureData["Pr4"]       = 0.2;
+    inputData.flowData["WaterFlow"]     = 0.3;
+    inputData.flowData["GasFlow"]       = 0.3;
+    inputData.powerData["Power"]        = 0.4;
+    inputData.powerData["Energy"]       = 0.4;
+    inputData.gasData["CH4"]            = 0.5;
+    inputData.gasData["CO2"]            = 0.5;
+    inputData.gasData["N2O"]            = 0.5;
+}
 
 void setSystemTime(){
     //To set the system time from the on-board RTC chip

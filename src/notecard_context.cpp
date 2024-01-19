@@ -37,10 +37,10 @@ void sendSensorData(void){
 
     J *body = JCreateObject();
 
-    JAddFloatMapToObject(body, inputs.temperatureData);
-    JAddFloatMapToObject(body, inputs.pressureData);
-    JAddFloatMapToObject(body, inputs.flowData);
-    JAddFloatMapToObject(body, inputs.powerData);
+    JAddFloatMapToObject(body, inputData.temperatureData);
+    JAddFloatMapToObject(body, inputData.pressureData);
+    JAddFloatMapToObject(body, inputData.flowData);
+    JAddFloatMapToObject(body, inputData.powerData);
 
     JAddItemToObject(req, "body", body);
     NoteRequest(req);

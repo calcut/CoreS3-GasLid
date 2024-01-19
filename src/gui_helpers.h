@@ -8,7 +8,11 @@
 
 #include "notecard_manager.h"
 #include "state_machine.h"
-#include "hal_coreS3.h" //for serialDisplay
+#ifdef WOKWI
+#include "hal_wokwi.h"
+#else
+#include "hal_coreS3.h"
+#endif //for serialDisplay
 
 void setupGui(void);
 void display_notecard_info(lv_timer_t * timer);

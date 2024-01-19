@@ -13,7 +13,7 @@ void setupRtos(void){
     esp_log_level_set("OUT", ESP_LOG_DEBUG);
     esp_log_level_set("a1019", ESP_LOG_INFO);
 
-#ifndef WOKWI
+
     xTaskCreate(
         runStateMachine, // task function
         "State Machine", // task name
@@ -22,6 +22,7 @@ void setupRtos(void){
         1, // priority
         NULL); // out pointer to task handle
 
+
     xTaskCreate(
         serviceGasCards, // task function
         "Service Gas Cards", // task name
@@ -29,7 +30,6 @@ void setupRtos(void){
         NULL, // pointer to parameters
         1, // priority
         NULL); // out pointer to task handle
-#endif
 
     // xTaskCreate(
     //     readFlowMeters, // task function
@@ -104,7 +104,6 @@ void computePID(void * pvParameters){
 
 void readFlowMeters(void *pvParameters)
 {
-    inputs.initFlowMeters(PIN_PULSE_COUNT);   
     while (1)
     {
         inputs.serviceFlowMeters();
@@ -199,7 +198,6 @@ void timeSyncNotecard(void * pvParameters){
 #ifdef DEBUG
 void debugTask(void * pvParameters){
 
-    // outputs.init();
     while(1){
         // if (db_vars.enabled == true){
         //     compressorPID->Compute();

@@ -1,8 +1,11 @@
 #ifndef STATE_MACHINE_H
 #define STATE_MACHINE_H
 
+#ifdef WOKWI
+#include "hal_wokwi.h"
+#else
 #include "hal_coreS3.h"
-#include "inputs.h"
+#endif
 #include <QuickPID.h>
 #include <unordered_map>
 
