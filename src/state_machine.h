@@ -1,7 +1,7 @@
 #ifndef STATE_MACHINE_H
 #define STATE_MACHINE_H
 
-#include "outputs.h"
+#include "hal_coreS3.h"
 #include "inputs.h"
 #include <QuickPID.h>
 #include <unordered_map>

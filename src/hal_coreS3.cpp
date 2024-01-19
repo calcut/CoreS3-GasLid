@@ -1,6 +1,8 @@
 #include "hal_coreS3.h"
 
 RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, -1, -1);
+Outputs outputs;
+
 // RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, PIN_DE_RS485, -1);
 
 void hal_setup(void){
@@ -42,9 +44,63 @@ void hal_setup(void){
     ESP_LOGI("HAL", "Info message");
     ESP_LOGD("HAL", "Debug message");
 
+
+
+
     ESP_LOGI("HAL", "hal_setup complete");
 
 };
+
+void Outputs::init() {
+    ESP_LOGI("HAL", "Outputs init");
+
+    if (!MS1.begin()) {         // create with the default frequency 1.6KHz
+        // if (!MS1.begin(1000)) {  // OR with a different frequency, say 1KHz
+        Serial.println("Could not find Motor Shield 1. Check wiring.");
+    }
+    else Serial.println("Motor Shield 1 found.");
+
+    if (!MS2.begin()) {         // create with the default frequency 1.6KHz
+    Serial.println("Could not find Motor Shield 2. Check wiring.");
+    }
+    else Serial.println("Motor Shield 2 found.");
+
+    if (!MS3.begin()) {         // create with the default frequency 1.6KHz
+    Serial.println("Could not find Motor Shield 3. Check wiring.");
+    }
+    else Serial.println("Motor Shield 3 found.");
+
+    setFlowValve(0, ValveState::CLOSED);
+    setFlowValve(1, ValveState::CLOSED);
+    setFlowValve(2, ValveState::CLOSED);
+    setFlowValve(3, ValveState::CLOSED);
+    setFlowValve(4, ValveState::CLOSED);
+    setGasPumpSpeed(0);
+
+    if(!quadRelay.begin())
+    Serial.println("Could not find Qwiic Relay. Check wiring.");
+    else
+    Serial.println("Qwiic Relay Found.");
+
+    quadRelay.turnAllRelaysOff(); 
+}
+
+void Outputs::setFlowValve(int index, bool ValveState) {
+    flowValves[index]->setSpeed(255);
+    flowValves[index]->run(ValveState ? FORWARD : RELEASE);
+}
+
+void Outputs::setReturnValve(int index, bool ValveState) {
+    returnValves[index]->setSpeed(255);
+    returnValves[index]->run(ValveState ? FORWARD : RELEASE);
+}
+
+void Outputs::setGasPumpSpeed(float percent) {
+    gasPump[0]->setSpeed(percent * 255);
+    gasPump[0]->run(FORWARD);
+}
+
+
 
 void setSystemTime(){
     //To set the system time from the on-board RTC chip
