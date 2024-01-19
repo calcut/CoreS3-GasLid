@@ -1,4 +1,4 @@
 [wokwi]
 version = 1
-firmware = './.pio/build/ESP32-S3-DevKitC-1/firmware.bin'
-elf = '/.pio/build/ESP32-S3-DevKitC-1/firmware.elf'
+firmware = './.pio/build/wokwi/firmware.bin'
+elf = '/.pio/build/wokwi/firmware.elf'
