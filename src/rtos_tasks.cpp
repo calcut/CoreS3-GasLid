@@ -13,6 +13,7 @@ void setupRtos(void){
     esp_log_level_set("OUT", ESP_LOG_DEBUG);
     esp_log_level_set("a1019", ESP_LOG_INFO);
 
+#ifndef WOKWI
     xTaskCreate(
         runStateMachine, // task function
         "State Machine", // task name
@@ -28,6 +29,7 @@ void setupRtos(void){
         NULL, // pointer to parameters
         1, // priority
         NULL); // out pointer to task handle
+#endif
 
     // xTaskCreate(
     //     readFlowMeters, // task function
