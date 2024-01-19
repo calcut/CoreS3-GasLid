@@ -64,7 +64,12 @@ void Outputs::enableWaterPump(bool enable) {
 }
 
 void Inputs::init(void){
-    ESP_LOGI("HAL", "Inputs init complete");
+    ESP_LOGI("HAL", "Inputs init");
+    pinMode(11, INPUT);
+    pinMode(12, INPUT);
+    pinMode(13, INPUT);
+    pinMode(14, INPUT);
+
 }
 
 void Inputs::serviceFlowMeters(void){
@@ -73,6 +78,15 @@ void Inputs::serviceFlowMeters(void){
 
 void Inputs::pollSensorData(void){
     ESP_LOGD("HAL", "Polling Sensor Data (Simulated)");
+
+    int mintemp = 0;
+    int maxtemp = 50;
+
+    float in1 = analogRead(11)/4095.0*(maxtemp-mintemp)+mintemp;
+    float in2 = analogRead(12)/4095.0*(maxtemp-mintemp)+mintemp;
+    float in3 = analogRead(13)/4095.0*(maxtemp-mintemp)+mintemp;
+    float in4 = analogRead(14)/4095.0*(maxtemp-mintemp)+mintemp;
+    ESP_LOGW("HAL", "AnalogRead = %f %f %f %f", in1, in2, in3, in4);
 
     inputData.temperatureData["Tc1"]    = 0.1;
     inputData.temperatureData["Tc2"]    = 0.1;
