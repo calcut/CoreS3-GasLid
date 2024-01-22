@@ -4,6 +4,7 @@ RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, -1, -1);
 Outputs outputs;
 Inputs inputs;
 InputData inputData;
+RTC_DS1307 rtc;
 
 void hal_setup(void){
     Serial.begin(115200);
@@ -25,6 +26,16 @@ void hal_setup(void){
     ESP_LOGW("HAL", "Warning message");
     ESP_LOGI("HAL", "Info message");
     ESP_LOGD("HAL", "Debug message");
+
+    if (! rtc.begin()) {
+        ESP_LOGE("HAL", "Couldn't find RTC");
+    }
+    else{
+        ESP_LOGD("HAL", "RTC found");
+    }
+
+
+    setSystemTime();
 
     inputs.init();
     outputs.init();
@@ -96,7 +107,7 @@ void Outputs::enableJacketHeater(bool enable) {
 
 void Outputs::enableWaterPump(bool enable) {
     ESP_LOGI("HAL", "enableWaterPump %d", enable);
-    digitalWrite(41, enable);
+    digitalWrite(39, enable);
 }
 
 void Inputs::init(void){
@@ -144,6 +155,20 @@ void Inputs::pollSensorData(void){
 
 void Inputs::pollPhysicalControls(void){
     // ESP_LOGD("HAL", "pollPhysicalControls");
+}
+
+void setSystemTime(){
+    //To set the system time from the simulated Wokwi RTC chip
+
+    DateTime now = rtc.now();
+
+    struct timeval tv;
+    tv.tv_sec = now.unixtime();
+    tv.tv_usec = 0;
+
+    ESP_LOGI("HAL", "Setting sys time to %02d:%02d:%02d\n", now.hour(), now.minute(), now.second());
+
+    settimeofday(&tv, NULL);
 }
 
 size_t SerialDisplay::write(const uint8_t *buffer, size_t size){

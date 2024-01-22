@@ -5,11 +5,13 @@
 #include "config.h"
 #include <ArduinoModbus.h>
 #include <Wire.h>
+#include "RTClib.h"
 
 #include "input_data.h"
 
 // Sets up I2C, Serial, Display etc
 void hal_setup(void);
+void setSystemTime(void);
 
 class Outputs {
 public:
