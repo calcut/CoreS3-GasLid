@@ -4,20 +4,21 @@
   "editor": "wokwi",
   "parts": [
     { "type": "board-esp32-s3-devkitc-1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
-    { "type": "wokwi-relay-module", "id": "relay1", "top": -28.6, "left": 259.2, "attrs": {} },
+    { "type": "wokwi-relay-module", "id": "relay1", "top": -9.4, "left": 278.4, "attrs": {} },
     { "type": "wokwi-relay-module", "id": "relay2", "top": 67.4, "left": 278.4, "attrs": {} },
+    { "type": "wokwi-led", "id": "led1", "top": -90, "left": 272.6, "attrs": { "color": "red" } },
     {
-      "type": "wokwi-led",
-      "id": "led1",
-      "top": -118.8,
-      "left": 205.4,
-      "attrs": { "color": "red" }
+      "type": "wokwi-text",
+      "id": "text1",
+      "top": 67.2,
+      "left": -393.6,
+      "attrs": { "text": "Tc1" }
     },
     {
       "type": "wokwi-resistor",
       "id": "r1",
-      "top": 3.95,
-      "left": 201.6,
+      "top": 24,
+      "left": 95.45,
       "rotate": 90,
       "attrs": { "value": "1000" }
     },
@@ -54,14 +55,91 @@
       "top": 283.4,
       "left": -327.4,
       "attrs": { "travelLength": "30" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text2",
+      "top": 153.6,
+      "left": -393.6,
+      "attrs": { "text": "Tc2" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text3",
+      "top": 240,
+      "left": -393.6,
+      "attrs": { "text": "Tc3" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text4",
+      "top": 316.8,
+      "left": -393.6,
+      "attrs": { "text": "Tc4" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text5",
+      "top": 480,
+      "left": 355.2,
+      "attrs": { "text": "Valve0" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text6",
+      "top": 412.8,
+      "left": 355.2,
+      "attrs": { "text": "Valve1" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text7",
+      "top": 345.6,
+      "left": 355.2,
+      "attrs": { "text": "Valve2" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text8",
+      "top": 278.4,
+      "left": 355.2,
+      "attrs": { "text": "Valve3" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text9",
+      "top": 211.2,
+      "left": 355.2,
+      "attrs": { "text": "Valve4" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text10",
+      "top": -67.2,
+      "left": 316.8,
+      "attrs": { "text": "Gas Pump" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text11",
+      "top": 86.4,
+      "left": 422.4,
+      "attrs": { "text": "Water Pump" }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "text12",
+      "top": 9.6,
+      "left": 422.4,
+      "attrs": { "text": "Heated Jacket" }
     }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
     [ "esp:RX", "$serialMonitor:TX", "", [] ],
-    [ "esp:GND.2", "led1:C", "black", [ "v-0.18", "h128.97" ] ],
-    [ "r1:1", "led1:A", "green", [ "h0" ] ],
-    [ "esp:40", "relay1:IN", "green", [ "h0" ] ],
+    [ "esp:GND.2", "led1:C", "black", [ "h23.77", "v-67.38", "h172.4" ] ],
+    [ "r1:1", "led1:A", "green", [ "v-28.8", "h67.2" ] ],
+    [ "esp:40", "relay1:IN", "green", [ "h167.77", "v-67.18" ] ],
     [ "relay7:IN", "esp:19", "green", [ "h-105.6", "v-278.42" ] ],
     [ "relay6:IN", "esp:20", "green", [ "h-86.4", "v-220.82" ] ],
     [ "relay5:IN", "esp:21", "green", [ "h-67.2", "v-163.22" ] ],

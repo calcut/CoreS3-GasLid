@@ -205,12 +205,12 @@ void debugTask(void * pvParameters){
         // }
         ESP_LOGD("RTOS", "5 second debug print %d", millis());
 
-        outputs.setGasPumpSpeed(100);
-        outputs.setFlowValve(0, outputs.ValveState::OPEN);
-        outputs.setFlowValve(2, outputs.ValveState::OPEN);
-        outputs.setFlowValve(4, outputs.ValveState::OPEN);
-        outputs.enableJacketHeater(true);
-        outputs.enableWaterPump(true);
+        // outputs.setGasPumpSpeed(100);
+        // outputs.setFlowValve(0, outputs.ValveState::OPEN);
+        // outputs.setFlowValve(2, outputs.ValveState::OPEN);
+        // outputs.setFlowValve(4, outputs.ValveState::OPEN);
+        // outputs.enableJacketHeater(true);
+        // outputs.enableWaterPump(true);
         // bool relays[16];
         // outputs.mod_16RO.getRelays(relays);
         // // relays[0] = !relays[0];
