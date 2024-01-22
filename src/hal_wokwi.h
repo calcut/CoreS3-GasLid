@@ -4,6 +4,7 @@
 #include <M5Unified.h>
 #include "config.h"
 #include <ArduinoModbus.h>
+#include <Wire.h>
 
 #include "input_data.h"
 

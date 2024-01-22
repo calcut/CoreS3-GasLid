@@ -14,6 +14,8 @@ void hal_setup(void){
     Serial.println("USB Serial Started");
     #endif
 
+    Wire.begin(2, 1, 400000);  //Init I2C_EXT
+
     Serial.println("Setting log levels");
     esp_log_level_set("*", ESP_LOG_WARN);
     esp_log_level_set("HAL", ESP_LOG_DEBUG);
@@ -32,6 +34,16 @@ void hal_setup(void){
 };
 
 void Outputs::init() {
+
+    pinMode(19, OUTPUT);
+    pinMode(20, OUTPUT);
+    pinMode(21, OUTPUT);
+    pinMode(47, OUTPUT);
+    pinMode(48, OUTPUT);
+    pinMode(39, OUTPUT);
+    pinMode(40, OUTPUT);
+    pinMode(41, OUTPUT);
+
     
     setFlowValve(0, ValveState::CLOSED);
     setFlowValve(1, ValveState::CLOSED);
@@ -39,12 +51,33 @@ void Outputs::init() {
     setFlowValve(3, ValveState::CLOSED);
     setFlowValve(4, ValveState::CLOSED);
     setGasPumpSpeed(0);
+    enableJacketHeater(false);
+    enableWaterPump(false);
     ESP_LOGI("HAL", "Outputs init complete");
 
 }
 
 void Outputs::setFlowValve(int index, bool ValveState) {
     ESP_LOGI("HAL", "setFlowValve %d %d", index, ValveState);
+    switch (index) {
+        case 0:
+            digitalWrite(19, ValveState);
+            break;
+        case 1:
+            digitalWrite(20, ValveState);
+            break;
+        case 2:
+            digitalWrite(21, ValveState);
+            break;
+        case 3:
+            digitalWrite(47, ValveState);
+            break;
+        case 4:
+            digitalWrite(48, ValveState);
+            break;
+        default:
+            break;
+    }
 }
 
 void Outputs::setReturnValve(int index, bool ValveState) {
@@ -53,14 +86,17 @@ void Outputs::setReturnValve(int index, bool ValveState) {
 
 void Outputs::setGasPumpSpeed(float percent) {
     ESP_LOGI("HAL", "setGasPumpSpeed %f", percent);
+    analogWrite(41, percent*255);
 }
 
 void Outputs::enableJacketHeater(bool enable) {
     ESP_LOGI("HAL", "enableJacketHeater %d", enable);
+    digitalWrite(40, enable);
 }
 
 void Outputs::enableWaterPump(bool enable) {
     ESP_LOGI("HAL", "enableWaterPump %d", enable);
+    digitalWrite(41, enable);
 }
 
 void Inputs::init(void){
