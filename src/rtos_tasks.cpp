@@ -12,6 +12,7 @@ void setupRtos(void){
     esp_log_level_set("IN", ESP_LOG_DEBUG);
     esp_log_level_set("OUT", ESP_LOG_DEBUG);
     esp_log_level_set("a1019", ESP_LOG_INFO);
+    esp_log_level_set("NC-SIM", ESP_LOG_DEBUG);
 
 
     xTaskCreate(
@@ -198,35 +199,64 @@ void timeSyncNotecard(void * pvParameters){
 #ifdef DEBUG
 void debugTask(void * pvParameters){
 
+    String inputString = ""; // a string to hold incoming data
+    bool stringComplete = false; // whether the string is complete
+
     while(1){
-        // if (db_vars.enabled == true){
-        //     compressorPID->Compute();
-        //     set_compressor_speed(qo_vars.compressor_target_speed);
-        // }
-        ESP_LOGD("RTOS", "5 second debug print %d", millis());
+        // if there's any serial available, read it:
+        while (Serial.available()) {
+            char inChar = (char)Serial.read();
 
-        // outputs.setGasPumpSpeed(100);
-        // outputs.setFlowValve(0, outputs.ValveState::OPEN);
-        // outputs.setFlowValve(2, outputs.ValveState::OPEN);
-        // outputs.setFlowValve(4, outputs.ValveState::OPEN);
-        // outputs.enableJacketHeater(true);
-        // outputs.enableWaterPump(true);
-        // bool relays[16];
-        // outputs.mod_16RO.getRelays(relays);
-        // // relays[0] = !relays[0];
-        // // relays[1] = !relays[1];
-        // relays[15] = !relays[15];
-        // outputs.mod_16RO.setRelays(relays);
-        // OutputType voltagetype = OutputType::VOLTAGE;
-        // outputs.mod_8AO.setWatchdog(10000);
-        // outputs.setCompressorSpeed(50);
+            // if it's a newline, ignore it:
+            if (inChar == '\n') {
+                continue;
+            } 
+            // if it's a carriage return, mark complete:
+            else if (inChar == '\r') {
+                stringComplete = true;
+            }
+            // otherwise, add it to the input string:
+            else {
+                inputString += inChar;
+            }
 
-        // xSemaphoreTake(modbus_mutex, portMAX_DELAY);
-        // inputs.mod_a1019.init();
-        // xSemaphoreGive(modbus_mutex);
+            // if the incoming string is complete, parse it:
+            if (stringComplete) {
+                ESP_LOGD("NC-SIM", "Received: %s", inputString.c_str());
 
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
-        
+                // Check if the input string contains the '=' character
+                int equalIndex = inputString.indexOf('=');
+                if (equalIndex != -1) {
+                    ESP_LOGD("RTOS", "Parsing as envVar");
+
+                    // Extract the key and value
+                    String key_str = inputString.substring(0, equalIndex);
+                    String value_str = inputString.substring(equalIndex + 1);
+
+                    //convert the key to a char*
+                    char *key = const_cast<char*>(key_str.c_str());
+
+                    // Convert the value to a int
+                    int value = value_str.toInt();
+
+                    ESP_LOGD("NC-SIM","key=%s, value=%d\n", key, value);
+    
+                    try{
+                        stateMachine.envVars.at(key) = value;
+                        ESP_LOGW("NC-SIM", "set stateMachine.envVars[\"%s\"]=%d",
+                                        key, stateMachine.envVars.at(key));
+                    } catch(std::out_of_range& e){}
+                }
+
+                // clear the string for new input:
+                inputString = "";
+                stringComplete = false;
+            }
+
+        }
+        // ESP_LOGD("RTOS", "5 second debug print %d", millis());
+        // vTaskDelay(5000 / portTICK_PERIOD_MS);
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
 #endif
