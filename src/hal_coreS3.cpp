@@ -251,6 +251,7 @@ void setSystemTime(){
 
     struct timeval tv;
     tv.tv_sec = mktime(&time_info);
+    tv.tv_usec = 0;
     ESP_LOGI("HAL", "Setting sys time to %02d:%02d:%02d\n", dt.time.hours, dt.time.minutes, dt.time.seconds);
     settimeofday(&tv, NULL);
 }
@@ -265,7 +266,9 @@ void setRTC(time_t epoch_time, int UTC_offset_minutes){
     M5.Rtc.setDateTime(time_info);
 
     //Delay To allow the RTC chip to update, can see errors of ~+18 mins without this
-    vTaskDelay(1 / portTICK_PERIOD_MS);
+    // vTaskDelay(1 / portTICK_PERIOD_MS);
+    // Probably no longer needed due to tv.tv_usec = 0; fix
+
     setSystemTime();
 }
 
