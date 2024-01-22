@@ -12,5 +12,11 @@ void setup() {
 } 
 
 void loop() {
-    // Nothing here. All the work is done in the RTOS tasks
+// Nothing here. All the work is done in the RTOS tasks
+
+#ifdef WOKWI
+    // This gives the WOKWI simulator a chance to run
+    delay(1);
+#endif
+
 }
