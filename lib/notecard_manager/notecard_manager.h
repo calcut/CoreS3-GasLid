@@ -32,6 +32,7 @@ class NotecardManager {
         void setDefaultEnvironmentVar(char *name, char * text);
         void getTime();
         bool connected;
+        bool newEnvVars = false;
         int bars;
         int rssi;
         char rat[8];

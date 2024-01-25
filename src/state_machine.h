@@ -23,6 +23,7 @@ public:
     void init(void);
     void run();
     void sampleGasCards();
+    int getGasSampleDelay();
 
     bool enabled = false;
 

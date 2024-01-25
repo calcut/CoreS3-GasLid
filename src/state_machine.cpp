@@ -1,7 +1,5 @@
 #include "state_machine.h"
 
-#define TAG "SM"
-
 StateMachine stateMachine;
 
 void StateMachine::tunePID(void){
@@ -11,7 +9,7 @@ void StateMachine::tunePID(void){
 }
 
 void StateMachine::init(void){
-    ESP_LOGI(TAG, "Init state machine");
+    ESP_LOGI("SM", "Init state machine");
 
     vTaskDelay(20 / portTICK_PERIOD_MS);
     // outputs.init();
@@ -40,21 +38,21 @@ void StateMachine::init(void){
 
 void StateMachine::run(void){
 
-    ESP_LOGI(TAG, "Running state machine");
+    ESP_LOGI("SM", "Running state machine");
 
     inputs.pollSensorData();
     // inputs.pollPhysicalControls();
-    // ESP_LOGI(TAG, "Compressor PID input = %f", *compressorPIDinput);
-    // ESP_LOGI(TAG, "Compressor PID setpoint = %f", *compressorPIDsetpoint);
+    // ESP_LOGI("SM", "Compressor PID input = %f", *compressorPIDinput);
+    // ESP_LOGI("SM", "Compressor PID setpoint = %f", *compressorPIDsetpoint);
     // stateMachine.compressorPID->Compute();
-    // ESP_LOGI(TAG, "Compressor PID output = %f", compressorPIDoutput);
+    // ESP_LOGI("SM", "Compressor PID output = %f", compressorPIDoutput);
 
 }
 
 
 void StateMachine::sampleGasCards(){
 
-    ESP_LOGI(TAG, "Gas Card Sample Sequence starting...");
+    ESP_LOGI("SM", "Gas Card Sample Sequence starting...");
 
     int pumpTime_s = envVars["gasPumpTime_s"];
     int purgeTime_s = envVars["gasPurgeTime_s"];
@@ -63,23 +61,23 @@ void StateMachine::sampleGasCards(){
 
 
     for (int i = 0; i < sampleChannels; i++){
-        ESP_LOGI(TAG, "Opening valves %d", i);
+        ESP_LOGI("SM", "Opening valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::OPEN);
         outputs.setReturnValve(i, outputs.ValveState::OPEN);
         
-        ESP_LOGI(TAG, "Running pump at %d%% for %d seconds", pumpSpeed_pc, pumpTime_s);
+        ESP_LOGI("SM", "Running pump at %d%% for %d seconds", pumpSpeed_pc, pumpTime_s);
         outputs.setGasPumpSpeed(pumpSpeed_pc);
         vTaskDelay(pumpTime_s*1000 / portTICK_PERIOD_MS);
 
-        ESP_LOGI(TAG, "Sampling gas cards now %d", i);
+        ESP_LOGI("SM", "Sampling gas cards now %d", i);
         //Actually do it here
 
         outputs.setGasPumpSpeed(0);
-        ESP_LOGI(TAG, "Closing valves %d", i);
+        ESP_LOGI("SM", "Closing valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::CLOSED);
         outputs.setReturnValve(i, outputs.ValveState::CLOSED);
 
-        ESP_LOGI(TAG, "Purging at %d%% for %d seconds", pumpSpeed_pc, purgeTime_s);
+        ESP_LOGI("SM", "Purging at %d%% for %d seconds", pumpSpeed_pc, purgeTime_s);
         outputs.setFlowValve(4, outputs.ValveState::OPEN);
         outputs.setReturnValve(4, outputs.ValveState::OPEN);
         outputs.setGasPumpSpeed(pumpSpeed_pc);
@@ -88,9 +86,55 @@ void StateMachine::sampleGasCards(){
         outputs.setFlowValve(4, outputs.ValveState::CLOSED);
         outputs.setReturnValve(4, outputs.ValveState::CLOSED);
 
-        ESP_LOGI(TAG, "Purge Complete");
+        ESP_LOGI("SM", "Purge Complete");
     }
 }
 
 
+int StateMachine::getGasSampleDelay(void){
 
+    // Get the current time
+    time_t now;
+    time(&now);
+    struct tm *now_tm = localtime(&now);
+    char logbuf1[80];
+    char logbuf2[80];
+
+    ESP_LOGD("SM", "Current time: %s", asctime(now_tm));
+
+    // Define the three fixed times
+    struct tm alarmTimes[3];
+    for (int i = 0; i < 3; i++) {
+        alarmTimes[i] = *now_tm; // copy current time structure
+    }
+    alarmTimes[0].tm_hour = envVars["sampleTime1_hour"];
+    alarmTimes[0].tm_min = envVars["sampleTime1_min"];
+    alarmTimes[0].tm_sec = 0;
+
+    alarmTimes[1].tm_hour = envVars["sampleTime2_hour"];
+    alarmTimes[1].tm_min = envVars["sampleTime2_min"];
+    alarmTimes[1].tm_sec = 0;
+
+    alarmTimes[2].tm_hour = envVars["sampleTime3_hour"];
+    alarmTimes[2].tm_min = envVars["sampleTime3_min"];
+    alarmTimes[2].tm_sec = 0;
+
+    // Calculate the delay for the next run by finding the smallest delay to alarm
+    uint32_t delay = UINT32_MAX;
+    for (int i = 0; i < 3; i++) {
+        time_t alarmTime = mktime(&alarmTimes[i]);
+        if (alarmTime < now) {
+            alarmTime += 24 * 60 * 60; // add 24 hours if the time has passed today
+        }
+        uint32_t diff = (alarmTime - now);
+        strftime(logbuf1, sizeof(logbuf1), "%H:%M", localtime(&alarmTime));
+
+        ESP_LOGD("SM", "Alarm time %d at %s in %d seconds", i, logbuf1, diff);
+        if (diff < delay) {
+            delay = diff;
+            strftime(logbuf2, sizeof(logbuf2), "%H:%M", localtime(&alarmTime));
+        }
+    }
+    ESP_LOGI("SM", "Next gas sample at %s (in %d seconds)", logbuf2, delay);
+    return delay;
+}

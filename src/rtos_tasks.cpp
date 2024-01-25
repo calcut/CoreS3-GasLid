@@ -14,7 +14,6 @@ void setupRtos(void){
     esp_log_level_set("IN", ESP_LOG_DEBUG);
     esp_log_level_set("OUT", ESP_LOG_DEBUG);
     esp_log_level_set("a1019", ESP_LOG_INFO);
-    esp_log_level_set("NC-SIM", ESP_LOG_DEBUG);
     esp_log_level_set("NCARD", ESP_LOG_DEBUG);
 
 
@@ -170,6 +169,8 @@ void serviceNotecard(void * pvParameters){
             notecardManager.cardWireless();
             vTaskDelay(10 / portTICK_PERIOD_MS);
 
+            refreshEnvironment();
+
             notecardManager.serviceTick = !notecardManager.serviceTick;
             xSemaphoreGive(nc_mutex);
 
@@ -234,12 +235,12 @@ void serviceSerialInput(void * pvParameters){
 
             // if the incoming string is complete, parse it:
             if (stringComplete) {
-                ESP_LOGD("NC-SIM", "Received: %s", inputString.c_str());
+                ESP_LOGD("RTOS", "Received: %s", inputString.c_str());
 
                 // Check if the input string contains the '=' character
                 int equalIndex = inputString.indexOf('=');
                 if (equalIndex != -1) {
-                    ESP_LOGD("NC-SIM", "Parsing as envVar");
+                    ESP_LOGD("RTOS", "Parsing as envVar");
 
                     // Extract the key and value
                     String key_str = inputString.substring(0, equalIndex);
@@ -249,7 +250,7 @@ void serviceSerialInput(void * pvParameters){
                     const char *key = key_str.c_str();
                     const char *value = value_str.c_str();
 
-                    ESP_LOGD("NC-SIM","key=%s, value=%s", key, value);
+                    ESP_LOGD("RTOS","key=%s, value=%s", key, value);
 
                     myEnvVarCb(key, value, NULL);
                 }
@@ -257,6 +258,7 @@ void serviceSerialInput(void * pvParameters){
                 // clear the string for new input:
                 inputString = "";
                 stringComplete = false;
+                refreshEnvironment();
             }
 
         }
@@ -291,59 +293,24 @@ void gasSampleTimerCallback(TimerHandle_t xTimer) {
     xSemaphoreGive(gasSampleSemaphore);
 }
 
-void calculateNextAlarm() {
+void refreshEnvironment(void) {
 
-    // Stop and delete the current timer
-    if (gasSampleTimer != NULL) {
-        xTimerStop(gasSampleTimer, 0);
-        xTimerDelete(gasSampleTimer, 0);
-    }
+    if (notecardManager.newEnvVars) {
+        ESP_LOGI("RTOS", "Refreshing environment");
 
-    // Get the current time
-    time_t now;
-    time(&now);
-    struct tm *now_tm = localtime(&now);
-    char logbuf1[80];
-    char logbuf2[80];
-
-    ESP_LOGD("RTOS", "Current time: %s", asctime(now_tm));
-
-    // Define the three fixed times
-    struct tm alarmTimes[3];
-    for (int i = 0; i < 3; i++) {
-        alarmTimes[i] = *now_tm; // copy current time structure
-    }
-    alarmTimes[0].tm_hour = stateMachine.envVars["sampleTime1_hour"];
-    alarmTimes[0].tm_min = stateMachine.envVars["sampleTime1_min"];
-    alarmTimes[0].tm_sec = 0;
-
-    alarmTimes[1].tm_hour = stateMachine.envVars["sampleTime2_hour"];
-    alarmTimes[1].tm_min = stateMachine.envVars["sampleTime2_min"];
-    alarmTimes[1].tm_sec = 0;
-
-    alarmTimes[2].tm_hour = stateMachine.envVars["sampleTime3_hour"];
-    alarmTimes[2].tm_min = stateMachine.envVars["sampleTime3_min"];
-    alarmTimes[2].tm_sec = 0;
-
-    // Calculate the delay for the next run by finding the smallest delay to alarm
-    uint32_t delay = UINT32_MAX;
-    for (int i = 0; i < 3; i++) {
-        time_t alarmTime = mktime(&alarmTimes[i]);
-        if (alarmTime < now) {
-            alarmTime += 24 * 60 * 60; // add 24 hours if the time has passed today
+        // Stop and delete the current timer
+        if (gasSampleTimer != NULL) {
+            xTimerStop(gasSampleTimer, 0);
+            xTimerDelete(gasSampleTimer, 0);
         }
-        uint32_t diff = (alarmTime - now) * 1000; // convert to milliseconds
-        strftime(logbuf1, sizeof(logbuf1), "%H:%M", localtime(&alarmTime));
 
-        ESP_LOGD("RTOS", "Alarm time %d at %s in %d seconds", i, logbuf1, diff/1000);
-        if (diff < delay) {
-            delay = diff;
-            strftime(logbuf2, sizeof(logbuf2), "%H:%M", localtime(&alarmTime));
-        }
+        int delay = stateMachine.getGasSampleDelay();
+
+        // Create and start the timer
+        gasSampleTimer = xTimerCreate("gasSampleTimer", delay*1000 / portTICK_PERIOD_MS,
+                                      pdFALSE, (void *)0, gasSampleTimerCallback);
+        xTimerStart(gasSampleTimer, 0);
+
+        notecardManager.newEnvVars = false;
     }
-    ESP_LOGI("RTOS", "Next gas sample at %s (in %d seconds)", logbuf2, delay/1000);
-
-    // Create and start the timer
-    gasSampleTimer = xTimerCreate("gasSampleTimer", delay / portTICK_PERIOD_MS, pdFALSE, (void *)0, gasSampleTimerCallback);
-    xTimerStart(gasSampleTimer, 0);
 }

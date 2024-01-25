@@ -23,7 +23,9 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
                          key, notecardManager.envVars.at(key));
     } catch(std::out_of_range& e){}
 
-
+    // A flag is set to indicate that new environment variables have been
+    // received. This is used to trigger a call to refreshEnvironment()
+    notecardManager.newEnvVars = true;
 }
 
 void sendSensorData(void){
