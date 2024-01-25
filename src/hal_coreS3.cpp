@@ -106,6 +106,10 @@ void Outputs::enableJacketHeater(bool enable) {
     quadRelay.turnRelayOn(JACKET_HEATER_RELAY);
 }
 
+bool Outputs::getJacketHeater(void){
+    return quadRelay.getState(JACKET_HEATER_RELAY);
+}
+
 void Outputs::enableWaterPump(bool enable) {
     quadRelay.turnRelayOn(WATER_PUMP_RELAY);
 }
