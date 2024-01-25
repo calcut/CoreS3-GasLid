@@ -229,6 +229,7 @@ void serviceSerialInput(void * pvParameters){
             // otherwise, add it to the input string:
             else {
                 inputString += inChar;
+                Serial.print(inChar);
             }
 
             // if the incoming string is complete, parse it:
@@ -248,7 +249,7 @@ void serviceSerialInput(void * pvParameters){
                     const char *key = key_str.c_str();
                     const char *value = value_str.c_str();
 
-                    ESP_LOGD("NC-SIM","key=%s, value=%s\n", key, value);
+                    ESP_LOGD("NC-SIM","key=%s, value=%s", key, value);
 
                     myEnvVarCb(key, value, NULL);
                 }

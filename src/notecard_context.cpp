@@ -9,7 +9,7 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
     // The incoming type is converted to e.g. float or int as required
     // If the key is not found, it is ignored.
 
-    ESP_LOGI("NCARD", "received: key=%s, val=%s\n", key, val);
+    ESP_LOGI("NCARD", "received: key=%s, val=%s", key, val);
 
     try{
         stateMachine.envVars.at(key) = atoi(val);
