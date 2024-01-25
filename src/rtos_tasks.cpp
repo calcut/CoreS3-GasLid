@@ -15,6 +15,7 @@ void setupRtos(void){
     esp_log_level_set("OUT", ESP_LOG_DEBUG);
     esp_log_level_set("a1019", ESP_LOG_INFO);
     esp_log_level_set("NC-SIM", ESP_LOG_DEBUG);
+    esp_log_level_set("NCARD", ESP_LOG_DEBUG);
 
 
     xTaskCreate(
@@ -29,6 +30,14 @@ void setupRtos(void){
     xTaskCreate(
         serviceGasCards, // task function
         "Service Gas Cards", // task name
+        16384, // stack size in bytes
+        NULL, // pointer to parameters
+        1, // priority
+        NULL); // out pointer to task handle
+
+    xTaskCreate(
+        serviceSerialInput, // task function
+        "Service Serial Input", // task name
         16384, // stack size in bytes
         NULL, // pointer to parameters
         1, // priority
@@ -198,13 +207,13 @@ void timeSyncNotecard(void * pvParameters){
 }
 #endif
 
-#ifdef DEBUG
-void debugTask(void * pvParameters){
+void serviceSerialInput(void * pvParameters){
 
     String inputString = ""; // a string to hold incoming data
     bool stringComplete = false; // whether the string is complete
 
     while(1){
+
         // if there's any serial available, read it:
         while (Serial.available()) {
             char inChar = (char)Serial.read();
@@ -235,20 +244,13 @@ void debugTask(void * pvParameters){
                     String key_str = inputString.substring(0, equalIndex);
                     String value_str = inputString.substring(equalIndex + 1);
 
-                    //convert the key to a char*
-                    char *key = const_cast<char*>(key_str.c_str());
+                    //convert the key and value to const char*
+                    const char *key = key_str.c_str();
+                    const char *value = value_str.c_str();
 
-                    // Convert the value to a int
-                    int value = value_str.toInt();
+                    ESP_LOGD("NC-SIM","key=%s, value=%s\n", key, value);
 
-                    ESP_LOGD("NC-SIM","key=%s, value=%d\n", key, value);
-    
-                    try{
-                        stateMachine.envVars.at(key) = value;
-                        ESP_LOGW("NC-SIM", "set stateMachine.envVars[\"%s\"]=%d",
-                                        key, stateMachine.envVars.at(key));
-                        calculateNextAlarm();
-                    } catch(std::out_of_range& e){}
+                    myEnvVarCb(key, value, NULL);
                 }
 
                 // clear the string for new input:
@@ -257,9 +259,17 @@ void debugTask(void * pvParameters){
             }
 
         }
-        // ESP_LOGD("RTOS", "5 second debug print %d", millis());
-        // vTaskDelay(5000 / portTICK_PERIOD_MS);
         vTaskDelay(10 / portTICK_PERIOD_MS);
+    }
+}
+
+#ifdef DEBUG
+void debugTask(void * pvParameters){
+
+    while(1){
+
+        // ESP_LOGD("RTOS", "5 second debug print %d", millis());
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
 }
 #endif

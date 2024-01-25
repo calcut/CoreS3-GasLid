@@ -9,17 +9,17 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
     // The incoming type is converted to e.g. float or int as required
     // If the key is not found, it is ignored.
 
-    Serial.printf("EnvVar received: key=%s, val=%s\n", key, val);
+    ESP_LOGI("NCARD", "received: key=%s, val=%s\n", key, val);
 
     try{
-        stateMachine.envVars.at(key) = atof(val);
-        Serial.printf("set stateMachine.envVars[\"%s\"]=%f\n",
+        stateMachine.envVars.at(key) = atoi(val);
+        ESP_LOGI("NCARD", "set stateMachine.envVars[\"%s\"]=%d",
                          key, stateMachine.envVars.at(key));
     } catch(std::out_of_range& e){}
 
     try{
         notecardManager.envVars.at(key) = atoi(val);
-        Serial.printf("set notecardManager.envVars[\"%s\"]=%d\n",
+        ESP_LOGI("NCARD", "set notecardManager.envVars[\"%s\"]=%d",
                          key, notecardManager.envVars.at(key));
     } catch(std::out_of_range& e){}
 

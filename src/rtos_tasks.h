@@ -4,10 +4,7 @@
 #include "config.h"
 #include "state_machine.h"
 #include "esp_log.h"
-
-#ifdef USE_NOTECARD
 #include "notecard_context.h"
-#endif
 
 #ifdef USE_GUI
 #include "gui_helpers.h" 
@@ -17,6 +14,7 @@ void setupRtos(void);
 
 void timeSyncNotecard(void * pvParameters);
 void serviceNotecard(void * pvParameters);
+void serviceSerialInput(void * pvParameters);
 void debugTask(void * pvParameters);
 void runStateMachine(void * pvParameters);
 void serviceGUI(void * pvParameters);
