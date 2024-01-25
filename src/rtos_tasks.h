@@ -22,6 +22,7 @@ void runStateMachine(void * pvParameters);
 void serviceGUI(void * pvParameters);
 void readFlowMeters(void *pvParameters);
 void serviceGasCards(void *pvParameters);
-uint32_t calculateNextAlarm();
+void calculateNextAlarm();
+void gasSampleTimerCallback(TimerHandle_t xTimer);
 
 #endif

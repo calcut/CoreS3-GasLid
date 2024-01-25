@@ -38,17 +38,16 @@ public:
     float* flexStoreSensor;
 
     std::unordered_map<std::string, int> envVars = {
-        {"gasPurgeTime_s", 10},
-        {"gasPumpTime_s", 10},
+        {"gasPurgeTime_s", 1},
+        {"gasPumpTime_s", 1},
         {"gasPumpSpeed_pc", 50},
         {"gasSampleChannels", 4},
-        {"sampleTime1_hour", 13},
+        {"sampleTime1_hour", 16},
         {"sampleTime1_min", 51},
         {"sampleTime2_hour", 13},
         {"sampleTime2_min", 30},
         {"sampleTime3_hour", 15},
         {"sampleTime3_min", 0},
-        
     };
 
     // This will be equal to either flexStoreLow or flexStoreHigh

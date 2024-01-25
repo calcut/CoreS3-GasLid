@@ -2,7 +2,9 @@
 
 SemaphoreHandle_t nc_mutex = xSemaphoreCreateMutex();
 SemaphoreHandle_t modbus_mutex = xSemaphoreCreateMutex();
-SemaphoreHandle_t alarmSemaphore = xSemaphoreCreateBinary();
+
+SemaphoreHandle_t gasSampleSemaphore = xSemaphoreCreateBinary();
+TimerHandle_t gasSampleTimer;
 
 void setupRtos(void){
 
@@ -227,7 +229,7 @@ void debugTask(void * pvParameters){
                 // Check if the input string contains the '=' character
                 int equalIndex = inputString.indexOf('=');
                 if (equalIndex != -1) {
-                    ESP_LOGD("RTOS", "Parsing as envVar");
+                    ESP_LOGD("NC-SIM", "Parsing as envVar");
 
                     // Extract the key and value
                     String key_str = inputString.substring(0, equalIndex);
@@ -245,6 +247,7 @@ void debugTask(void * pvParameters){
                         stateMachine.envVars.at(key) = value;
                         ESP_LOGW("NC-SIM", "set stateMachine.envVars[\"%s\"]=%d",
                                         key, stateMachine.envVars.at(key));
+                        calculateNextAlarm();
                     } catch(std::out_of_range& e){}
                 }
 
@@ -266,18 +269,31 @@ void serviceGasCards(void * pvParameters){
     //Check if init has been run here?
 
     while(1){
-        vTaskDelay(calculateNextAlarm() / portTICK_PERIOD_MS);
-        // vTaskDelay(10000 / portTICK_PERIOD_MS);
+        // Wait for the semaphore to be given
+        xSemaphoreTake(gasSampleSemaphore, portMAX_DELAY);
         stateMachine.sampleGasCards();
     }
 }
 
-uint32_t calculateNextAlarm() {
+void gasSampleTimerCallback(TimerHandle_t xTimer) {
+    // Give the semaphore to unblock the task
+    xSemaphoreGive(gasSampleSemaphore);
+}
+
+void calculateNextAlarm() {
+
+    // Stop and delete the current timer
+    if (gasSampleTimer != NULL) {
+        xTimerStop(gasSampleTimer, 0);
+        xTimerDelete(gasSampleTimer, 0);
+    }
+
     // Get the current time
     time_t now;
     time(&now);
     struct tm *now_tm = localtime(&now);
-    char logbuf[80];
+    char logbuf1[80];
+    char logbuf2[80];
 
     ESP_LOGD("RTOS", "Current time: %s", asctime(now_tm));
 
@@ -298,7 +314,7 @@ uint32_t calculateNextAlarm() {
     alarmTimes[2].tm_min = stateMachine.envVars["sampleTime3_min"];
     alarmTimes[2].tm_sec = 0;
 
-    // Calculate the delay for the next run
+    // Calculate the delay for the next run by finding the smallest delay to alarm
     uint32_t delay = UINT32_MAX;
     for (int i = 0; i < 3; i++) {
         time_t alarmTime = mktime(&alarmTimes[i]);
@@ -306,13 +322,17 @@ uint32_t calculateNextAlarm() {
             alarmTime += 24 * 60 * 60; // add 24 hours if the time has passed today
         }
         uint32_t diff = (alarmTime - now) * 1000; // convert to milliseconds
-        ESP_LOGD("RTOS", "Alarm time %d in %d seconds", i, diff / 1000);
+        strftime(logbuf1, sizeof(logbuf1), "%H:%M", localtime(&alarmTime));
+
+        ESP_LOGD("RTOS", "Alarm time %d at %s in %d seconds", i, logbuf1, diff/1000);
         if (diff < delay) {
             delay = diff;
-            strftime(logbuf, sizeof(logbuf), "%H:%M", localtime(&alarmTime));
-            
+            strftime(logbuf2, sizeof(logbuf2), "%H:%M", localtime(&alarmTime));
         }
     }
-    ESP_LOGI("RTOS", "Next gas sample at %s (in %d seconds)", logbuf, delay/1000);
-    return delay;
+    ESP_LOGI("RTOS", "Next gas sample at %s (in %d seconds)", logbuf2, delay/1000);
+
+    // Create and start the timer
+    gasSampleTimer = xTimerCreate("gasSampleTimer", delay / portTICK_PERIOD_MS, pdFALSE, (void *)0, gasSampleTimerCallback);
+    xTimerStart(gasSampleTimer, 0);
 }
