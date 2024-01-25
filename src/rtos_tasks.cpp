@@ -8,10 +8,10 @@ TimerHandle_t gasSampleTimer;
 
 void setupRtos(void){
 
-    esp_log_level_set("HAL", ESP_LOG_DEBUG);
+    esp_log_level_set("HAL", ESP_LOG_INFO);
     esp_log_level_set("RTOS", ESP_LOG_DEBUG);
-    esp_log_level_set("SM", ESP_LOG_DEBUG);
-    esp_log_level_set("IN", ESP_LOG_DEBUG);
+    esp_log_level_set("SM", ESP_LOG_INFO);
+    esp_log_level_set("IN", ESP_LOG_INFO);
     esp_log_level_set("OUT", ESP_LOG_DEBUG);
     esp_log_level_set("a1019", ESP_LOG_INFO);
     esp_log_level_set("NCARD", ESP_LOG_DEBUG);
@@ -100,7 +100,7 @@ void runStateMachine(void * pvParameters){
         stateMachine.run();
         xSemaphoreGive(modbus_mutex);
         
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 

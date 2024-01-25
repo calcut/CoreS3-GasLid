@@ -38,15 +38,24 @@ void StateMachine::init(void){
 
 void StateMachine::run(void){
 
-    ESP_LOGI("SM", "Running state machine");
+    ESP_LOGD("SM", "Running state machine");
 
     inputs.pollSensorData();
-    // inputs.pollPhysicalControls();
-    // ESP_LOGI("SM", "Compressor PID input = %f", *compressorPIDinput);
-    // ESP_LOGI("SM", "Compressor PID setpoint = %f", *compressorPIDsetpoint);
-    // stateMachine.compressorPID->Compute();
-    // ESP_LOGI("SM", "Compressor PID output = %f", compressorPIDoutput);
 
+    if(outputs.getJacketHeater()){
+        if(inputData.temperatureData["Tc1"] > envVars["targetTempTank1"] 
+                                    + envVars["jacketHeaterHysteresis"]){
+            ESP_LOGI("SM", "Tank1 Heating Off");
+            outputs.enableJacketHeater(false);
+        }
+    }
+    else{
+        if(inputData.temperatureData["Tc1"] < envVars["targetTempTank1"] 
+                                - envVars["jacketHeaterHysteresis"]){
+        ESP_LOGI("SM", "Tank1 Heating On");
+        outputs.enableJacketHeater(true);
+        }
+    }
 }
 
 

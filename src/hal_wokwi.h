@@ -26,6 +26,7 @@ public:
     void setReturnValve(int index, bool ValveState);
     void setGasPumpSpeed(float percent);
     void enableJacketHeater(bool enable);
+    bool getJacketHeater(void);
     void enableWaterPump(bool enable);
 };
 

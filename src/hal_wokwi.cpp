@@ -105,6 +105,10 @@ void Outputs::enableJacketHeater(bool enable) {
     digitalWrite(40, enable);
 }
 
+bool Outputs::getJacketHeater(void){
+    return digitalRead(40);
+}
+
 void Outputs::enableWaterPump(bool enable) {
     ESP_LOGI("HAL", "enableWaterPump %d", enable);
     digitalWrite(39, enable);
@@ -133,12 +137,12 @@ void Inputs::pollSensorData(void){
     float in2 = analogRead(12)/4095.0*(maxtemp-mintemp)+mintemp;
     float in3 = analogRead(13)/4095.0*(maxtemp-mintemp)+mintemp;
     float in4 = analogRead(14)/4095.0*(maxtemp-mintemp)+mintemp;
-    ESP_LOGW("HAL", "AnalogRead = %f %f %f %f", in1, in2, in3, in4);
+    ESP_LOGW("HAL", "AnalogRead = %0.2f %0.2f %0.2f %0.2f", in1, in2, in3, in4);
 
-    inputData.temperatureData["Tc1"]    = 0.1;
-    inputData.temperatureData["Tc2"]    = 0.1;
-    inputData.temperatureData["Tc3"]    = 0.1;
-    inputData.temperatureData["Tc4"]    = 0.1;
+    inputData.temperatureData["Tc1"]    = in1;
+    inputData.temperatureData["Tc2"]    = in2;
+    inputData.temperatureData["Tc3"]    = in3;
+    inputData.temperatureData["Tc4"]    = in4;
     inputData.temperatureData["Tc5"]    = 0.1;
     inputData.pressureData["Pr1"]       = 0.2;
     inputData.pressureData["Pr2"]       = 0.2;

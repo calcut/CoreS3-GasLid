@@ -49,6 +49,10 @@ public:
         {"sampleTime2_min", 30},
         {"sampleTime3_hour", 15},
         {"sampleTime3_min", 0},
+        {"targetTempTank1", 30},
+        {"targetTempTank2", 30},
+        {"targetTempTank3", 30},
+        {"jacketHeaterHysteresis", 1},
     };
 
     // This will be equal to either flexStoreLow or flexStoreHigh
