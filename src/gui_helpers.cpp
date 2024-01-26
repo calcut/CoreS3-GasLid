@@ -4,8 +4,7 @@ char text_buffer[64];
 
 void setupGui(){
 
-    lv_init();
-    m5gfx_lvgl_init();
+    initDisplay();
     ui_init();
 
     lv_timer_t * timer_datetime = lv_timer_create(display_date_time_labels, 1000, NULL);

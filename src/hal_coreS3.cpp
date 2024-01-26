@@ -305,3 +305,8 @@ size_t SerialDisplay::write(const uint8_t *buffer, size_t size){
     return HWCDC::write(buffer, size);
 }
 SerialDisplay serialDisplay;
+
+void initDisplay(void){
+    lv_init();
+    m5gfx_lvgl_init();
+}

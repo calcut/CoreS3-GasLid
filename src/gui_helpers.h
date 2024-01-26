@@ -3,8 +3,6 @@
 
 #include <lvgl.h>
 #include <ui.h>
-#include <M5GFX.h>
-#include <m5gfx_lvgl.h>
 
 #include "notecard_manager.h"
 #include "state_machine.h"

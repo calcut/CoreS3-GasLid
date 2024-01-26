@@ -10,6 +10,10 @@
 #include <Wire.h>
 #include <ArduinoModbus.h>
 
+//Display
+#include <M5GFX.h>
+#include <m5gfx_lvgl.h>
+
 // OUTPUTS
 #include <Adafruit_MotorShield.h>
 #include <SparkFun_Qwiic_Relay.h>
@@ -35,6 +39,8 @@ void setSystemTime();
 
 //To set the on-board RTC chip from time obtained by notecard
 void setRTC(time_t epoch_time, int UTC_offset_minutes);
+
+void initDisplay(void);
 
 
 class Outputs {

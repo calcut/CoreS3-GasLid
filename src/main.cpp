@@ -16,7 +16,8 @@ void loop() {
 
 #ifdef WOKWI
     // This gives the WOKWI simulator a chance to run
-    delay(1);
+    delay(30);
+    lv_tick_inc(30);
 #endif
 
 }

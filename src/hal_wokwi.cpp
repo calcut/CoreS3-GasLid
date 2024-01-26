@@ -6,6 +6,15 @@ Inputs inputs;
 InputData inputData;
 RTC_DS1307 rtc;
 
+static const uint16_t screenWidth  = LCD_WIDTH; //320
+static const uint16_t screenHeight = LCD_HEIGHT; //240
+
+static lv_disp_draw_buf_t disp_buf;
+static lv_color_t buf[ screenWidth * screenHeight / 10 ];
+
+Adafruit_FT6206 touch = Adafruit_FT6206();
+TFT_eSPI tft = TFT_eSPI(screenWidth,screenHeight);
+
 void hal_setup(void){
     Serial.begin(115200);
 
@@ -16,6 +25,9 @@ void hal_setup(void){
     #endif
 
     Wire.begin(2, 1, 400000);  //Init I2C_EXT
+
+    // Serial.println(F("Starting Display..."));
+    // initDisplay();
 
     Serial.println("Setting log levels");
     esp_log_level_set("*", ESP_LOG_WARN);
@@ -203,3 +215,121 @@ size_t SerialDisplay::write(const uint8_t *buffer, size_t size){
     return HWCDC::write(buffer, size);
 }
 SerialDisplay serialDisplay;
+
+void my_disp_flush( lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color_p )
+{
+    uint32_t w = ( area->x2 - area->x1 + 1 );
+    uint32_t h = ( area->y2 - area->y1 + 1 );
+
+    tft.startWrite();
+    tft.setAddrWindow( area->x1, area->y1, w, h );
+    tft.pushColors( ( uint16_t * )&color_p->full, w * h, true );
+    tft.endWrite();
+
+    lv_disp_flush_ready( disp_drv );
+}
+
+void my_touchpad_read(lv_indev_drv_t * drv, lv_indev_data_t * data)
+{
+    bool touched = touch.touched();
+    if (touched)
+    {
+        TS_Point point = touch.getPoint();
+
+        // Print raw touch coordinates
+        Serial.print("Raw X: ");
+        Serial.print(point.x);
+        Serial.print(", Y: ");
+        Serial.println(point.y);
+
+        // Map the touch coordinates to match the screen resolution and orientation
+        
+        uint16_t touchY = map(point.x, 0, 240, 0, 240);
+        uint16_t touchX = map(point.y, 0, 320, 320, 0);
+
+        data->point.x = touchX;
+        data->point.y = touchY;
+
+        Serial.print("Touched at X: ");
+        Serial.print(touchX);
+        Serial.print(", Y: ");
+        Serial.println(touchY);
+    }
+
+    if (!touched)
+    {
+        data->state = LV_INDEV_STATE_REL;
+    }
+    else
+    {
+        data->state = LV_INDEV_STATE_PR;
+    }
+}
+
+// void lv_example_btn_1(void)
+// {
+//     lv_obj_t * label;
+
+//     lv_obj_t * btn1 = lv_btn_create(lv_scr_act());
+//     // lv_obj_add_event_cb(btn1, event_handler, LV_EVENT_ALL, NULL);
+//     lv_obj_align(btn1, LV_ALIGN_CENTER, 0, -40);
+
+//     label = lv_label_create(btn1);
+//     lv_label_set_text(label, "Button");
+//     lv_obj_center(label);
+
+//     lv_obj_t * btn2 = lv_btn_create(lv_scr_act());
+//     // lv_obj_add_event_cb(btn2, event_handler, LV_EVENT_ALL, NULL);
+//     lv_obj_align(btn2, LV_ALIGN_CENTER, 0, 40);
+//     lv_obj_add_flag(btn2, LV_OBJ_FLAG_CHECKABLE);
+//     lv_obj_set_height(btn2, LV_SIZE_CONTENT);
+
+//     label = lv_label_create(btn2);
+//     lv_label_set_text(label, "Toggle");
+//     lv_obj_center(label);
+// }
+
+void initDisplay(void){
+    lv_init();
+    tft.begin();
+    tft.setRotation(3);
+
+    if (!touch.begin(40)) {  // pass in 'sensitivity' coefficient
+        Serial.println("Couldn't start FT6206 touchscreen controller");
+    } else {
+        Serial.println("FT6206 touchscreen controller CONNECTED!");
+    }
+
+    lv_disp_draw_buf_init(&disp_buf, buf, NULL, screenWidth*10);
+
+    static lv_disp_drv_t disp_drv;          /*A variable to hold the drivers. Must be static or global.*/
+    lv_disp_drv_init(&disp_drv);            /*Basic initialization*/
+    disp_drv.draw_buf = &disp_buf;          /*Set an initialized buffer*/
+    disp_drv.flush_cb = my_disp_flush;        /*Set a flush callback to draw to the display*/
+    disp_drv.hor_res = screenWidth;                 /*Set the horizontal resolution in pixels*/
+    disp_drv.ver_res = screenHeight;                 /*Set the vertical resolution in pixels*/
+    lv_disp_t * disp;
+    disp = lv_disp_drv_register(&disp_drv); /*Register the driver and save the created display objects*/
+
+    lv_disp_drv_register(&disp_drv);
+    static lv_indev_drv_t indev_drv;
+    lv_indev_drv_init(&indev_drv);      /*Basic initialization*/
+    indev_drv.type = LV_INDEV_TYPE_POINTER;                 /*See below.*/
+    indev_drv.read_cb = my_touchpad_read;              /*See below.*/
+    /*Register the driver in LVGL and save the created input device object*/
+    lv_indev_t * my_indev = lv_indev_drv_register(&indev_drv);
+    
+    //Check vertical and horizontal resolution of what lvgl sees
+    lv_coord_t hor_res = lv_disp_get_hor_res(NULL);
+    Serial.print("LVGL Horizontal Resolution: ");
+    Serial.println(hor_res);
+    
+    //Check vertical and horizontal resolution of what lvgl sees
+    lv_coord_t ver_res = lv_disp_get_ver_res(NULL);
+    Serial.print("LVGL Vertical Resolution: ");
+    Serial.println(ver_res);
+
+    lv_coord_t disp_dpi = lv_disp_get_dpi(NULL);
+    Serial.print("LVGL Display DPI: ");
+    Serial.println(disp_dpi);
+}
