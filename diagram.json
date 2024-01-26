@@ -141,11 +141,18 @@
       "left": 364.8,
       "attrs": { "text": "Heated Jacket" }
     },
-    { "type": "board-ds18b20", "id": "temp1", "top": 430.87, "left": -274.32, "attrs": {} },
-    { "type": "board-ds18b20", "id": "temp2", "top": 430.87, "left": -226.32, "attrs": {} },
-    { "type": "board-ds18b20", "id": "temp3", "top": 430.87, "left": -178.32, "attrs": {} },
-    { "type": "board-ds18b20", "id": "temp4", "top": 430.87, "left": -130.32, "attrs": {} },
-    { "type": "board-ds18b20", "id": "temp5", "top": 430.87, "left": -82.32, "attrs": {} }
+    { "type": "board-ds18b20", "id": "temp1", "top": 430.87, "left": -274.32,
+      "attrs": {"deviceID": "000000000000",
+                "temperature": "20",
+                "minTemp": "-20",
+                "maxTemp": "50",
+                "tempWaveForm": "triangle",
+                "tempWaveFreq": "0.5"}
+    },
+    { "type": "board-ds18b20", "id": "temp2", "top": 430.87, "left": -226.32, "attrs": {"deviceID": "000000000001"} },
+    { "type": "board-ds18b20", "id": "temp3", "top": 430.87, "left": -178.32, "attrs": {"deviceID": "000000000002"} },
+    { "type": "board-ds18b20", "id": "temp4", "top": 430.87, "left": -130.32, "attrs": {"deviceID": "000000000003"} },
+    { "type": "board-ds18b20", "id": "temp5", "top": 430.87, "left": -82.32, "attrs": {"deviceID": "000000000004"} }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
