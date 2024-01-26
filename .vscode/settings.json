@@ -57,6 +57,8 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "ui_helpers.h": "c",
+        "ui.h": "c"
     }
 }

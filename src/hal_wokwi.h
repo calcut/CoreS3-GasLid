@@ -6,6 +6,8 @@
 #include <ArduinoModbus.h>
 #include <Wire.h>
 #include "RTClib.h"
+#include <OneWire.h>
+#include <DallasTemperature.h>
 
 #include "input_data.h"
 
@@ -44,6 +46,7 @@ extern Outputs outputs;
 
 class Inputs {
 public:
+
 
     void init(void);
     void serviceFlowMeters(void);

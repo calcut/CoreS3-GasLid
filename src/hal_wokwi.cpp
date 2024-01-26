@@ -6,6 +6,9 @@ Inputs inputs;
 InputData inputData;
 RTC_DS1307 rtc;
 
+OneWire oneWire(10);
+DallasTemperature tsensors(&oneWire);
+
 static const uint16_t screenWidth  = LCD_WIDTH; //320
 static const uint16_t screenHeight = LCD_HEIGHT; //240
 
@@ -14,6 +17,12 @@ static lv_color_t buf[ screenWidth * screenHeight / 10 ];
 
 Adafruit_FT6206 touch = Adafruit_FT6206();
 TFT_eSPI tft = TFT_eSPI(screenWidth,screenHeight);
+
+DeviceAddress tc1Addr = { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xA5 };
+DeviceAddress tc2Addr = { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x47 };
+DeviceAddress tc3Addr = { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x19 };
+DeviceAddress tc4Addr = { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x9A };
+DeviceAddress tc5Addr = { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0xC4 };
 
 void hal_setup(void){
     Serial.begin(115200);
@@ -133,6 +142,9 @@ void Inputs::init(void){
     pinMode(13, INPUT);
     pinMode(14, INPUT);
 
+    tsensors.begin();
+    int deviceCount = tsensors.getDeviceCount();
+    ESP_LOGI("HAL", "Found %d temperature sensors", deviceCount);
 }
 
 void Inputs::serviceFlowMeters(void){
@@ -149,13 +161,22 @@ void Inputs::pollSensorData(void){
     float in2 = analogRead(12)/4095.0*(maxtemp-mintemp)+mintemp;
     float in3 = analogRead(13)/4095.0*(maxtemp-mintemp)+mintemp;
     float in4 = analogRead(14)/4095.0*(maxtemp-mintemp)+mintemp;
+    tsensors.requestTemperatures();
+    
+
     ESP_LOGW("HAL", "AnalogRead = %0.2f %0.2f %0.2f %0.2f", in1, in2, in3, in4);
 
-    inputData.temperatureData["Tc1"]    = in1;
-    inputData.temperatureData["Tc2"]    = in2;
-    inputData.temperatureData["Tc3"]    = in3;
-    inputData.temperatureData["Tc4"]    = in4;
-    inputData.temperatureData["Tc5"]    = 0.1;
+    inputData.temperatureData["Tc1"]    = tsensors.getTempC(tc1Addr);
+    delay(10);
+    inputData.temperatureData["Tc2"]    = tsensors.getTempC(tc2Addr);
+    delay(10);
+    inputData.temperatureData["Tc3"]    = tsensors.getTempC(tc3Addr);
+    delay(10);
+    inputData.temperatureData["Tc4"]    = tsensors.getTempC(tc4Addr);
+    delay(10);
+    inputData.temperatureData["Tc5"]    = tsensors.getTempC(tc5Addr);
+    delay(10);
+
     inputData.pressureData["Pr1"]       = 0.2;
     inputData.pressureData["Pr2"]       = 0.2;
     inputData.pressureData["Pr3"]       = 0.2;
@@ -167,6 +188,13 @@ void Inputs::pollSensorData(void){
     inputData.gasData["CH4"]            = 0.5;
     inputData.gasData["CO2"]            = 0.5;
     inputData.gasData["N2O"]            = 0.5;
+
+    ESP_LOGW("HAL", "Tc1 = %0.2f", inputData.temperatureData["Tc1"]);
+    ESP_LOGW("HAL", "Tc2 = %0.2f", inputData.temperatureData["Tc2"]);
+    ESP_LOGW("HAL", "Tc3 = %0.2f", inputData.temperatureData["Tc3"]);
+    ESP_LOGW("HAL", "Tc4 = %0.2f", inputData.temperatureData["Tc4"]);
+    ESP_LOGW("HAL", "Tc5 = %0.2f", inputData.temperatureData["Tc5"]);
+
 }
 
 void Inputs::pollPhysicalControls(void){
@@ -265,29 +293,6 @@ void my_touchpad_read(lv_indev_drv_t * drv, lv_indev_data_t * data)
         data->state = LV_INDEV_STATE_PR;
     }
 }
-
-// void lv_example_btn_1(void)
-// {
-//     lv_obj_t * label;
-
-//     lv_obj_t * btn1 = lv_btn_create(lv_scr_act());
-//     // lv_obj_add_event_cb(btn1, event_handler, LV_EVENT_ALL, NULL);
-//     lv_obj_align(btn1, LV_ALIGN_CENTER, 0, -40);
-
-//     label = lv_label_create(btn1);
-//     lv_label_set_text(label, "Button");
-//     lv_obj_center(label);
-
-//     lv_obj_t * btn2 = lv_btn_create(lv_scr_act());
-//     // lv_obj_add_event_cb(btn2, event_handler, LV_EVENT_ALL, NULL);
-//     lv_obj_align(btn2, LV_ALIGN_CENTER, 0, 40);
-//     lv_obj_add_flag(btn2, LV_OBJ_FLAG_CHECKABLE);
-//     lv_obj_set_height(btn2, LV_SIZE_CONTENT);
-
-//     label = lv_label_create(btn2);
-//     lv_label_set_text(label, "Toggle");
-//     lv_obj_center(label);
-// }
 
 void initDisplay(void){
     lv_init();
