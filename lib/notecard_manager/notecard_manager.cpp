@@ -8,7 +8,8 @@ NotecardManager::NotecardManager(){}
 
 void NotecardManager::begin(Stream &serial_stream){
     notecard.begin(NOTE_I2C_ADDR_DEFAULT, NOTE_I2C_MAX_DEFAULT, Wire);
-    notecard.setDebugOutputStream(serial_stream);
+    // notecard.setDebugOutputStream(serial_stream); // Was causing a crash with envvarmanager... TODO: Fix
+    notecard.setDebugOutputStream(Serial);
 
     envVarManager = NotecardEnvVarManager_alloc();
     if (envVarManager == NULL) {
