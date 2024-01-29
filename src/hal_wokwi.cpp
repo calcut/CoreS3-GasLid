@@ -161,21 +161,21 @@ void Inputs::pollSensorData(void){
     float in2 = analogRead(12)/4095.0*(maxtemp-mintemp)+mintemp;
     float in3 = analogRead(13)/4095.0*(maxtemp-mintemp)+mintemp;
     float in4 = analogRead(14)/4095.0*(maxtemp-mintemp)+mintemp;
-    tsensors.requestTemperatures();
-    
-
     ESP_LOGW("HAL", "AnalogRead = %0.2f %0.2f %0.2f %0.2f", in1, in2, in3, in4);
 
+    tsensors.requestTemperatures();
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+
     inputData.temperatureData["Tc1"]    = tsensors.getTempC(tc1Addr);
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     inputData.temperatureData["Tc2"]    = tsensors.getTempC(tc2Addr);
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     inputData.temperatureData["Tc3"]    = tsensors.getTempC(tc3Addr);
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     inputData.temperatureData["Tc4"]    = tsensors.getTempC(tc4Addr);
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
     inputData.temperatureData["Tc5"]    = tsensors.getTempC(tc5Addr);
-    delay(10);
+    vTaskDelay(10 / portTICK_PERIOD_MS);
 
     inputData.pressureData["Pr1"]       = 0.2;
     inputData.pressureData["Pr2"]       = 0.2;
@@ -189,11 +189,13 @@ void Inputs::pollSensorData(void){
     inputData.gasData["CO2"]            = 0.5;
     inputData.gasData["N2O"]            = 0.5;
 
-    ESP_LOGW("HAL", "Tc1 = %0.2f", inputData.temperatureData["Tc1"]);
-    ESP_LOGW("HAL", "Tc2 = %0.2f", inputData.temperatureData["Tc2"]);
-    ESP_LOGW("HAL", "Tc3 = %0.2f", inputData.temperatureData["Tc3"]);
-    ESP_LOGW("HAL", "Tc4 = %0.2f", inputData.temperatureData["Tc4"]);
-    ESP_LOGW("HAL", "Tc5 = %0.2f", inputData.temperatureData["Tc5"]);
+    ESP_LOGW("HAL", "TcX = %0.2f %0.2f %0.2f %0.2f %0.2f",
+        inputData.temperatureData["Tc1"],
+        inputData.temperatureData["Tc2"],
+        inputData.temperatureData["Tc3"],
+        inputData.temperatureData["Tc4"],
+        inputData.temperatureData["Tc5"]);
+
 
 }
 
