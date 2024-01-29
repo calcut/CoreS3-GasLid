@@ -111,6 +111,14 @@ void NotecardManager::cardWireless(){
     }
 }
 
+void NotecardManager::cardWirelessPenaltyReset(){
+    if (J *req = notecard.newRequest("card.wireless.penalty")) {
+        JAddBoolToObject(req, "reset", true);
+        J *rsp = notecard.requestAndResponse(req);
+        notecard.deleteResponse(rsp);
+    }
+}
+
 void NotecardManager::getEnvironment(){
 
     // Check if any environment variables have been modified.

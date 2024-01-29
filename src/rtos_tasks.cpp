@@ -140,6 +140,8 @@ void serviceNotecard(void * pvParameters){
     xSemaphoreTake(nc_mutex, portMAX_DELAY);
 
     notecardManager.begin(serialDisplay);
+    notecardManager.cardWirelessPenaltyReset();
+    
     if (NotecardEnvVarManager_setEnvVarCb(notecardManager.envVarManager,
                              myEnvVarCb, NULL) != NEVM_SUCCESS)
     {
@@ -160,8 +162,8 @@ void serviceNotecard(void * pvParameters){
             vTaskDelay(10 / portTICK_PERIOD_MS);
             notecardManager.cardStatus();
             vTaskDelay(10 / portTICK_PERIOD_MS);
-            notecardManager.getEnvironment();
-            vTaskDelay(10 / portTICK_PERIOD_MS);
+            // notecardManager.getEnvironment();
+            // vTaskDelay(10 / portTICK_PERIOD_MS);
             notecardManager.hubStatus();
             vTaskDelay(10 / portTICK_PERIOD_MS);
             notecardManager.hubSyncStatus();
@@ -169,7 +171,7 @@ void serviceNotecard(void * pvParameters){
             notecardManager.cardWireless();
             vTaskDelay(10 / portTICK_PERIOD_MS);
 
-            refreshEnvironment();
+            // refreshEnvironment();
 
             notecardManager.serviceTick = !notecardManager.serviceTick;
             xSemaphoreGive(nc_mutex);
@@ -194,13 +196,13 @@ void timeSyncNotecard(void * pvParameters){
     else{
         Serial.printf("Notecard not connected, skipping time sync\n");
     }
-    Serial.printf("Notecard getEnvironment...\n");
-    notecardManager.getEnvironment();
-    Serial.printf("... Notecard getEnvironment done\n");
+    // Serial.printf("Notecard getEnvironment...\n");
+    // notecardManager.getEnvironment();
+    // Serial.printf("... Notecard getEnvironment done\n");
 
-    Serial.printf("Notecard sendSensorData...\n");
-    sendSensorData();
-    Serial.printf("... Notecard sendSensorData done\n");
+    // Serial.printf("Notecard sendSensorData...\n");
+    // sendSensorData();
+    // Serial.printf("... Notecard sendSensorData done\n");
 
     xSemaphoreGive(nc_mutex);
     vTaskDelay(notecardManager.envVars["timeSyncInterval_s"]*1000 / portTICK_PERIOD_MS);

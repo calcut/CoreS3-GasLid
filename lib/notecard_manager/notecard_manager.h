@@ -27,6 +27,7 @@ class NotecardManager {
         void hubSyncStatus();
         void cardStatus();
         void cardWireless();
+        void cardWirelessPenaltyReset();
         void getEnvironment();
         void setEnvironmentVar(char *name, char * text);
         void setDefaultEnvironmentVar(char *name, char * text);
