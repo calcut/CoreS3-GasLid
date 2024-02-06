@@ -46,6 +46,7 @@ void hal_setup(void){
     ESP_LOGI("HAL", "Info message");
     ESP_LOGD("HAL", "Debug message");
 
+    inputs.init();
     outputs.init();
 
 
@@ -98,7 +99,7 @@ void Outputs::setReturnValve(int index, bool ValveState) {
 }
 
 void Outputs::setGasPumpSpeed(float percent) {
-    gasPump[0]->setSpeed(percent * 255);
+    gasPump[0]->setSpeed(percent/100 * 255);
     gasPump[0]->run(FORWARD);
 }
 
@@ -117,7 +118,7 @@ void Outputs::enableWaterPump(bool enable) {
 
 void Inputs::init(void){
 
-    ESP_LOGI("HAL", "**** Mod_a1019 init ****");
+    ESP_LOGI("HAL", "Inputs init");
     
     vTaskDelay(20 / portTICK_PERIOD_MS);
     mod_a1019.init();
@@ -133,6 +134,16 @@ void Inputs::init(void){
     vTaskDelay(20 / portTICK_PERIOD_MS);
 
     initFlowMeters(PIN_PULSE_COUNT);
+
+    //ADC for gas flow meter 
+    ads.setGain(GAIN_ONE);  // 1x gain(default)
+    ads.setMode(MODE_CONTIN);  // Continuous conversion mode (default)
+    ads.setRate(RATE_8);  // 8SPS (default)
+    ads.getAddr_ADS1100(
+        ADS1100_DEFAULT_ADDRESS);
+    ads.setOSMode(
+        OSMODE_SINGLE);  // Set to start a single-conversion.  设置开始一次转换
+    // ads.begin();
 
     ESP_LOGI("HAL", "Inputs init complete");
 
@@ -237,6 +248,42 @@ void Inputs::pollSensorData(void){
     inputData.gasData["CH4"]            = 0.5;
     inputData.gasData["CO2"]            = 0.5;
     inputData.gasData["N2O"]            = 0.5;
+
+    readADCvoltage();
+
+
+}
+
+float Inputs::readADCvoltage(void){
+
+
+    byte error;
+    int8_t address;
+    address = ads.ads_i2cAddress;
+    ESP_LOGW("HAL", "ADC addr: %x", address);
+
+    int gain = ads.getGain();
+    ESP_LOGW("HAL", "ADC gain: %d", gain);
+
+    Wire.beginTransmission(address);
+    error = Wire.endTransmission();
+    ESP_LOGW("HAL", "ADC err: %x", error);
+
+    if (error == 0)  // If the device is connected.
+    {
+        int16_t result_raw;
+        result_raw = ads.Measure_Differential();
+        // Reference voltage appears to be ~3.8V on these units. unsure why, should be 3.3V
+        // Also, there is a divide by 4 resistor divider on the input.
+        float result_volts = result_raw/32768.0 * ADS_REF_VOLTS * 4;
+        char data[20] = {0};
+        sprintf(data, "%0.2f", result_volts);
+        ESP_LOGW("HAL", "ADC: %s", data);
+        return result_volts;
+    } else {
+        ESP_LOGE("HAL", "ADS1100 not found");
+        return -1;
+    }
 }
 
 void setSystemTime(){
