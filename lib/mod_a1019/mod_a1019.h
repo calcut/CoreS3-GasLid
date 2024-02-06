@@ -24,7 +24,7 @@ class Mod_a1019 {
             TYPE_4_20MA = 0
         };
 
-        void readTC_float(float_t *tc);
+        void getInputs_float(float_t *channel);
         void readTC_int(int32_t *tc);
         void readTC_int_decimal(int32_t *tc);
         void setTypeTC();
