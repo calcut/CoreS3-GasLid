@@ -42,6 +42,11 @@ void StateMachine::run(void){
 
     inputs.pollSensorData();
 
+    if (envVars["gasSampleNow"]){
+        sampleGasCards();
+        envVars["gasSampleNow"] = 0;
+    }
+
     if(outputs.getJacketHeater()){
         ESP_LOGI("SM", "Jacket Heater is on");
         if(inputData.temperatureData["Tc1"] > envVars["targetTempTank1"] 
@@ -69,11 +74,13 @@ void StateMachine::sampleGasCards(){
 
     int pumpTime_s = envVars["gasPumpTime_s"];
     int purgeTime_s = envVars["gasPurgeTime_s"];
-    int pumpSpeed_pc = envVars["gasPumpSpeed_pc"];
+    // int pumpSpeed_pc = envVars["gasPumpSpeed_pc"];
     int sampleChannels = envVars["gasSampleChannels"];
 
 
     for (int i = 0; i < sampleChannels; i++){
+        int pumpSpeed_pc = envVars["gasPumpSpeed_pc"];
+
         ESP_LOGI("SM", "Opening valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::OPEN);
         outputs.setReturnValve(i, outputs.ValveState::OPEN);

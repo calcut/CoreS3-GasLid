@@ -39,11 +39,12 @@ public:
     float* flexStoreSensor;
 
     std::unordered_map<std::string, int> envVars = {
-        {"gasPurgeTime_s", 1},
-        {"gasPumpTime_s", 1},
-        {"gasPumpSpeed_pc", 50},
+        {"gasSampleNow", 0},
+        {"gasPurgeTime_s", 10},
+        {"gasPumpTime_s", 10},
+        {"gasPumpSpeed_pc", 30},
         {"gasSampleChannels", 4},
-        {"sampleTime1_hour", 16},
+        {"sampleTime1_hour", 12},
         {"sampleTime1_min", 51},
         {"sampleTime2_hour", 13},
         {"sampleTime2_min", 30},
