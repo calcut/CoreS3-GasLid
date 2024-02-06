@@ -1,10 +1,8 @@
 #include "mod_a1019.h"
 
-#define TAG "a1019"
-
 void Mod_a1019::readTC_float(float_t tc[8]) {
 
-    ESP_LOGD(TAG, "Reading input values");
+    ESP_LOGD("a1019", "Reading input values");
     if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                                 736, 16)) {  //ABCD
 
@@ -19,21 +17,21 @@ void Mod_a1019::readTC_float(float_t tc[8]) {
 
             // Convert to float and print
             memcpy(&tc[i], &byte_array, 4);
-            ESP_LOGD(TAG, "TC[%i]: %0.2f", i, tc[i]);
+            ESP_LOGD("a1019", "TC[%i]: %0.2f", i, tc[i]);
         }
     }
     else {
-        ESP_LOGE(TAG, "failed! %s", ModbusRTUClient.lastError());
+        ESP_LOGE("a1019", "failed! %s", ModbusRTUClient.lastError());
     }
 }
 void Mod_a1019::readTC_int(int32_t tc[8]) {
 
         if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                                     96, 8)) {
-            ESP_LOGD(TAG, "Input Values integer: ");
+            ESP_LOGD("a1019", "Input Values integer: ");
             while (ModbusRTUClient.available()) {
                 int16_t temperature = ModbusRTUClient.read();
-                ESP_LOGD(TAG, "%d ", temperature);
+                ESP_LOGD("a1019", "%d ", temperature);
             }
         }
 }
@@ -42,20 +40,20 @@ void Mod_a1019::readTC_int_decimal(int32_t tc[8]) {
 
         if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                                 128, 8)) {
-            ESP_LOGD(TAG, "Input Values integer_decimal" );
+            ESP_LOGD("a1019", "Input Values integer_decimal" );
             while (ModbusRTUClient.available()) {
                 int16_t temperature = ModbusRTUClient.read();
-                ESP_LOGD(TAG, "%d ", temperature);
+                ESP_LOGD("a1019", "%d ", temperature);
             }
         }
 }
 
 void Mod_a1019::setType(int channel, channelType type){
 
-    ESP_LOGD(TAG, "Setting input %i to type %i, ", channel, type);
+    ESP_LOGD("a1019", "Setting input %i to type %i, ", channel, type);
 
     if (!ModbusRTUClient.holdingRegisterWrite(id, 64 + channel, type)){
-        ESP_LOGE(TAG, "failed! %s", ModbusRTUClient.lastError());
+        ESP_LOGE("a1019", "failed! %s", ModbusRTUClient.lastError());
     }
 }
 
@@ -63,7 +61,7 @@ void Mod_a1019::setType(int channel, channelType type){
 void Mod_a1019::setTypeTC(){
 
     // Set the input types to K type thermocouple
-    ESP_LOGD(TAG, "Setting input types to K type thermocouple");
+    ESP_LOGD("a1019", "Setting input types to K type thermocouple");
 
     ModbusRTUClient.beginTransmission(id, HOLDING_REGISTERS, 64, 8);
     for (int i = 0; i < 8; i++) {
@@ -85,24 +83,24 @@ void Mod_a1019::getType(){
             strcat(logstring, buf);
         }
         
-        ESP_LOGD(TAG, "Input types: 0x %s ", logstring);
+        ESP_LOGD("a1019", "Input types: 0x %s ", logstring);
 
     }
     else {
-        ESP_LOGE(TAG, "failed! %s", ModbusRTUClient.lastError());
+        ESP_LOGE("a1019", "failed! %s", ModbusRTUClient.lastError());
     }
 }
 
 void Mod_a1019::init(){
-    ESP_LOGI(TAG, "**** Mod_a1019 init ****");
+    ESP_LOGI("a1019", "**** Mod_a1019 init ****");
 
     if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                                 MODULE_NAME_ADDR, 1)) {
         while (ModbusRTUClient.available()) {
-            ESP_LOGD(TAG, "Module Detected: A-%X ", ModbusRTUClient.read());
+            ESP_LOGD("a1019", "Module Detected: A-%X ", ModbusRTUClient.read());
         }
     }
     else {
-        ESP_LOGE(TAG, "A-1019 Module not detected! %s", ModbusRTUClient.lastError());
+        ESP_LOGE("a1019", "A-1019 Module not detected! %s", ModbusRTUClient.lastError());
     }
 }
