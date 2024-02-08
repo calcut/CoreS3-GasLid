@@ -126,7 +126,7 @@ void readFlowMeters(void *pvParameters)
 void serviceGUI(void * pvParameters){
 
     setupGui();
-    Serial.println("GUI setup complete");
+    ESP_LOGI("RTOS", "GUI setup complete");
     while(1){
         int delay_ms = lv_timer_handler();
         vTaskDelay(delay_ms / portTICK_PERIOD_MS);
@@ -145,18 +145,18 @@ void serviceNotecard(void * pvParameters){
     if (NotecardEnvVarManager_setEnvVarCb(notecardManager.envVarManager,
                              myEnvVarCb, NULL) != NEVM_SUCCESS)
     {
-    Serial.println("Failed to set callback for NotecardEnvVarManager.");
+    ESP_LOGE("RTOS", "Failed to set callback for NotecardEnvVarManager.");
     }
     else{
         setDefaultEnvironment();
-        Serial.println("NotecardManager started");
+        ESP_LOGI("RTOS", "NotecardManager started");
     }
     xSemaphoreGive(nc_mutex);
 
     while(1){
 
         if (notecardManager.serviceEnabled){
-            Serial.printf("Notecard info service\n");
+            ESP_LOGI("RTOS", "Notecard info service\n");
             xSemaphoreTake(nc_mutex, portMAX_DELAY);
             notecardManager.hubGet();
             vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -196,9 +196,9 @@ void timeSyncNotecard(void * pvParameters){
     }
     notecardManager.getEnvironment();
 
-    // Serial.printf("Notecard sendSensorData...\n");
+    // ESP_LOGI("RTOS", "Notecard sendSensorData...\n");
     // sendSensorData();
-    // Serial.printf("... Notecard sendSensorData done\n");
+    // ESP_LOGI("RTOS", "... Notecard sendSensorData done\n");
 
     xSemaphoreGive(nc_mutex);
     vTaskDelay(notecardManager.envVars["timeSyncInterval_s"]*1000 / portTICK_PERIOD_MS);

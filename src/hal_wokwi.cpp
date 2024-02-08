@@ -35,10 +35,6 @@ void hal_setup(void){
 
     Wire.begin(2, 1, 400000);  //Init I2C_EXT
 
-    // Serial.println(F("Starting Display..."));
-    // initDisplay();
-
-    Serial.println("Setting log levels");
     esp_log_level_set("*", ESP_LOG_WARN);
     esp_log_level_set("HAL", ESP_LOG_DEBUG);
     // esp_log_set_vprintf(sdCardLogOutput); // Maybe in future
@@ -267,10 +263,7 @@ void my_touchpad_read(lv_indev_drv_t * drv, lv_indev_data_t * data)
         TS_Point point = touch.getPoint();
 
         // Print raw touch coordinates
-        Serial.print("Raw X: ");
-        Serial.print(point.x);
-        Serial.print(", Y: ");
-        Serial.println(point.y);
+        ESP_LOGD("HAL", "Raw X: %d, Y: %d", point.x, point.y);
 
         // Map the touch coordinates to match the screen resolution and orientation
         
@@ -280,10 +273,7 @@ void my_touchpad_read(lv_indev_drv_t * drv, lv_indev_data_t * data)
         data->point.x = touchX;
         data->point.y = touchY;
 
-        Serial.print("Touched at X: ");
-        Serial.print(touchX);
-        Serial.print(", Y: ");
-        Serial.println(touchY);
+        ESP_LOGD("HAL", "Touched at X: %d, Y: %d", touchX, touchY);
     }
 
     if (!touched)
@@ -302,9 +292,9 @@ void initDisplay(void){
     tft.setRotation(3);
 
     if (!touch.begin(40)) {  // pass in 'sensitivity' coefficient
-        Serial.println("Couldn't start FT6206 touchscreen controller");
+        ESP_LOGE("HAL", "Couldn't start FT6206 touchscreen controller");
     } else {
-        Serial.println("FT6206 touchscreen controller CONNECTED!");
+        ESP_LOGI("HAL", "FT6206 touchscreen controller CONNECTED!");
     }
 
     lv_disp_draw_buf_init(&disp_buf, buf, NULL, screenWidth*10);
@@ -328,15 +318,12 @@ void initDisplay(void){
     
     //Check vertical and horizontal resolution of what lvgl sees
     lv_coord_t hor_res = lv_disp_get_hor_res(NULL);
-    Serial.print("LVGL Horizontal Resolution: ");
-    Serial.println(hor_res);
+    ESP_LOGI("HAL", "LVGL Horizontal Resolution: %d", hor_res);
     
     //Check vertical and horizontal resolution of what lvgl sees
     lv_coord_t ver_res = lv_disp_get_ver_res(NULL);
-    Serial.print("LVGL Vertical Resolution: ");
-    Serial.println(ver_res);
+    ESP_LOGI("HAL", "LVGL Vertical Resolution: %d", ver_res);
 
     lv_coord_t disp_dpi = lv_disp_get_dpi(NULL);
-    Serial.print("LVGL Display DPI: ");
-    Serial.println(disp_dpi);
+    ESP_LOGI("HAL", "LVGL Display DPI: %d", disp_dpi);
 }

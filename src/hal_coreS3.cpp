@@ -230,7 +230,6 @@ void Inputs::pollPhysicalControls(void){
     uint8_t gpioval;
     gpioval = gpioExpander.digitalReadPort(gpioStatus);
 
-    ESP_LOGD("HAL", (gpioval, BIN));
     // if (gpioStatus[1] == 1){
     //     physicalControls.handOffAuto = AUTO;
     // }
