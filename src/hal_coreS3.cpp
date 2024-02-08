@@ -182,7 +182,7 @@ void Inputs::serviceFlowMeters(void){
     if (millis() - previousPulseTime != 0){
         flowPPS = ((counterVal - previousPulseCount)*1000)/(millis() - previousPulseTime);
         inputData.flowData["WaterFlow"] = (float)flowPPS * 60 / 4600; //4600 pulses per litre
-        ESP_LOGI("HAL", "PPS: %i, Flow: %0.2f", flowPPS, inputData.flowData["WaterFlow"]);
+        ESP_LOGD("HAL", "PPS: %i, Flow: %0.2f", flowPPS, inputData.flowData["WaterFlow"]);
 
     }
 
