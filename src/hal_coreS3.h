@@ -115,14 +115,10 @@ private:
 extern Inputs inputs;
 
 
-class SerialDisplay : public HWCDC
-//https://stackoverflow.com/questions/60972073/customizing-the-standard-serial-print-functions-in-arduino
-{
-    using HWCDC::HWCDC; // Inherit constructors
-    public:
-        size_t write(const uint8_t *buffer, size_t size) override;   // Overriding base functionality
-        char logBuffer[TERMINAL_LOG_LENGTH + 1];
-};
-extern SerialDisplay serialDisplay;
+
+
+extern char logBuffer[TERMINAL_LOG_LENGTH + 1];
+
+int serialLogger(const char* format, va_list args);
 
 #endif // HAL_CORES3_H

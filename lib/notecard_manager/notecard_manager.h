@@ -20,7 +20,7 @@ class NotecardManager {
     public:
         NotecardManager();
         NotecardEnvVarManager *envVarManager = NULL;
-        void begin(Stream &serial_stream);
+        void begin();
         void init(const char *uid, const char *mode, int inbound, int outbound, bool sync);
         void hubGet();
         void hubStatus();
@@ -54,5 +54,18 @@ class NotecardManager {
 };
 
 extern NotecardManager notecardManager;
+
+class SerialDebug : public HWCDC
+
+//Somewhere to send the notecard's setDebugOutputStream
+//https://stackoverflow.com/questions/60972073/customizing-the-standard-serial-print-functions-in-arduino
+{
+    using HWCDC::HWCDC; // Inherit constructors
+    public:
+        size_t write(const uint8_t *buffer, size_t size) override;   // Overriding base functionality
+        char tempBuffer[1024];
+        int tempBufferIndex = 0;
+};
+// extern SerialDebug serialDebug;
 
 #endif

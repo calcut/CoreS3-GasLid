@@ -262,5 +262,5 @@ void display_date_time_labels(lv_timer_t * timer){
 }
 
 void display_log(lv_timer_t * timer){
-    lv_textarea_set_text(ui_TextAreaLog, serialDisplay.logBuffer);
+    lv_textarea_set_text(ui_TextAreaLog, logBuffer);
 }

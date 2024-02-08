@@ -2,19 +2,20 @@
 
 
 NotecardManager notecardManager;
+SerialDebug serialDebug;
 
 
 NotecardManager::NotecardManager(){}
 
-void NotecardManager::begin(Stream &serial_stream){
+void NotecardManager::begin(){
     notecard.begin(NOTE_I2C_ADDR_DEFAULT, NOTE_I2C_MAX_DEFAULT, Wire);
-    // notecard.setDebugOutputStream(serial_stream); // Was causing a crash with envvarmanager... TODO: Fix
-    notecard.setDebugOutputStream(Serial);
+    notecard.setDebugOutputStream(serialDebug);
+    // notecard.setDebugOutputStream(Serial);
 
     envVarManager = NotecardEnvVarManager_alloc();
     if (envVarManager == NULL) {
         // Handle failed allocation.
-        Serial.println("Failed to allocate NotecardEnvVarManager.");
+        ESP_LOGE("NCARD", "Failed to allocate NotecardEnvVarManager.");
     }
 }
 
@@ -32,8 +33,7 @@ void NotecardManager::init(const char *uid, const char *mode, int inbound, int o
         JAddBoolToObject(req, "align", true); // Align periodic syncs to UTC intervals
 
         if (!notecard.sendRequest(req)) {
-            notecard.logDebug("FATAL: Failed to configure Notecard!\n");
-            Serial.println("FATAL: Failed to configure Notecard!");
+            ESP_LOGE("NCARD", "Failed to configure Notecard!");
             while(1);
         }
     }
@@ -42,7 +42,7 @@ void NotecardManager::init(const char *uid, const char *mode, int inbound, int o
     if (req) {
         JAddStringToObject(req, "mode", "off");
         if (!notecard.sendRequest(req)) {
-            notecard.logDebug("Warning, failed to set card.aux mode=off\n");
+            ESP_LOGE("NCARD", "failed to set card.aux mode=off");
         }
     }
 
@@ -51,7 +51,7 @@ void NotecardManager::init(const char *uid, const char *mode, int inbound, int o
         JAddStringToObject(req, "name", "esp32");
         JAddBoolToObject(req, "on", DFU_ENABLE);
         if (!notecard.sendRequest(req)) {
-            notecard.logDebug("Warning, failed to enable outboard DFU\n");
+            ESP_LOGE("NCARD", "failed to enable outboard DFU");
         }
     }
 }
@@ -136,13 +136,13 @@ void NotecardManager::getEnvironment(){
     else {
         notecard.logDebug(JConvertToJSONString(rsp));
         env_modified_time = JGetInt(rsp, "time");
-        Serial.printf("modified time: %d\n", env_modified_time);
+        ESP_LOGD("NCARD", "Env modified time: %d", env_modified_time);
         notecard.deleteResponse(rsp);
 
-        notecard.logDebug("Fetching environment variables...\n");
+        ESP_LOGD("NCARD","Fetching environment variables...");
         if (NotecardEnvVarManager_fetch(envVarManager, NULL, NEVM_ENV_VAR_ALL)
                 != NEVM_SUCCESS) {
-                Serial.println("NotecardEnvVarManager_fetch failed.");
+                ESP_LOGE("NCARD", "NotecardEnvVarManager_fetch failed.");
             }
     }   
 }   
@@ -169,4 +169,21 @@ void NotecardManager::setDefaultEnvironmentVar(char *name, char *text){
     JAddStringToObject(req, "name", name);
     JAddStringToObject(req, "text", text);
     notecard.sendRequest(req);
+}
+
+size_t SerialDebug::write(const uint8_t *buffer, size_t size){
+
+    //Intended to intercept log messages from the notecard and translate them to ESP_LOGx messages
+    //Append the buffer to the tempBuffer
+    memcpy(&tempBuffer[tempBufferIndex], buffer, size);
+    tempBufferIndex += size;
+
+    //if tempbuffer ends in a newline, then send it to the ESP_LOGD hander
+    if (tempBuffer[tempBufferIndex-1] == '\n'){
+        tempBuffer[tempBufferIndex-1] = '\0';
+        ESP_LOGD("NCARD", "%s", tempBuffer);
+        tempBufferIndex = 0;
+    }
+
+    return size;
 }

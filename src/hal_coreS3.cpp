@@ -5,6 +5,8 @@ Outputs outputs;
 Inputs inputs;
 InputData inputData;
 
+char logBuffer[TERMINAL_LOG_LENGTH + 1];
+
 // RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, PIN_DE_RS485, -1);
 
 void hal_setup(void){
@@ -39,7 +41,7 @@ void hal_setup(void){
     Serial.println("Setting log levels");
     esp_log_level_set("*", ESP_LOG_WARN);
     esp_log_level_set("HAL", ESP_LOG_DEBUG);
-    // esp_log_set_vprintf(sdCardLogOutput); // Maybe in future
+    esp_log_set_vprintf(serialLogger);
 
     ESP_LOGE("HAL", "Error message");
     ESP_LOGW("HAL", "Warning message");
@@ -53,6 +55,36 @@ void hal_setup(void){
     ESP_LOGI("HAL", "hal_setup complete");
 
 };
+
+int serialLogger(const char* format, va_list args){
+
+    // Intended to intercept ESP_LOGx messages and keep them in a log buffer for display on the screen
+    char txt_in[TERMINAL_LOG_LENGTH];
+
+    int ret = vsnprintf(txt_in, sizeof(txt_in), format, args);
+    Serial.print(txt_in);
+
+    uint16_t txt_len = strlen(txt_in);
+    uint16_t old_len = strlen(logBuffer); 
+
+    //Append the new text to the end of the log, deleting the oldest text if necessary
+    if (old_len + txt_len > TERMINAL_LOG_LENGTH){
+        //If the new text is longer than the log, then delete the oldest text
+        uint16_t new_start = old_len - (TERMINAL_LOG_LENGTH - txt_len);
+        uint16_t new_len = old_len - new_start;
+        memcpy(logBuffer, &logBuffer[new_start], new_len);
+        memcpy(&logBuffer[new_len], txt_in, txt_len);
+
+        logBuffer[new_len+txt_len] = '\0';
+    }
+    else{
+        //If the new text is shorter than the log, then append it to the end
+        memcpy(&logBuffer[old_len], txt_in, txt_len);
+        logBuffer[old_len + txt_len] = '\0';
+    }
+
+    return ret;
+}
 
 void Outputs::init() {
     ESP_LOGI("HAL", "Outputs init");
@@ -226,7 +258,7 @@ void Inputs::pollPhysicalControls(void){
 }
 
 void Inputs::pollSensorData(void){
-    ESP_LOGD("HAL", "Polling Sensor Data (needs fixed)");
+    ESP_LOGD("HAL", "Polling Sensor Data");
 
     float AI[8];
     float voltage;
@@ -239,25 +271,21 @@ void Inputs::pollSensorData(void){
     inputData.temperatureData["short"]      = AI[2];
     inputData.temperatureData["long"]       = AI[3];
     inputData.temperatureData["biofilter"]  = AI[4];
-    inputData.pressureData["Pr1"]           = 0.2;
-    inputData.pressureData["Pr2"]           = 0.2;
-    inputData.pressureData["Pr3"]           = 0.2;
-    inputData.pressureData["Pr4"]           = 0.2;
-    // inputData.flowData["WaterFlow"]         = 0.3;
+    // inputData.pressureData["Pr1"]           = 0.2;
+    // inputData.pressureData["Pr2"]           = 0.2;
+    // inputData.pressureData["Pr3"]           = 0.2;
+    // inputData.pressureData["Pr4"]           = 0.2;
+    // inputData.flowData["WaterFlow"]         = 0.3;  //Handled by serviceFlowMeters
     inputData.flowData["GasFlow"]           = readADCvoltage()/5.0; //5V per litre per minute
-    inputData.powerData["Power"]            = 0.4;
-    inputData.powerData["Energy"]           = 0.4;
+    // inputData.powerData["Power"]            = 0.4;
+    // inputData.powerData["Energy"]           = 0.4;
     inputData.gasData["CH4"]                = AI[5];
     inputData.gasData["CO2"]                = AI[6];
     inputData.gasData["N2O"]                = AI[7];
 
-    ESP_LOGW("HAL", "Waterflow: %0.2f", inputData.flowData["WaterFlow"]);
-
-
 }
 
 float Inputs::readADCvoltage(void){
-
 
     byte error;
     Wire.beginTransmission(ads.ads_i2cAddress);
@@ -272,9 +300,7 @@ float Inputs::readADCvoltage(void){
         // Reference voltage appears to be ~3.8V on these units. unsure why, should be 3.3V
         // Also, there is a divide by 4 resistor divider on the input.
         float result_volts = result_raw/32768.0 * ADS_REF_VOLTS * 4;
-        char data[20] = {0};
-        sprintf(data, "%0.2f", result_volts);
-        ESP_LOGW("HAL", "ADC: %s", data);
+        ESP_LOGD("HAL", "ADC: %0.2f V", result_volts);
         return result_volts;
     } else {
         ESP_LOGE("HAL", "ADS1100 not found");
@@ -311,45 +337,12 @@ void setRTC(time_t epoch_time, int UTC_offset_minutes){
     time_info = localtime(&epoch_time);
     
     M5.Rtc.setDateTime(time_info);
-
-    //Delay To allow the RTC chip to update, can see errors of ~+18 mins without this
-    // vTaskDelay(1 / portTICK_PERIOD_MS);
-    // Probably no longer needed due to tv.tv_usec = 0; fix
-
     setSystemTime();
 }
 
 
-size_t SerialDisplay::write(const uint8_t *buffer, size_t size){
-
-    // This intercepts SerialDisplay.print() and similar.
-    // It captures the text and appends it to the end of a log buffer for display on the screen
-
-    char *txt_in = (char*)buffer;
-    uint16_t txt_len = strlen(txt_in);
-    uint16_t old_len = strlen(logBuffer); 
-
-    //Append the new text to the end of the log, deleting the oldest text if necessary
-    if (old_len + txt_len > TERMINAL_LOG_LENGTH){
-        //If the new text is longer than the log, then delete the oldest text
-        uint16_t new_start = old_len - (TERMINAL_LOG_LENGTH - txt_len);
-        uint16_t new_len = old_len - new_start;
-        memcpy(logBuffer, &logBuffer[new_start], new_len);
-        memcpy(&logBuffer[new_len], txt_in, txt_len);
-
-        logBuffer[new_len+txt_len] = '\0';
-    }
-    else{
-        //If the new text is shorter than the log, then append it to the end
-        memcpy(&logBuffer[old_len], txt_in, txt_len);
-        logBuffer[old_len + txt_len] = '\0';
-    }
-
-    return HWCDC::write(buffer, size);
-}
-SerialDisplay serialDisplay;
-
 void initDisplay(void){
+    //Called from setupGUI in gui_helpers.cpp
     lv_init();
     m5gfx_lvgl_init();
 }

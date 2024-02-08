@@ -9,12 +9,12 @@ TimerHandle_t gasSampleTimer;
 void setupRtos(void){
 
     esp_log_level_set("HAL", ESP_LOG_INFO);
-    esp_log_level_set("RTOS", ESP_LOG_DEBUG);
+    esp_log_level_set("RTOS", ESP_LOG_INFO);
     esp_log_level_set("SM", ESP_LOG_INFO);
     esp_log_level_set("IN", ESP_LOG_INFO);
-    esp_log_level_set("OUT", ESP_LOG_DEBUG);
-    esp_log_level_set("a1019", ESP_LOG_DEBUG);
-    esp_log_level_set("NCARD", ESP_LOG_DEBUG);
+    esp_log_level_set("OUT", ESP_LOG_INFO);
+    esp_log_level_set("a1019", ESP_LOG_INFO);
+    esp_log_level_set("NCARD", ESP_LOG_INFO);
 
 
     xTaskCreate(
@@ -139,7 +139,7 @@ void serviceNotecard(void * pvParameters){
 
     xSemaphoreTake(nc_mutex, portMAX_DELAY);
 
-    notecardManager.begin(serialDisplay);
+    notecardManager.begin();
     notecardManager.cardWirelessPenaltyReset();
     
     if (NotecardEnvVarManager_setEnvVarCb(notecardManager.envVarManager,
@@ -188,17 +188,13 @@ void timeSyncNotecard(void * pvParameters){
     notecardManager.cardStatus();
 
     if(notecardManager.connected){
-        Serial.printf("Notecard time sync\n");
-
         notecardManager.getTime();
         setRTC(notecardManager.epoch_time, notecardManager.utc_offset_minutes);
     }
     else{
-        Serial.printf("Notecard not connected, skipping time sync\n");
+        ESP_LOGW("RTOS","Notecard not connected, skipping time sync");
     }
-    Serial.printf("Notecard getEnvironment...\n");
     notecardManager.getEnvironment();
-    Serial.printf("... Notecard getEnvironment done\n");
 
     // Serial.printf("Notecard sendSensorData...\n");
     // sendSensorData();
