@@ -24,6 +24,8 @@ DeviceAddress tc3Addr = { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x19 };
 DeviceAddress tc4Addr = { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x9A };
 DeviceAddress tc5Addr = { 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0xC4 };
 
+char logBuffer[TERMINAL_LOG_LENGTH + 1];
+
 void hal_setup(void){
     Serial.begin(115200);
 
@@ -37,7 +39,7 @@ void hal_setup(void){
 
     esp_log_level_set("*", ESP_LOG_WARN);
     esp_log_level_set("HAL", ESP_LOG_DEBUG);
-    // esp_log_set_vprintf(sdCardLogOutput); // Maybe in future
+    esp_log_set_vprintf(serialLogger);
 
     ESP_LOGE("HAL", "Error message");
     ESP_LOGW("HAL", "Warning message");
@@ -208,39 +210,10 @@ void setSystemTime(){
     tv.tv_sec = now.unixtime();
     tv.tv_usec = 0;
 
-    ESP_LOGI("HAL", "Setting sys time to %02d:%02d:%02d\n", now.hour(), now.minute(), now.second());
+    ESP_LOGI("HAL", "Setting sys time to %02d:%02d:%02d", now.hour(), now.minute(), now.second());
 
     settimeofday(&tv, NULL);
 }
-
-size_t SerialDisplay::write(const uint8_t *buffer, size_t size){
-
-    // This intercepts SerialDisplay.print() and similar.
-    // It captures the text and appends it to the end of a log buffer for display on the screen
-
-    char *txt_in = (char*)buffer;
-    uint16_t txt_len = strlen(txt_in);
-    uint16_t old_len = strlen(logBuffer); 
-
-    //Append the new text to the end of the log, deleting the oldest text if necessary
-    if (old_len + txt_len > TERMINAL_LOG_LENGTH){
-        //If the new text is longer than the log, then delete the oldest text
-        uint16_t new_start = old_len - (TERMINAL_LOG_LENGTH - txt_len);
-        uint16_t new_len = old_len - new_start;
-        memcpy(logBuffer, &logBuffer[new_start], new_len);
-        memcpy(&logBuffer[new_len], txt_in, txt_len);
-
-        logBuffer[new_len+txt_len] = '\0';
-    }
-    else{
-        //If the new text is shorter than the log, then append it to the end
-        memcpy(&logBuffer[old_len], txt_in, txt_len);
-        logBuffer[old_len + txt_len] = '\0';
-    }
-
-    return HWCDC::write(buffer, size);
-}
-SerialDisplay serialDisplay;
 
 void my_disp_flush( lv_disp_drv_t *disp_drv, const lv_area_t *area, lv_color_t *color_p )
 {
@@ -286,6 +259,10 @@ void my_touchpad_read(lv_indev_drv_t * drv, lv_indev_data_t * data)
     }
 }
 
+void setRTC(time_t epoch_time, int UTC_offset_minutes){
+    //Not implemented because Wokwi sets the time automatically
+}
+
 void initDisplay(void){
     lv_init();
     tft.begin();
@@ -326,4 +303,34 @@ void initDisplay(void){
 
     lv_coord_t disp_dpi = lv_disp_get_dpi(NULL);
     ESP_LOGI("HAL", "LVGL Display DPI: %d", disp_dpi);
+}
+
+int serialLogger(const char* format, va_list args){
+
+    // Intended to intercept ESP_LOGx messages and keep them in a log buffer for display on the screen
+    char txt_in[TERMINAL_LOG_LENGTH];
+
+    int ret = vsnprintf(txt_in, sizeof(txt_in), format, args);
+    Serial.print(txt_in);
+
+    uint16_t txt_len = strlen(txt_in);
+    uint16_t old_len = strlen(logBuffer); 
+
+    //Append the new text to the end of the log, deleting the oldest text if necessary
+    if (old_len + txt_len > TERMINAL_LOG_LENGTH){
+        //If the new text is longer than the log, then delete the oldest text
+        uint16_t new_start = old_len - (TERMINAL_LOG_LENGTH - txt_len);
+        uint16_t new_len = old_len - new_start;
+        memcpy(logBuffer, &logBuffer[new_start], new_len);
+        memcpy(&logBuffer[new_len], txt_in, txt_len);
+
+        logBuffer[new_len+txt_len] = '\0';
+    }
+    else{
+        //If the new text is shorter than the log, then append it to the end
+        memcpy(&logBuffer[old_len], txt_in, txt_len);
+        logBuffer[old_len + txt_len] = '\0';
+    }
+
+    return ret;
 }

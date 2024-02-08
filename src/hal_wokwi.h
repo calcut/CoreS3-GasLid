@@ -25,6 +25,9 @@ void lv_example_btn_1(void);
 void my_touchpad_read(lv_indev_drv_t * drv, lv_indev_data_t * data);
 void my_disp_flush(lv_disp_drv_t * disp, const lv_area_t * area, lv_color_t * color_p);
 
+//To set the on-board RTC chip (not implemented because WOKWI sets the time automatically)
+void setRTC(time_t epoch_time, int UTC_offset_minutes);
+
 class Outputs {
 public:
 
@@ -55,14 +58,7 @@ public:
 };
 extern Inputs inputs;
 
-class SerialDisplay : public HWCDC
-//https://stackoverflow.com/questions/60972073/customizing-the-standard-serial-print-functions-in-arduino
-{
-    using HWCDC::HWCDC; // Inherit constructors
-    public:
-        size_t write(const uint8_t *buffer, size_t size) override;   // Overriding base functionality
-        char logBuffer[TERMINAL_LOG_LENGTH + 1];
-};
-extern SerialDisplay serialDisplay;
+extern char logBuffer[TERMINAL_LOG_LENGTH + 1];
+int serialLogger(const char* format, va_list args);
 
 #endif // HAL_WOKWI_H
