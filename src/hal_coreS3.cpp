@@ -12,8 +12,8 @@ void hal_setup(void){
 
     // For DEBUG ONLY, otherwise it won't boot without a USB cable
     #ifdef DEBUG
-    while (!Serial) {;}
-    Serial.println("USB Serial Started");
+    // while (!Serial) {;}
+    // Serial.println("USB Serial Started");
     #endif
 
     M5.begin();
@@ -181,7 +181,9 @@ void Inputs::serviceFlowMeters(void){
 
     if (millis() - previousPulseTime != 0){
         flowPPS = ((counterVal - previousPulseCount)*1000)/(millis() - previousPulseTime);
-        inputData.flowData["WaterFlow"] = flowPPS * 60 / 4600; //4600 pulses per litre
+        inputData.flowData["WaterFlow"] = (float)flowPPS * 60 / 4600; //4600 pulses per litre
+        ESP_LOGI("HAL", "PPS: %i, Flow: %0.2f", flowPPS, inputData.flowData["WaterFlow"]);
+
     }
 
     previousPulseCount = counterVal;
@@ -226,30 +228,30 @@ void Inputs::pollPhysicalControls(void){
 void Inputs::pollSensorData(void){
     ESP_LOGD("HAL", "Polling Sensor Data (needs fixed)");
 
-    float tc[8];
+    float AI[8];
     float voltage;
-    mod_a1019.readTC_float(tc);
+    mod_a1019.getInputs_float(AI);
     // Delay seems to be needed to prevent Modbus errors
     vTaskDelay(20 / portTICK_PERIOD_MS);
 
-    inputData.temperatureData["Tc1"]    = 0.1;
-    inputData.temperatureData["Tc2"]    = 0.1;
-    inputData.temperatureData["Tc3"]    = 0.1;
-    inputData.temperatureData["Tc4"]    = 0.1;
-    inputData.temperatureData["Tc5"]    = 0.1;
-    inputData.pressureData["Pr1"]       = 0.2;
-    inputData.pressureData["Pr2"]       = 0.2;
-    inputData.pressureData["Pr3"]       = 0.2;
-    inputData.pressureData["Pr4"]       = 0.2;
-    inputData.flowData["WaterFlow"]     = 0.3;
-    inputData.flowData["GasFlow"]       = 0.3;
-    inputData.powerData["Power"]        = 0.4;
-    inputData.powerData["Energy"]       = 0.4;
-    inputData.gasData["CH4"]            = 0.5;
-    inputData.gasData["CO2"]            = 0.5;
-    inputData.gasData["N2O"]            = 0.5;
+    inputData.temperatureData["flow"]       = AI[0];
+    inputData.temperatureData["return"]     = AI[1];
+    inputData.temperatureData["short"]      = AI[2];
+    inputData.temperatureData["long"]       = AI[3];
+    inputData.temperatureData["biofilter"]  = AI[4];
+    inputData.pressureData["Pr1"]           = 0.2;
+    inputData.pressureData["Pr2"]           = 0.2;
+    inputData.pressureData["Pr3"]           = 0.2;
+    inputData.pressureData["Pr4"]           = 0.2;
+    // inputData.flowData["WaterFlow"]         = 0.3;
+    inputData.flowData["GasFlow"]           = readADCvoltage()/5.0; //5V per litre per minute
+    inputData.powerData["Power"]            = 0.4;
+    inputData.powerData["Energy"]           = 0.4;
+    inputData.gasData["CH4"]                = AI[5];
+    inputData.gasData["CO2"]                = AI[6];
+    inputData.gasData["N2O"]                = AI[7];
 
-    readADCvoltage();
+    ESP_LOGW("HAL", "Waterflow: %0.2f", inputData.flowData["WaterFlow"]);
 
 
 }
@@ -258,21 +260,15 @@ float Inputs::readADCvoltage(void){
 
 
     byte error;
-    int8_t address;
-    address = ads.ads_i2cAddress;
-    ESP_LOGW("HAL", "ADC addr: %x", address);
-
-    int gain = ads.getGain();
-    ESP_LOGW("HAL", "ADC gain: %d", gain);
-
-    Wire.beginTransmission(address);
+    Wire.beginTransmission(ads.ads_i2cAddress);
     error = Wire.endTransmission();
-    ESP_LOGW("HAL", "ADC err: %x", error);
 
     if (error == 0)  // If the device is connected.
     {
         int16_t result_raw;
-        result_raw = ads.Measure_Differential();
+        Wire.requestFrom(ads.ads_i2cAddress, (uint8_t)2);
+        result_raw = (int16_t)((Wire.read() << 8) | Wire.read());
+
         // Reference voltage appears to be ~3.8V on these units. unsure why, should be 3.3V
         // Also, there is a divide by 4 resistor divider on the input.
         float result_volts = result_raw/32768.0 * ADS_REF_VOLTS * 4;
