@@ -9,7 +9,7 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
     // The incoming type is converted to e.g. float or int as required
     // If the key is not found, it is ignored.
 
-    ESP_LOGI("NCARD", "received: key=%s, val=%s", key, val);
+    ESP_LOGD("NCARD", "received: key=%s, val=%s", key, val);
 
     //If the first character of the key is "*", parse as a log level change
     if (key[0] == '*') {
@@ -18,22 +18,22 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
         key++;
 
         if (strcmp(val, "DEBUG") == 0) {
-            ESP_LOGI("NCARD", "Setting log level to %s", val);
+            ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
             esp_log_level_set(key, ESP_LOG_DEBUG);
             return;
         }
         if (strcmp(val, "INFO") == 0) {
-            ESP_LOGI("NCARD", "Setting log level to %s", val);
+            ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
             esp_log_level_set(key, ESP_LOG_INFO);
             return;
         }
         if (strcmp(val, "WARN") == 0) {
-            ESP_LOGI("NCARD", "Setting log level to %s", val);
+            ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
             esp_log_level_set(key, ESP_LOG_WARN);
             return;
         }
         if (strcmp(val, "ERROR") == 0) {
-            ESP_LOGI("NCARD", "Setting log level to %s", val);
+            ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
             esp_log_level_set(key, ESP_LOG_ERROR);
             return;
         }
@@ -41,13 +41,13 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
 
     try{
         stateMachine.envVars.at(key) = atoi(val);
-        ESP_LOGI("NCARD", "set stateMachine.envVars[\"%s\"]=%d",
+        ESP_LOGD("NCARD", "set stateMachine.envVars[\"%s\"]=%d",
                          key, stateMachine.envVars.at(key));
     } catch(std::out_of_range& e){}
 
     try{
         notecardManager.envVars.at(key) = atoi(val);
-        ESP_LOGI("NCARD", "set notecardManager.envVars[\"%s\"]=%d",
+        ESP_LOGD("NCARD", "set notecardManager.envVars[\"%s\"]=%d",
                          key, notecardManager.envVars.at(key));
     } catch(std::out_of_range& e){}
 

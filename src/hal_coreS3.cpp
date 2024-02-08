@@ -38,7 +38,6 @@ void hal_setup(void){
 
     Wire.begin(PIN_SDA_I2C_EXT, PIN_SCL_I2C_EXT, 400000);  //Init I2C_EXT
 
-    Serial.println("Setting log levels");
     esp_log_level_set("*", ESP_LOG_WARN);
     esp_log_level_set("HAL", ESP_LOG_DEBUG);
     esp_log_set_vprintf(serialLogger);
@@ -91,31 +90,31 @@ void Outputs::init() {
 
     if (!MS1.begin()) {         // create with the default frequency 1.6KHz
         // if (!MS1.begin(1000)) {  // OR with a different frequency, say 1KHz
-        Serial.println("Could not find Motor Shield 1. Check wiring.");
+        ESP_LOGW("HAL", "Could not find Motor Shield 1. Check wiring.");
     }
-    else Serial.println("Motor Shield 1 found.");
+    else ESP_LOGI("HAL", "Motor Shield 1 found.");
 
     if (!MS2.begin()) {         // create with the default frequency 1.6KHz
-    Serial.println("Could not find Motor Shield 2. Check wiring.");
+        ESP_LOGW("HAL", "Could not find Motor Shield 2. Check wiring.");
     }
-    else Serial.println("Motor Shield 2 found.");
+    else ESP_LOGI("HAL", "Motor Shield 2 found.");
 
     if (!MS3.begin()) {         // create with the default frequency 1.6KHz
-    Serial.println("Could not find Motor Shield 3. Check wiring.");
+        ESP_LOGW("HAL", "Could not find Motor Shield 3. Check wiring.");
     }
-    else Serial.println("Motor Shield 3 found.");
+    else ESP_LOGI("HAL", "Motor Shield 3 found.");
 
     setFlowValve(0, ValveState::CLOSED);
     setFlowValve(1, ValveState::CLOSED);
     setFlowValve(2, ValveState::CLOSED);
     setFlowValve(3, ValveState::CLOSED);
     setFlowValve(4, ValveState::CLOSED);
-    setGasPumpSpeed(0);
+    setGasPumpSpeed(0); 
 
     if(!quadRelay.begin())
-    Serial.println("Could not find Qwiic Relay. Check wiring.");
+        ESP_LOGW("HAL", "Could not find Qwiic Relay. Check wiring.");
     else
-    Serial.println("Qwiic Relay Found.");
+        ESP_LOGI("HAL", "Qwiic Relay Found.");
 
     quadRelay.turnAllRelaysOff(); 
 }
@@ -225,13 +224,13 @@ void Inputs::serviceFlowMeters(void){
 
 void Inputs::pollPhysicalControls(void){
 
-    Serial.print("Polling physical controls\n");
+    ESP_LOGD("HAL", "Polling physical controls\n");
 
     bool gpioStatus[8];
     uint8_t gpioval;
     gpioval = gpioExpander.digitalReadPort(gpioStatus);
 
-    Serial.println(gpioval, BIN);
+    ESP_LOGD("HAL", (gpioval, BIN));
     // if (gpioStatus[1] == 1){
     //     physicalControls.handOffAuto = AUTO;
     // }
