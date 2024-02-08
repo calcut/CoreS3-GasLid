@@ -13,7 +13,7 @@ void setupRtos(void){
     esp_log_level_set("SM", ESP_LOG_INFO);
     esp_log_level_set("IN", ESP_LOG_INFO);
     esp_log_level_set("OUT", ESP_LOG_DEBUG);
-    esp_log_level_set("a1019", ESP_LOG_INFO);
+    esp_log_level_set("a1019", ESP_LOG_DEBUG);
     esp_log_level_set("NCARD", ESP_LOG_DEBUG);
 
 
@@ -42,13 +42,13 @@ void setupRtos(void){
         1, // priority
         NULL); // out pointer to task handle
 
-    // xTaskCreate(
-    //     readFlowMeters, // task function
-    //     "Read Flow Meters", // task name
-    //     16384, // stack size in bytes
-    //     NULL, // pointer to parameters
-    //     1, // priority
-    //     NULL); // out pointer to task handle
+    xTaskCreate(
+        readFlowMeters, // task function
+        "Read Flow Meters", // task name
+        16384, // stack size in bytes
+        NULL, // pointer to parameters
+        1, // priority
+        NULL); // out pointer to task handle
 
 #ifdef USE_NOTECARD
     xTaskCreate(
@@ -273,8 +273,13 @@ void debugTask(void * pvParameters){
 
     while(1){
 
+        if (stateMachine.envVars["gasSampleNow"]){
+            stateMachine.sampleGasCards();
+            stateMachine.envVars["gasSampleNow"] = 0;
+        }
+
         // ESP_LOGD("RTOS", "5 second debug print %d", millis());
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 #endif

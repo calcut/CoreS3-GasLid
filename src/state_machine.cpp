@@ -42,11 +42,6 @@ void StateMachine::run(void){
 
     inputs.pollSensorData();
 
-    if (envVars["gasSampleNow"]){
-        sampleGasCards();
-        envVars["gasSampleNow"] = 0;
-    }
-
     if(outputs.getJacketHeater()){
         ESP_LOGI("SM", "Jacket Heater is on");
         if(inputData.temperatureData["Tc1"] > envVars["targetTempTank1"] 
