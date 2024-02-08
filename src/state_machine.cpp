@@ -3,9 +3,9 @@
 StateMachine stateMachine;
 
 void StateMachine::tunePID(void){
-    compressorPID->SetTunings(envVars["compressorPID_P"],
-                             envVars["compressorPID_I"],
-                             envVars["compressorPID_D"]);
+    gasPID->SetTunings(envVars["gasPID_P"],
+                        envVars["gasPID_I"],
+                        envVars["gasPID_D"]);
 }
 
 void StateMachine::init(void){
@@ -17,23 +17,26 @@ void StateMachine::init(void){
     // demandSensor = &inputs.temperatureData["Tw2_DHWFlow"];
     // defrostSensor = &inputs.temperatureData["Ta1_EvaporatorIn"];
     // flexStoreSensor = &inputs.temperatureData["Tw3_FlexStore"];
-    // compressorPIDinput = &inputs.temperatureData["Tw2_DHWFlow"];
-    // compressorPIDsetpoint = &envVars["demandThreshold"];
-    // compressorPIDinput = &input;
-    // compressorPIDsetpoint = &setpoint;
+    gasPIDinput = &inputData.flowData["GasFlow"];
+    // gasPIDinput = 0;
+    // gasPIDsetpoint = 500; // mL/minute //currently hard coded to test
+    // gasPIDinput = &input;
+    gasPIDsetpoint = &stateMachine.envVars["GasFlowSetpoint"];
 
-    // compressorPID = new QuickPID(
-    //     compressorPIDinput, // input
-    //     &compressorPIDoutput, // output
-    //     compressorPIDsetpoint, // setpoint
-    //     envVars["compressorPID_P"],
-    //     envVars["compressorPID_I"],
-    //     envVars["compressorPID_D"],
-    //     QuickPID::Action::direct
-    // );
+    gasPID = new QuickPID(
+        gasPIDinput, // input
+        &gasPIDoutput, // output
+        gasPIDsetpoint, // setpoint
+        // 0.01,
+        envVars["gasPID_P"],
+        // 0.01,
+        envVars["gasPID_I"],
+        envVars["gasPID_D"],
+        QuickPID::Action::direct
+    );
     // // Dont enable PID yet because the input is not valid (nan)
-    // // compressorPID->SetMode(QuickPID::Control::automatic);
-    // compressorPID->SetOutputLimits(0, 100);
+    gasPID->SetOutputLimits(0, 100);
+
 }
 
 void StateMachine::run(void){

@@ -73,38 +73,38 @@ void display_pressure_enthalpy(lv_timer_t * timer){
 void display_pid_info(lv_timer_t * timer){
     if (lv_scr_act() == ui_Screen4){
 
-        sprintf(text_buffer, "%.3g", stateMachine.compressorPID->GetKp());
+        sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetKp());
         lv_label_set_text(ui_Label4_Kp_val, text_buffer);
 
-        sprintf(text_buffer, "%.3g", stateMachine.compressorPID->GetKi());
+        sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetKi());
         lv_label_set_text(ui_Label4_Ki_val, text_buffer);
 
-        sprintf(text_buffer, "%.3g", stateMachine.compressorPID->GetKd());
+        sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetKd());
         lv_label_set_text(ui_Label4_Kd_val, text_buffer);
 
-        sprintf(text_buffer, "%.3g", stateMachine.compressorPID->GetPterm());
+        sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetPterm());
         lv_label_set_text(ui_Label4_Pterm_val, text_buffer);
 
         //This is just the most recent term, not the integrated history
-        // sprintf(text_buffer, "%.3g", compressorPID->GetIterm()); 
+        // sprintf(text_buffer, "%.3g", gasPID->GetIterm()); 
 
-        sprintf(text_buffer, "%.3g", stateMachine.compressorPID->GetOutputSum()); //include history
+        sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetOutputSum()); //include history
         lv_label_set_text(ui_Label4_Iterm_val, text_buffer);
 
-        sprintf(text_buffer, "%.3g", stateMachine.compressorPID->GetDterm());
+        sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetDterm());
         lv_label_set_text(ui_Label4_Dterm_val, text_buffer);
 
         sprintf(text_buffer, "%.3g", "TBD / blank");
         lv_label_set_text(ui_Label4_Output_val, text_buffer);
 
-        sprintf(text_buffer, "%.3g", *stateMachine.compressorPIDsetpoint);
-        lv_label_set_text(ui_Label4_Setpoint_val, text_buffer);
+        // sprintf(text_buffer, "%.3g", *stateMachine.gasPIDsetpoint);
+        // lv_label_set_text(ui_Label4_Setpoint_val, text_buffer);
 
-        sprintf(text_buffer, "%.3g", *stateMachine.compressorPIDinput);
-        lv_label_set_text(ui_Label4_Input_val, text_buffer);
+        // sprintf(text_buffer, "%.3g", *stateMachine.gasPIDinput);
+        // lv_label_set_text(ui_Label4_Input_val, text_buffer);
 
-        sprintf(text_buffer, "%.3g", *stateMachine.compressorPIDsetpoint
-                                     - *stateMachine.compressorPIDinput);
+        // sprintf(text_buffer, "%.3g", *stateMachine.gasPIDsetpoint
+        //                              - *stateMachine.gasPIDinput);
         lv_label_set_text(ui_Label4_Error_val, text_buffer);
 
     }

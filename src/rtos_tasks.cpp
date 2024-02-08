@@ -50,6 +50,14 @@ void setupRtos(void){
         1, // priority
         NULL); // out pointer to task handle
 
+    xTaskCreate(
+        computePID, // task function
+        "Compute PID", // task name
+        16384, // stack size in bytes
+        NULL, // pointer to parameters
+        1, // priority
+        NULL); // out pointer to task handle
+
 #ifdef USE_NOTECARD
     xTaskCreate(
         serviceNotecard, // task function
@@ -107,8 +115,19 @@ void runStateMachine(void * pvParameters){
 
 
 void computePID(void * pvParameters){
+
+    vTaskDelay(5000 / portTICK_PERIOD_MS);
+    stateMachine.gasPID->SetMode(QuickPID::Control::automatic);
+    stateMachine.gasPID->SetOutputLimits(0, 70);
+
     while(1){
-        
+        // stateMachine.tunePID();
+        stateMachine.gasPID->Compute();
+        ESP_LOGI("RTOS", "KP=%f, KI=%f, KD=%f", stateMachine.gasPID->GetKp(), stateMachine.gasPID->GetKi(), stateMachine.gasPID->GetKd());
+        ESP_LOGI("RTOS", "PID input: %f", *stateMachine.gasPIDinput);
+        ESP_LOGI("RTOS", "PID setpoint: %f", *stateMachine.gasPIDsetpoint);
+        ESP_LOGI("RTOS", "PID output: %f", stateMachine.gasPIDoutput);
+        outputs.setGasPumpSpeed(stateMachine.gasPIDoutput);
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
@@ -118,7 +137,7 @@ void readFlowMeters(void *pvParameters)
     while (1)
     {
         inputs.serviceFlowMeters();
-        vTaskDelay(500 / portTICK_PERIOD_MS);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
 

@@ -24,6 +24,8 @@ public:
     void run();
     void sampleGasCards();
     int getGasSampleDelay();
+    void tunePID(void);
+
 
     bool enabled = false;
 
@@ -38,7 +40,7 @@ public:
     float* defrostSensor;
     float* flexStoreSensor;
 
-    std::unordered_map<std::string, int> envVars = {
+    std::unordered_map<std::string, float> envVars = {
         {"gasSampleNow", 0},
         {"gasPurgeTime_s", 10},
         {"gasPumpTime_s", 10},
@@ -54,16 +56,22 @@ public:
         {"targetTempTank2", 30},
         {"targetTempTank3", 30},
         {"jacketHeaterHysteresis", 1},
+        {"gasPID_P", 0.01},
+        {"gasPID_I", 0.01},
+        {"gasPID_D", 0.001},
+        {"GasFlowSetpoint", 1000}, // mL/minute
     };
 
     // This will be equal to either flexStoreLow or flexStoreHigh
     // Depending on whether the system is charging or discharging
     float flexStoreThreshold = 20.0;
 
-    QuickPID* compressorPID;
-    float* compressorPIDinput;
-    float* compressorPIDsetpoint;
-    float compressorPIDoutput = 0.0;
+    QuickPID* gasPID;
+    // float gasPIDinput;
+    float* gasPIDinput;
+    // float* gasPIDsetpoint;
+    float* gasPIDsetpoint;
+    float gasPIDoutput = 0.0;
 
 
 private:
@@ -75,7 +83,6 @@ private:
     void dischargingState(void);
     void chargingState(void);
     void defrostState(void);
-    void tunePID(void);
     void compressorManualSpeed(float speed_percent);
 };
 

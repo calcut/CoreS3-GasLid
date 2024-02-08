@@ -85,6 +85,50 @@ int serialLogger(const char* format, va_list args){
     return ret;
 }
 
+// void logSDcard(const char* message){
+//     // Write message to log.txt on the SD card
+//     // If the file is larger than 1MB, remove lines from the top until it is less than 1MB
+//     // If the file does not exist, create it
+
+//     if (SD.exists("/log.txt")){
+//         File logFile = SD.open("/log.txt", FILE_APPEND);
+//         logFile.println(message);
+//         logFile.close();
+//     }
+//     else{
+//         File logFile = SD.open("/log.txt", FILE_WRITE);
+//         logFile.println(message);
+//         logFile.close();
+//     }
+
+//     File logFile = SD.open("/log.txt", FILE_READ);
+//     if (logFile.size() > 1000000){
+//         //If the file is larger than 1MB, remove lines from the top until it is less than 1MB
+//         logFile.seek(0);
+//         int lineCount = 0;
+//         while (logFile.available()){
+//             if (logFile.read() == '\n'){
+//                 lineCount++;
+//             }
+//             if (lineCount > 1000){
+//                 break;
+//             }
+//         }
+//         logFile.seek(0);
+//         File tempFile = SD.open("/temp.txt", FILE_WRITE);
+//         while (logFile.available()){
+//             tempFile.write(logFile.read());
+//         }
+//         logFile.close();
+//         tempFile.close();
+//         SD.remove("/log.txt");
+//         SD.rename("/temp.txt", "/log.txt");
+//     }
+
+
+
+// }
+
 void Outputs::init() {
     ESP_LOGI("HAL", "Outputs init");
 
@@ -208,6 +252,10 @@ void Inputs::initFlowMeters(int pin){
 
 void Inputs::serviceFlowMeters(void){
 
+    //Gas flow meter
+    inputData.flowData["GasFlow"] = readADCvoltage()*1000/5.0; //5000mV per litre per minute
+
+
     pcnt_get_counter_value(PCNT_UNIT_0, &counterVal);
 
     if (millis() - previousPulseTime != 0){
@@ -274,7 +322,7 @@ void Inputs::pollSensorData(void){
     // inputData.pressureData["Pr3"]           = 0.2;
     // inputData.pressureData["Pr4"]           = 0.2;
     // inputData.flowData["WaterFlow"]         = 0.3;  //Handled by serviceFlowMeters
-    inputData.flowData["GasFlow"]           = readADCvoltage()/5.0; //5V per litre per minute
+    inputData.flowData["GasFlow"]           = readADCvoltage()*1000/5.0; //5000mV per litre per minute
     // inputData.powerData["Power"]            = 0.4;
     // inputData.powerData["Energy"]           = 0.4;
     inputData.gasData["CH4"]                = AI[5];
