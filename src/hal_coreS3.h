@@ -114,11 +114,7 @@ private:
 };
 extern Inputs inputs;
 
-
-
-
 extern char logBuffer[TERMINAL_LOG_LENGTH + 1];
-
 int serialLogger(const char* format, va_list args);
 
 #endif // HAL_CORES3_H

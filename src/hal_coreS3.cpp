@@ -203,7 +203,7 @@ void Inputs::initFlowMeters(int pin){
     };
     pcnt_unit_config(&pcntCh1);
     pcnt_counter_clear(PCNT_UNIT_0);
-    ESP_LOGI("HAL", "Flow meter initialised on pin %d\n", pin);
+    ESP_LOGI("HAL", "Flow meter initialised on pin %d", pin);
 }
 
 void Inputs::serviceFlowMeters(void){
@@ -224,7 +224,7 @@ void Inputs::serviceFlowMeters(void){
 
 void Inputs::pollPhysicalControls(void){
 
-    ESP_LOGD("HAL", "Polling physical controls\n");
+    ESP_LOGD("HAL", "Polling physical controls");
 
     bool gpioStatus[8];
     uint8_t gpioval;
@@ -250,7 +250,7 @@ void Inputs::pollPhysicalControls(void){
     //     physicalControls.manualState = CHARGING;
     // }
 
-    // Serial.printf("HandOffAuto: %i, ManualState: %i\n", physicalControls.handOffAuto, physicalControls.manualState);
+    // ESP_LOGI("HAL", "HandOffAuto: %i, ManualState: %i", physicalControls.handOffAuto, physicalControls.manualState);
     // physicalControls.handOffAuto = HAND;
     // physicalControls.manualState = CHARGING;
 }
@@ -323,7 +323,7 @@ void setSystemTime(){
     struct timeval tv;
     tv.tv_sec = mktime(&time_info);
     tv.tv_usec = 0;
-    ESP_LOGI("HAL", "Setting sys time to %02d:%02d:%02d\n", dt.time.hours, dt.time.minutes, dt.time.seconds);
+    ESP_LOGI("HAL", "Setting sys time to %02d:%02d:%02d", dt.time.hours, dt.time.minutes, dt.time.seconds);
     settimeofday(&tv, NULL);
 }
 

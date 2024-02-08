@@ -156,7 +156,7 @@ void serviceNotecard(void * pvParameters){
     while(1){
 
         if (notecardManager.serviceEnabled){
-            ESP_LOGI("RTOS", "Notecard info service\n");
+            ESP_LOGI("RTOS", "Notecard info service");
             xSemaphoreTake(nc_mutex, portMAX_DELAY);
             notecardManager.hubGet();
             vTaskDelay(10 / portTICK_PERIOD_MS);
@@ -196,9 +196,9 @@ void timeSyncNotecard(void * pvParameters){
     }
     notecardManager.getEnvironment();
 
-    // ESP_LOGI("RTOS", "Notecard sendSensorData...\n");
+    // ESP_LOGI("RTOS", "Notecard sendSensorData...");
     // sendSensorData();
-    // ESP_LOGI("RTOS", "... Notecard sendSensorData done\n");
+    // ESP_LOGI("RTOS", "... Notecard sendSensorData done");
 
     xSemaphoreGive(nc_mutex);
     vTaskDelay(notecardManager.envVars["timeSyncInterval_s"]*1000 / portTICK_PERIOD_MS);
