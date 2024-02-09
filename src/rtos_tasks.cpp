@@ -119,17 +119,29 @@ void computePID(void * pvParameters){
     while (!stateMachine.initComplete){
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
-    stateMachine.gasPID->SetMode(QuickPID::Control::automatic);
-    stateMachine.gasPID->SetOutputLimits(0, 70);
 
     while(1){
-        stateMachine.gasPID->Compute();
-        ESP_LOGI("RTOS", "KP=%f, KI=%f, KD=%f", stateMachine.gasPID->GetKp(), stateMachine.gasPID->GetKi(), stateMachine.gasPID->GetKd());
-        ESP_LOGI("RTOS", "PID input: %f", *stateMachine.gasPIDinput);
-        ESP_LOGI("RTOS", "PID setpoint: %f", *stateMachine.gasPIDsetpoint);
-        ESP_LOGI("RTOS", "PID output: %f", stateMachine.gasPIDoutput);
-        outputs.setGasPumpSpeed(stateMachine.gasPIDoutput);
+        //check if input is valid
+        if(isnan(*stateMachine.gasPIDinput)){
+            ESP_LOGW("RTOS", "Invalid PID input");
+            stateMachine.gasPumpEnabled = false;
+        }
+
+        if (stateMachine.gasPumpEnabled){
+            stateMachine.gasPID->SetMode(QuickPID::Control::automatic);
+            stateMachine.gasPID->Compute();
+        }
+        else{
+            stateMachine.gasPID->SetMode(QuickPID::Control::manual);
+            stateMachine.gasPIDoutput = 0;
+        }
+        // ESP_LOGD("RTOS", "KP=%f, KI=%f, KD=%f", stateMachine.gasPID->GetKp(), stateMachine.gasPID->GetKi(), stateMachine.gasPID->GetKd());
+        // ESP_LOGD("RTOS", "PID input: %f", *stateMachine.gasPIDinput);
+        // ESP_LOGD("RTOS", "PID setpoint: %f", *stateMachine.gasPIDsetpoint);
+        // ESP_LOGD("RTOS", "PID output: %f", stateMachine.gasPIDoutput);
         vTaskDelay(100 / portTICK_PERIOD_MS);
+        outputs.setGasPumpSpeed(stateMachine.gasPIDoutput);
+
     }
 }
 
