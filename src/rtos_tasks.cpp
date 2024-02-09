@@ -116,12 +116,13 @@ void runStateMachine(void * pvParameters){
 
 void computePID(void * pvParameters){
 
-    vTaskDelay(5000 / portTICK_PERIOD_MS);
+    while (!stateMachine.initComplete){
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
     stateMachine.gasPID->SetMode(QuickPID::Control::automatic);
     stateMachine.gasPID->SetOutputLimits(0, 70);
 
     while(1){
-        // stateMachine.tunePID();
         stateMachine.gasPID->Compute();
         ESP_LOGI("RTOS", "KP=%f, KI=%f, KD=%f", stateMachine.gasPID->GetKp(), stateMachine.gasPID->GetKi(), stateMachine.gasPID->GetKd());
         ESP_LOGI("RTOS", "PID input: %f", *stateMachine.gasPIDinput);
@@ -301,7 +302,9 @@ void debugTask(void * pvParameters){
 
 void serviceGasCards(void * pvParameters){
 
-    //Check if init has been run here?
+    while (!stateMachine.initComplete){
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
 
     while(1){
         // Wait for the semaphore to be given
@@ -332,6 +335,9 @@ void refreshEnvironment(void) {
         gasSampleTimer = xTimerCreate("gasSampleTimer", delay*1000 / portTICK_PERIOD_MS,
                                       pdFALSE, (void *)0, gasSampleTimerCallback);
         xTimerStart(gasSampleTimer, 0);
+
+        //Refresh the PID tuning
+        stateMachine.tunePID();
 
         notecardManager.newEnvVars = false;
     }

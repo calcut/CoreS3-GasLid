@@ -12,30 +12,23 @@ void StateMachine::init(void){
     ESP_LOGI("SM", "Init state machine");
 
     vTaskDelay(20 / portTICK_PERIOD_MS);
-    // outputs.init();
 
-    // demandSensor = &inputs.temperatureData["Tw2_DHWFlow"];
-    // defrostSensor = &inputs.temperatureData["Ta1_EvaporatorIn"];
-    // flexStoreSensor = &inputs.temperatureData["Tw3_FlexStore"];
     gasPIDinput = &inputData.flowData["GasFlow"];
-    // gasPIDinput = 0;
-    // gasPIDsetpoint = 500; // mL/minute //currently hard coded to test
-    // gasPIDinput = &input;
     gasPIDsetpoint = &stateMachine.envVars["GasFlowSetpoint"];
 
     gasPID = new QuickPID(
         gasPIDinput, // input
         &gasPIDoutput, // output
         gasPIDsetpoint, // setpoint
-        // 0.01,
         envVars["gasPID_P"],
-        // 0.01,
         envVars["gasPID_I"],
         envVars["gasPID_D"],
         QuickPID::Action::direct
     );
-    // // Dont enable PID yet because the input is not valid (nan)
+    // Dont enable PID yet because the input is not valid (nan)
     gasPID->SetOutputLimits(0, 100);
+
+    initComplete = true;
 
 }
 

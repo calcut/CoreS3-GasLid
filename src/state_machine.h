@@ -27,7 +27,7 @@ public:
     void tunePID(void);
 
 
-    bool enabled = false;
+    bool initComplete = false;
 
 
     State currentState;
