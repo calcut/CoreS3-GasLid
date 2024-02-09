@@ -66,6 +66,8 @@
 
 #define TERMINAL_LOG_LENGTH 512
 
-
+#ifndef AUTO_VERSION
+#define AUTO_VERSION "0.0.0"
+#endif
 
 #endif  // __CONFIG_H

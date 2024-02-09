@@ -55,7 +55,7 @@ void NotecardManager::configureOutboardDFU(){
     req = notecard.newRequest("dfu.status");
     if (req) {
         JAddBoolToObject(req, "on", DFU_ENABLE);
-        JAddStringToObject(req, "version", "0.0.1");
+        JAddStringToObject(req, "version", AUTO_VERSION);
         if (!notecard.sendRequest(req)) {
             ESP_LOGE("NCARD", "failed to set dfu.status on=true version=0.0.1");
         }
