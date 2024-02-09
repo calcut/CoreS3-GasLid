@@ -56,10 +56,46 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
     notecardManager.newEnvVars = true;
 }
 
-void sendSensorData(void){
+void sendBatchSensorData(){
 
-    char* key;
-    int floatDecimals = 3;
+    J *req = NoteNewRequest("note.add");
+
+    // get unix timestamp from system time
+    char timestr[12];
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    int unixTime = tv.tv_sec;
+    sprintf(timestr, "%d", unixTime);
+    ESP_LOGW("NCARD", "Batch sensor data: %s", timestr); 
+
+    J *body = JCreateObject();
+    JAddFloatMapToObject(body, inputData.temperatureData);
+    JAddFloatMapToObject(body, inputData.flowData);
+    JAddNumberToObject(body, "Timestamp", unixTime);
+
+    JAddStringToObject(req, "file", "inputs.qo");
+    JAddBoolToObject(req, "sync", true);
+    JAddItemToObject(req, "body", body);
+    NoteRequest(req);
+
+}
+
+// void sendQueuedSensorData(void){
+    // Could not get data queue to work
+    // J* JSON objects appear to exist on the heap and do not persist
+    // Which means you can't retrieve anything from a queue
+// }
+
+
+void sendSensorData(std::unordered_map<std::string, float> dataMap){
+
+    // get unix timestamp from system time
+    char timestr[12];
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    int unixTime = tv.tv_sec;
+    sprintf(timestr, "%d", unixTime);
+
     J *req = NoteNewRequest("note.add");
 
     JAddStringToObject(req, "file", "inputs.qo");
@@ -67,12 +103,8 @@ void sendSensorData(void){
 
     J *body = JCreateObject();
 
-    JAddFloatMapToObject(body, inputData.temperatureData);
-    // JAddFloatMapToObject(body, inputData.pressureData);
-    JAddFloatMapToObject(body, inputData.gasData);
-    JAddFloatMapToObject(body, inputData.flowData);
-    JAddFloatMapToObject(body, inputData.powerData);
-
+    JAddFloatMapToObject(body, dataMap);
+    JAddNumberToObject(body, "Timestamp", unixTime);
     JAddItemToObject(req, "body", body);
     NoteRequest(req);
 

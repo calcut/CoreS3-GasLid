@@ -50,6 +50,7 @@ class NotecardManager {
         std::unordered_map<std::string, int> envVars = {
             {"serviceInterval_s", 10},
             {"timeSyncInterval_s", 10},
+            {"noteSendInterval_s", 60},
         };
 };
 
