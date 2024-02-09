@@ -66,7 +66,7 @@ void sendBatchSensorData(){
     gettimeofday(&tv, NULL);
     int unixTime = tv.tv_sec;
     sprintf(timestr, "%d", unixTime);
-    ESP_LOGW("NCARD", "Batch sensor data: %s", timestr); 
+    ESP_LOGD("NCARD", "Batch sensor data: %s", timestr); 
 
     J *body = JCreateObject();
     JAddFloatMapToObject(body, inputData.temperatureData);
@@ -114,9 +114,11 @@ void JAddFloatMapToObject(J *obj, std::unordered_map<std::string, float> map){
 
     for (auto& keyval : map) {
         if (!isnan(keyval.second)) {
-            JAddNumberToObject(obj,
-                            const_cast<char*>(keyval.first.c_str()),
-                            keyval.second);
+            char buffer[12];
+            dtostrf(keyval.second, 0, 2, buffer);
+            JAddStringToObject(obj,
+                const_cast<char*>(keyval.first.c_str()),
+                buffer);
         }
     }
 }   
