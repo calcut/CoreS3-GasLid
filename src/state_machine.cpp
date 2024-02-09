@@ -40,19 +40,19 @@ void StateMachine::run(void){
 
     if(outputs.getJacketHeater()){
         ESP_LOGD("SM", "Jacket Heater is on");
-        if(inputData.temperatureData["Tc1"] > envVars["targetTempTank1"] 
+        if(inputData.temperatureData["T_shrt"] > envVars["targetTempTank1"] 
                                     + envVars["jacketHeaterHysteresis"]){
             ESP_LOGD("SM", "Tank1 Heating Off");
-            ESP_LOGD("SM", "Tc1= %f, target= %f", inputData.temperatureData["Tc1"], envVars["targetTempTank1"]);
+            ESP_LOGD("SM", "T_shrt= %f, target= %f", inputData.temperatureData["T_shrt"], envVars["targetTempTank1"]);
             outputs.enableJacketHeater(false);
         }
     }
     else{
         ESP_LOGD("SM", "Jacket Heater is off");
-        if(inputData.temperatureData["Tc1"] < envVars["targetTempTank1"] 
+        if(inputData.temperatureData["T_shrt"] < envVars["targetTempTank1"] 
                                 - envVars["jacketHeaterHysteresis"]){
         ESP_LOGD("SM", "Tank1 Heating On");
-        ESP_LOGD("SM", "Tc1= %f, target= %f", inputData.temperatureData["Tc1"], envVars["targetTempTank1"]);
+        ESP_LOGD("SM", "T_shrt= %f, target= %f", inputData.temperatureData["T_shrt"], envVars["targetTempTank1"]);
         outputs.enableJacketHeater(true);
         }
     }

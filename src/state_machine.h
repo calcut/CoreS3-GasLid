@@ -74,17 +74,6 @@ public:
     float gasPIDoutput = 0.0;
     bool gasPumpEnabled = false;
 
-
-private:
-
-    float defrostTimer = 0.0;
-
-    bool checkLimits(void);
-    void standbyState(void);
-    void dischargingState(void);
-    void chargingState(void);
-    void defrostState(void);
-    void compressorManualSpeed(float speed_percent);
 };
 
 extern StateMachine stateMachine;

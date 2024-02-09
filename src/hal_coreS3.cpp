@@ -312,22 +312,15 @@ void Inputs::pollSensorData(void){
     // Delay seems to be needed to prevent Modbus errors
     vTaskDelay(20 / portTICK_PERIOD_MS);
 
-    inputData.temperatureData["flow"]       = AI[0];
-    inputData.temperatureData["return"]     = AI[1];
-    inputData.temperatureData["short"]      = AI[2];
-    inputData.temperatureData["long"]       = AI[3];
-    inputData.temperatureData["biofilter"]  = AI[4];
-    // inputData.pressureData["Pr1"]           = 0.2;
-    // inputData.pressureData["Pr2"]           = 0.2;
-    // inputData.pressureData["Pr3"]           = 0.2;
-    // inputData.pressureData["Pr4"]           = 0.2;
-    // inputData.flowData["WaterFlow"]         = //Handled by serviceFlowMeters
-    // inputData.flowData["GasFlow"]           = //Handled by serviceFlowMeters
+    inputData.temperatureData["T_flow"]     = AI[0];
+    inputData.temperatureData["T_rtrn"]     = AI[1];
+    inputData.temperatureData["T_shrt"]     = AI[2];
+    inputData.temperatureData["T_long"]     = AI[3];
+    inputData.temperatureData["T_biof"]     = AI[4];
+
     // inputData.powerData["Power"]            = 0.4;
     // inputData.powerData["Energy"]           = 0.4;
-    // inputData.gasData["CH4"]                = AI[5];
-    // inputData.gasData["CO2"]                = AI[6];
-    // inputData.gasData["N2O"]                = AI[7];
+
 
 }
 

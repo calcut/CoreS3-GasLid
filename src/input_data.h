@@ -6,19 +6,19 @@
 class InputData {
 public:
     std::unordered_map<std::string, float> temperatureData = {
-        {"Tc1", nan("0")},
-        {"Tc2", nan("0")},
-        {"Tc3", nan("0")},
-        {"Tc4", nan("0")},
-        {"Tc5", nan("0")},
+        {"T_flow", nan("0")},
+        {"T_rtrn", nan("0")},
+        {"T_shrt", nan("0")},
+        {"T_long", nan("0")},
+        {"T_biof", nan("0")},
     };
 
-    std::unordered_map<std::string, float> pressureData = {
-        {"Pr1", nan("0")},
-        {"Pr2", nan("0")},
-        {"Pr3", nan("0")},
-        {"Pr4", nan("0")},
-    };
+    // std::unordered_map<std::string, float> pressureData = {
+    //     {"Pr1", nan("0")},
+    //     {"Pr2", nan("0")},
+    //     {"Pr3", nan("0")},
+    //     {"Pr4", nan("0")},
+    // };
 
     std::unordered_map<std::string, float> flowData = {
         {"WaterFlow", nan("0")},

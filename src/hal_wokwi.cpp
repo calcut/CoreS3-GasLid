@@ -164,32 +164,32 @@ void Inputs::pollSensorData(void){
     tsensors.requestTemperatures();
     vTaskDelay(100 / portTICK_PERIOD_MS);
 
-    inputData.temperatureData["Tc1"]    = tsensors.getTempC(tc1Addr);
+    inputData.temperatureData["T_flow"]    = tsensors.getTempC(tc1Addr);
     vTaskDelay(10 / portTICK_PERIOD_MS);
-    inputData.temperatureData["Tc2"]    = tsensors.getTempC(tc2Addr);
+    inputData.temperatureData["T_rtrn"]    = tsensors.getTempC(tc2Addr);
     vTaskDelay(10 / portTICK_PERIOD_MS);
-    inputData.temperatureData["Tc3"]    = tsensors.getTempC(tc3Addr);
+    inputData.temperatureData["T_shrt"]    = tsensors.getTempC(tc3Addr);
     vTaskDelay(10 / portTICK_PERIOD_MS);
-    inputData.temperatureData["Tc4"]    = tsensors.getTempC(tc4Addr);
+    inputData.temperatureData["T_long"]    = tsensors.getTempC(tc4Addr);
     vTaskDelay(10 / portTICK_PERIOD_MS);
-    inputData.temperatureData["Tc5"]    = tsensors.getTempC(tc5Addr);
+    inputData.temperatureData["T_biof"]    = tsensors.getTempC(tc5Addr);
     vTaskDelay(10 / portTICK_PERIOD_MS);
 
-    inputData.pressureData["Pr1"]       = 0.2;
-    inputData.pressureData["Pr2"]       = 0.2;
-    inputData.pressureData["Pr3"]       = 0.2;
-    inputData.pressureData["Pr4"]       = 0.2;
+    // inputData.pressureData["Pr1"]       = 0.2;
+    // inputData.pressureData["Pr2"]       = 0.2;
+    // inputData.pressureData["Pr3"]       = 0.2;
+    // inputData.pressureData["Pr4"]       = 0.2;
     inputData.flowData["WaterFlow"]     = 0.3;
     inputData.flowData["GasFlow"]       = 0.3;
     inputData.powerData["Power"]        = 0.4;
     inputData.powerData["Energy"]       = 0.4;
 
     ESP_LOGW("HAL", "TcX = %0.2f %0.2f %0.2f %0.2f %0.2f",
-        inputData.temperatureData["Tc1"],
-        inputData.temperatureData["Tc2"],
-        inputData.temperatureData["Tc3"],
-        inputData.temperatureData["Tc4"],
-        inputData.temperatureData["Tc5"]);
+        inputData.temperatureData["T_flow"],
+        inputData.temperatureData["T_rtrn"],
+        inputData.temperatureData["T_shrt"],
+        inputData.temperatureData["T_long"],
+        inputData.temperatureData["T_biof"]);
 
 
 }
