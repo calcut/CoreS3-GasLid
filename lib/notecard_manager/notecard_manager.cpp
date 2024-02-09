@@ -17,6 +17,9 @@ void NotecardManager::begin(){
         // Handle failed allocation.
         ESP_LOGE("NCARD", "Failed to allocate NotecardEnvVarManager.");
     }
+
+    configureOutboardDFU();
+
 }
 
 
@@ -37,8 +40,11 @@ void NotecardManager::init(const char *uid, const char *mode, int inbound, int o
             while(1);
         }
     }
+}
 
-    req = notecard.newRequest("card.aux");
+void NotecardManager::configureOutboardDFU(){
+
+    J *req = notecard.newRequest("card.aux");
     if (req) {
         JAddStringToObject(req, "mode", "off");
         if (!notecard.sendRequest(req)) {
@@ -46,10 +52,20 @@ void NotecardManager::init(const char *uid, const char *mode, int inbound, int o
         }
     }
 
+    req = notecard.newRequest("dfu.status");
+    if (req) {
+        JAddBoolToObject(req, "on", DFU_ENABLE);
+        JAddStringToObject(req, "version", "0.0.1");
+        if (!notecard.sendRequest(req)) {
+            ESP_LOGE("NCARD", "failed to set dfu.status on=true version=0.0.1");
+        }
+    }
+
     req = notecard.newRequest("card.dfu");
     if (req) {
         JAddStringToObject(req, "name", "esp32");
         JAddBoolToObject(req, "on", DFU_ENABLE);
+        ESP_LOGW("NCARD", "card.dfu esp32 mode %s", DFU_ENABLE ? "enabled" : "disabled");
         if (!notecard.sendRequest(req)) {
             ESP_LOGE("NCARD", "failed to enable outboard DFU");
         }

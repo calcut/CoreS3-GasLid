@@ -22,6 +22,7 @@ class NotecardManager {
         NotecardEnvVarManager *envVarManager = NULL;
         void begin();
         void init(const char *uid, const char *mode, int inbound, int outbound, bool sync);
+        void configureOutboardDFU();
         void hubGet();
         void hubStatus();
         void hubSyncStatus();

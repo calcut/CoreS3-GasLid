@@ -52,6 +52,7 @@ void hal_setup(void){
 
 
     ESP_LOGI("HAL", "hal_setup complete");
+    ESP_LOGW("HAL", "Latest Git hash: %s", AUTO_VERSION);
 
 };
 
