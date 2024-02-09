@@ -94,17 +94,17 @@ void display_pid_info(lv_timer_t * timer){
         sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetDterm());
         lv_label_set_text(ui_Label4_Dterm_val, text_buffer);
 
-        sprintf(text_buffer, "%.3g", "TBD / blank");
+        sprintf(text_buffer, "%.3g", stateMachine.gasPIDoutput);
         lv_label_set_text(ui_Label4_Output_val, text_buffer);
 
-        // sprintf(text_buffer, "%.3g", *stateMachine.gasPIDsetpoint);
-        // lv_label_set_text(ui_Label4_Setpoint_val, text_buffer);
+        sprintf(text_buffer, "%.3g", *stateMachine.gasPIDsetpoint);
+        lv_label_set_text(ui_Label4_Setpoint_val, text_buffer);
 
-        // sprintf(text_buffer, "%.3g", *stateMachine.gasPIDinput);
-        // lv_label_set_text(ui_Label4_Input_val, text_buffer);
+        sprintf(text_buffer, "%.3g", *stateMachine.gasPIDinput);
+        lv_label_set_text(ui_Label4_Input_val, text_buffer);
 
-        // sprintf(text_buffer, "%.3g", *stateMachine.gasPIDsetpoint
-        //                              - *stateMachine.gasPIDinput);
+        sprintf(text_buffer, "%.3g", *stateMachine.gasPIDsetpoint
+                                     - *stateMachine.gasPIDinput);
         lv_label_set_text(ui_Label4_Error_val, text_buffer);
 
     }
