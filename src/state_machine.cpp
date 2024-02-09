@@ -26,7 +26,7 @@ void StateMachine::init(void){
         QuickPID::Action::direct
     );
     // Dont enable PID yet because the input is not valid (nan)
-    gasPID->SetOutputLimits(0, 100);
+    gasPID->SetOutputLimits(0, 70);
 
     initComplete = true;
 
@@ -65,39 +65,37 @@ void StateMachine::sampleGasCards(){
 
     int pumpTime_s = envVars["gasPumpTime_s"];
     int purgeTime_s = envVars["gasPurgeTime_s"];
-    // int pumpSpeed_pc = envVars["gasPumpSpeed_pc"];
     int sampleChannels = envVars["gasSampleChannels"];
 
 
     for (int i = 0; i < sampleChannels; i++){
-        int pumpSpeed_pc = envVars["gasPumpSpeed_pc"];
 
         ESP_LOGI("SM", "Opening valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::OPEN);
         outputs.setReturnValve(i, outputs.ValveState::OPEN);
         
-        ESP_LOGI("SM", "Running pump at %d%% for %d seconds", pumpSpeed_pc, pumpTime_s);
-        outputs.setGasPumpSpeed(pumpSpeed_pc);
+        ESP_LOGI("SM", "Running pump for %d seconds", pumpTime_s);
+        gasPumpEnabled = true;
+
         vTaskDelay(pumpTime_s*1000 / portTICK_PERIOD_MS);
 
         ESP_LOGI("SM", "Sampling gas cards now %d", i);
-        //Actually do it here
-
-        outputs.setGasPumpSpeed(0);
+        //Actually sample the gas cards here
+        inputs.pollGasSensors();
         ESP_LOGI("SM", "Closing valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::CLOSED);
         outputs.setReturnValve(i, outputs.ValveState::CLOSED);
 
-        ESP_LOGI("SM", "Purging at %d%% for %d seconds", pumpSpeed_pc, purgeTime_s);
+        ESP_LOGI("SM", "Purging for %d seconds", purgeTime_s);
         outputs.setFlowValve(4, outputs.ValveState::OPEN);
         outputs.setReturnValve(4, outputs.ValveState::OPEN);
-        outputs.setGasPumpSpeed(pumpSpeed_pc);
         vTaskDelay(purgeTime_s*1000 / portTICK_PERIOD_MS);
-        outputs.setGasPumpSpeed(0);
         outputs.setFlowValve(4, outputs.ValveState::CLOSED);
         outputs.setReturnValve(4, outputs.ValveState::CLOSED);
 
         ESP_LOGI("SM", "Purge Complete");
+        gasPumpEnabled = false;
+
     }
 }
 

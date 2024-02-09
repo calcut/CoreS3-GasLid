@@ -183,9 +183,6 @@ void Inputs::pollSensorData(void){
     inputData.flowData["GasFlow"]       = 0.3;
     inputData.powerData["Power"]        = 0.4;
     inputData.powerData["Energy"]       = 0.4;
-    inputData.gasData["CH4"]            = 0.5;
-    inputData.gasData["CO2"]            = 0.5;
-    inputData.gasData["N2O"]            = 0.5;
 
     ESP_LOGW("HAL", "TcX = %0.2f %0.2f %0.2f %0.2f %0.2f",
         inputData.temperatureData["Tc1"],
@@ -195,6 +192,16 @@ void Inputs::pollSensorData(void){
         inputData.temperatureData["Tc5"]);
 
 
+}
+
+void Inputs::pollGasSensors(void){
+
+    // Delay seems to be needed to prevent Modbus errors
+    vTaskDelay(20 / portTICK_PERIOD_MS);
+
+    inputData.gasData["CH4"]            = 0.5;
+    inputData.gasData["CO2"]            = 0.5;
+    inputData.gasData["N2O"]            = 0.5;
 }
 
 void Inputs::pollPhysicalControls(void){

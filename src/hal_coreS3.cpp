@@ -19,7 +19,7 @@ void hal_setup(void){
     #endif
 
     M5.begin();
-    M5.Display.setBrightness(60);
+    M5.Display.setBrightness(100);
     ModbusRTUClient.begin(9600, SERIAL_8N1);
 
     // The first modbus transaction always fails, so do a dummy read to get it out of the way
@@ -321,14 +321,28 @@ void Inputs::pollSensorData(void){
     // inputData.pressureData["Pr2"]           = 0.2;
     // inputData.pressureData["Pr3"]           = 0.2;
     // inputData.pressureData["Pr4"]           = 0.2;
-    // inputData.flowData["WaterFlow"]         = 0.3;  //Handled by serviceFlowMeters
-    inputData.flowData["GasFlow"]           = readADCvoltage()*1000/5.0; //5000mV per litre per minute
+    // inputData.flowData["WaterFlow"]         = //Handled by serviceFlowMeters
+    // inputData.flowData["GasFlow"]           = //Handled by serviceFlowMeters
     // inputData.powerData["Power"]            = 0.4;
     // inputData.powerData["Energy"]           = 0.4;
+    // inputData.gasData["CH4"]                = AI[5];
+    // inputData.gasData["CO2"]                = AI[6];
+    // inputData.gasData["N2O"]                = AI[7];
+
+}
+
+void Inputs::pollGasSensors(void){
+    //Reads the gas sensors and updates the inputData.gasData map
+    //The gas sensors are connected to the Mod_a1019 ADC
+
+    float AI[8];
+    mod_a1019.getInputs_float(AI);
+    // Delay seems to be needed to prevent Modbus errors
+    vTaskDelay(20 / portTICK_PERIOD_MS);
+
     inputData.gasData["CH4"]                = AI[5];
     inputData.gasData["CO2"]                = AI[6];
     inputData.gasData["N2O"]                = AI[7];
-
 }
 
 float Inputs::readADCvoltage(void){

@@ -97,6 +97,7 @@ public:
     void init(void);
     void serviceFlowMeters(void);
     void pollSensorData(void);
+    void pollGasSensors(void);
     void pollPhysicalControls(void);
 
 private:

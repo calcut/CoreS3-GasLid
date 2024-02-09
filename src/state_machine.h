@@ -44,7 +44,6 @@ public:
         {"gasSampleNow", 0},
         {"gasPurgeTime_s", 10},
         {"gasPumpTime_s", 10},
-        {"gasPumpSpeed_pc", 30},
         {"gasSampleChannels", 4},
         {"sampleTime1_hour", 12},
         {"sampleTime1_min", 51},
@@ -60,6 +59,8 @@ public:
         {"gasPID_I", 0.01},
         {"gasPID_D", 0.001},
         {"GasFlowSetpoint", 1000}, // mL/minute
+        {"GasFlowMin", 200}, //Something is broken if below this
+        {"GasFlowMax", 1100}, //Something is broken if below this
     };
 
     // This will be equal to either flexStoreLow or flexStoreHigh
@@ -67,11 +68,10 @@ public:
     float flexStoreThreshold = 20.0;
 
     QuickPID* gasPID;
-    // float gasPIDinput;
     float* gasPIDinput;
-    // float* gasPIDsetpoint;
     float* gasPIDsetpoint;
     float gasPIDoutput = 0.0;
+    bool gasPumpEnabled = false;
 
 
 private:
