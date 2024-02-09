@@ -51,7 +51,7 @@ void setupRtos(void){
         NULL); // out pointer to task handle
 
     xTaskCreate(
-        computePID, // task function
+        servicePID, // task function
         "Compute PID", // task name
         16384, // stack size in bytes
         NULL, // pointer to parameters
@@ -114,34 +114,14 @@ void runStateMachine(void * pvParameters){
 
 
 
-void computePID(void * pvParameters){
+void servicePID(void * pvParameters){
 
     while (!stateMachine.initComplete){
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 
     while(1){
-        //check if input is valid
-        if(isnan(*stateMachine.gasPIDinput)){
-            ESP_LOGW("RTOS", "Invalid PID input");
-            stateMachine.gasPumpEnabled = false;
-        }
-
-        if (stateMachine.gasPumpEnabled){
-            stateMachine.gasPID->SetMode(QuickPID::Control::automatic);
-            stateMachine.gasPID->Compute();
-        }
-        else{
-            stateMachine.gasPID->SetMode(QuickPID::Control::manual);
-            stateMachine.gasPIDoutput = 0;
-        }
-        // ESP_LOGD("RTOS", "KP=%f, KI=%f, KD=%f", stateMachine.gasPID->GetKp(), stateMachine.gasPID->GetKi(), stateMachine.gasPID->GetKd());
-        // ESP_LOGD("RTOS", "PID input: %f", *stateMachine.gasPIDinput);
-        // ESP_LOGD("RTOS", "PID setpoint: %f", *stateMachine.gasPIDsetpoint);
-        // ESP_LOGD("RTOS", "PID output: %f", stateMachine.gasPIDoutput);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-        outputs.setGasPumpSpeed(stateMachine.gasPIDoutput);
-
+        stateMachine.computePID();
     }
 }
 

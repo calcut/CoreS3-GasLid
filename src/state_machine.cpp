@@ -14,7 +14,7 @@ void StateMachine::init(void){
     vTaskDelay(20 / portTICK_PERIOD_MS);
 
     gasPIDinput = &inputData.flowData["GasFlow"];
-    gasPIDsetpoint = &stateMachine.envVars["GasFlowSetpoint"];
+    gasPIDsetpoint = &envVars["GasFlowSetpoint"];
 
     gasPID = new QuickPID(
         gasPIDinput, // input
@@ -99,6 +99,37 @@ void StateMachine::sampleGasCards(){
     }
 }
 
+void StateMachine::computePID(){
+    //check if input is valid
+    if(isnan(*gasPIDinput)){
+        ESP_LOGW("RTOS", "Invalid PID input");
+        gasPumpEnabled = false;
+    }
+    //Check if out of bounds
+    if (*gasPIDinput > 1200){
+        ESP_LOGW("RTOS", "PID Error, Gas flow too high");
+        gasPumpEnabled = false;
+    }
+    if (*gasPIDinput < 200 && gasPIDoutput > 40){
+        ESP_LOGW("RTOS", "PID Error, Gas flow too low - connection failure?");
+        gasPumpEnabled = false;
+    }
+
+    if (gasPumpEnabled){
+        gasPID->SetMode(QuickPID::Control::automatic);
+        gasPID->Compute();
+    }
+    else{
+        gasPID->SetMode(QuickPID::Control::manual);
+        gasPIDoutput = 0;
+    }
+    // ESP_LOGD("RTOS", "KP=%f, KI=%f, KD=%f", gasPID->GetKp(), gasPID->GetKi(), gasPID->GetKd());
+    // ESP_LOGD("RTOS", "PID input: %f", *gasPIDinput);
+    // ESP_LOGD("RTOS", "PID setpoint: %f", *gasPIDsetpoint);
+    // ESP_LOGD("RTOS", "PID output: %f", gasPIDoutput);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    outputs.setGasPumpSpeed(gasPIDoutput);
+}
 
 int StateMachine::getGasSampleDelay(void){
 

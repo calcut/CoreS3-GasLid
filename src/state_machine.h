@@ -25,6 +25,7 @@ public:
     void sampleGasCards();
     int getGasSampleDelay();
     void tunePID(void);
+    void computePID();
 
 
     bool initComplete = false;
