@@ -180,7 +180,12 @@ void Outputs::setGasPumpSpeed(float percent) {
 }
 
 void Outputs::enableJacketHeater(bool enable) {
-    quadRelay.turnRelayOn(JACKET_HEATER_RELAY);
+    if(enable){
+        quadRelay.turnRelayOn(JACKET_HEATER_RELAY);
+    }
+    else{
+        quadRelay.turnRelayOff(JACKET_HEATER_RELAY);
+    }
 }
 
 bool Outputs::getJacketHeater(void){
@@ -313,9 +318,9 @@ void Inputs::pollSensorData(void){
     // Delay seems to be needed to prevent Modbus errors
     vTaskDelay(20 / portTICK_PERIOD_MS);
 
-    inputData.temperatureData["T_flow"]     = AI[0];
+    inputData.temperatureData["T_flow"]     = AI[2];
     inputData.temperatureData["T_rtrn"]     = AI[1];
-    inputData.temperatureData["T_shrt"]     = AI[2];
+    inputData.temperatureData["T_shrt"]     = AI[0];
     inputData.temperatureData["T_long"]     = AI[3];
     inputData.temperatureData["T_biof"]     = AI[4];
 
