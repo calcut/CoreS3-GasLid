@@ -3,6 +3,7 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
-lib/ui/autosave/*
+lib/ui/autosave/*.zip
 *.binpack
 .DS_Store
+lib/ui/backup/*.zip
