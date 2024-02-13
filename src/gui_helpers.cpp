@@ -2,6 +2,98 @@
 
 char text_buffer[64];
 
+static void gas_sample_edit_text_event_cb(lv_event_t * e);
+static void gas_sample_selected_event_cb(lv_event_t * e);
+
+static void gas_sample_time_text_event_cb(lv_event_t * e)
+{
+    lv_obj_t * ta = lv_event_get_target(e);
+    const char * txt = lv_textarea_get_text(ta);
+
+    // if a character has just been added (rather than deleted)
+    // we need to cut it to 5 characters appropriately and let the callback run again.
+    if(strlen(txt) > 5) {
+        //if we are not at the end, overtype what is there
+        if (lv_textarea_get_cursor_pos(ta) < 6){
+            lv_textarea_del_char_forward(ta);
+            return;
+        }
+        else{
+        // if the string is complete, don't accept more input
+            lv_textarea_del_char(ta);
+            return;
+        }
+    }
+        
+    //validate the first two characters make a number less than 24
+    txt = lv_textarea_get_text(ta);
+    int num;
+    char hr_str[3] = {txt[0], txt[1], '\0'};
+    num = atoi(hr_str);
+
+    if (num > 23) {
+        gas_sample_selected_event_cb(e);
+        Serial.println("Invalid hour time");
+    }
+
+    char min_str[3] = {txt[3], txt[4], '\0'};
+    num = atoi(min_str);
+
+    if (num > 59) {
+        gas_sample_selected_event_cb(e);
+        Serial.println("Invalid minute time");
+    }
+
+    //if cursor position is 2, then skip over the colon to 3
+    if(lv_textarea_get_cursor_pos(ta) == 2) {
+        lv_textarea_set_cursor_pos(ta, 3);
+    }
+
+    if((lv_textarea_get_cursor_pos(ta) == 5)
+        && (strlen(txt) == 5)
+        && (txt[4] != '-'))
+        {
+        lv_obj_clear_state(ta, LV_STATE_FOCUSED);
+        Serial.println("Time string is complete, deselecting");
+
+        if (ta == ui_s2_Time1){
+            stateMachine.envVars["sampleTime1_hour"] = atof(hr_str);
+            stateMachine.envVars["sampleTime1_min"] = atof(min_str);
+            ESP_LOGW("GUI", "Time1: %s:%s", hr_str, min_str);
+        }
+        else if (ta == ui_s2_Time2){
+            stateMachine.envVars["sampleTime2_hour"] = atof(hr_str);
+            stateMachine.envVars["sampleTime2_min"] = atof(min_str);
+            ESP_LOGW("GUI", "Time2: %s:%s", hr_str, min_str);
+        }
+        else if (ta == ui_s2_Time3){
+            stateMachine.envVars["sampleTime3_hour"] = atof(hr_str);
+            stateMachine.envVars["sampleTime3_min"] = atof(min_str);
+            ESP_LOGW("GUI", "Time3: %s:%s", hr_str, min_str);
+        }
+        else if (ta == ui_s2_Time4){
+            stateMachine.envVars["sampleTime4_hour"] = atof(hr_str);
+            stateMachine.envVars["sampleTime4_min"] = atof(min_str);
+            ESP_LOGW("GUI", "Time4: %s:%s", hr_str, min_str);
+        }
+
+    }
+
+}
+
+static void gas_sample_selected_event_cb(lv_event_t * e)
+{
+    lv_obj_t * ta = lv_event_get_target(e);
+    const char * txt = "--:--";
+
+    lv_keyboard_set_textarea(ui_s2_Keyboard, ta);
+    lv_textarea_set_accepted_chars(ta, "0123456789:-");
+    lv_textarea_set_text(ta, txt);
+    lv_textarea_set_cursor_pos(ta, 0);
+    lv_obj_add_state(ta, LV_STATE_FOCUSED);
+}
+
+
 void setupGui(){
 
     initDisplay();
@@ -33,6 +125,17 @@ void setupGui(){
     lv_chart_set_ext_x_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_r290_xarray);
 
     populate_widgets();
+
+    lv_obj_add_event_cb(ui_s2_Time1, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time2, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time3, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time4, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time1, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time2, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time3, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time4, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
+
+
 
 }
 

@@ -62,7 +62,17 @@ lv_obj_t *ui_BackLabel02;
 lv_obj_t *ui_Header_Title2;
 void ui_event_Button2( lv_event_t * e);
 lv_obj_t *ui_Button2;
-lv_obj_t *ui_Roller1;
+lv_obj_t *ui_s2_label1;
+lv_obj_t *ui_s2_Keyboard;
+lv_obj_t *ui_s2_Switch1;
+lv_obj_t *ui_s2_Time1;
+lv_obj_t *ui_s2_Time2;
+lv_obj_t *ui_s2_Time3;
+lv_obj_t *ui_s2_Time4;
+lv_obj_t *ui_s2_Switch3;
+lv_obj_t *ui_Switch3;
+lv_obj_t *ui_s2_Switch2;
+lv_obj_t *ui_s2_Switch4;
 
 
 // SCREEN: ui_Screen3
