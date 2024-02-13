@@ -30,14 +30,6 @@ lv_obj_set_style_text_color(ui_BackLabel02, lv_color_hex(0xFFFFFF), LV_PART_MAIN
 lv_obj_set_style_text_opa(ui_BackLabel02, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_text_font(ui_BackLabel02, &lv_font_montserrat_34, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_Header_Time2 = lv_label_create(ui_Header2);
-lv_obj_set_width( ui_Header_Time2, LV_SIZE_CONTENT);  /// 1
-lv_obj_set_height( ui_Header_Time2, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_align( ui_Header_Time2, LV_ALIGN_RIGHT_MID );
-lv_label_set_text(ui_Header_Time2,"--:--:--");
-lv_obj_set_style_text_color(ui_Header_Time2, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
-lv_obj_set_style_text_opa(ui_Header_Time2, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
-
 ui_Header_Title2 = lv_label_create(ui_Header2);
 lv_obj_set_width( ui_Header_Title2, LV_SIZE_CONTENT);  /// 1
 lv_obj_set_height( ui_Header_Title2, LV_SIZE_CONTENT);   /// 1

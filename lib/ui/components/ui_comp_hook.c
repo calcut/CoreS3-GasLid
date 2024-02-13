@@ -3,8 +3,3 @@
 // LVGL version: 8.3.6
 // Project name: CoreS3_SLS_Project
 
-#include "../ui.h"
-
-void ui_comp_Button0_create_hook( lv_obj_t * comp)
-{
-}

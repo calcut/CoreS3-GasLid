@@ -267,17 +267,17 @@ void display_date_time_labels(lv_timer_t * timer){
 
     // to show only the time
     strftime(time_str, sizeof(time_str), "%X", time_info);
-    lv_label_set_text(ui_Header_Time1, time_str);
-    lv_label_set_text(ui_Header_Time2, time_str);
+    // lv_label_set_text(ui_Header_Time1, time_str);
+    // lv_label_set_text(ui_Header_Time2, time_str);
     lv_label_set_text(ui_Header_Time3, time_str);
-    lv_label_set_text(ui_Header_Time4, time_str);
+    // lv_label_set_text(ui_Header_Time4, time_str);
 
     // silly hack to display boot time
-    char * time_str_temp;
-    time_str_temp = lv_label_get_text(ui_Header_Time5);
-    if (strcmp("--:--:--", time_str_temp) == 0){
-        lv_label_set_text(ui_Header_Time5, time_str);
-    }
+    // char * time_str_temp;
+    // time_str_temp = lv_label_get_text(ui_Header_Time5);
+    // if (strcmp("--:--:--", time_str_temp) == 0){
+    //     lv_label_set_text(ui_Header_Time5, time_str);
+    // }
     // lv_label_set_text(ui_Header_Time5, time_str);
 
     // to show the full date and time

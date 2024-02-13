@@ -41,14 +41,6 @@ lv_label_set_text(ui_Header_Title5,"Logs");
 lv_obj_set_style_text_color(ui_Header_Title5, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_Header_Title5, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 
-ui_Header_Time5 = lv_label_create(ui_Header5);
-lv_obj_set_width( ui_Header_Time5, LV_SIZE_CONTENT);  /// 1
-lv_obj_set_height( ui_Header_Time5, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_align( ui_Header_Time5, LV_ALIGN_RIGHT_MID );
-lv_label_set_text(ui_Header_Time5,"--:--:--");
-lv_obj_set_style_text_color(ui_Header_Time5, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
-lv_obj_set_style_text_opa(ui_Header_Time5, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
-
 ui_TextAreaLog = lv_textarea_create(ui_Screen5);
 lv_obj_set_width( ui_TextAreaLog, 313);
 lv_obj_set_height( ui_TextAreaLog, 208);
