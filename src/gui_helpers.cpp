@@ -7,6 +7,7 @@ void setupGui(){
     initDisplay();
     ui_init();
 
+    lv_timer_t * timer_jacket_setpoints = lv_timer_create(display_jacket_setpoints, 1000, NULL);
     lv_timer_t * timer_datetime = lv_timer_create(display_date_time_labels, 1000, NULL);
     lv_timer_t * timer_notecard_info = lv_timer_create(display_notecard_info, 1000, NULL);
     lv_timer_t * timer_sensor_info = lv_timer_create(display_sensor_info, 1000, NULL);
@@ -16,6 +17,8 @@ void setupGui(){
 
     lv_obj_add_event_cb(ui_Screen3, nc_info_screen_event_cb, LV_EVENT_SCREEN_LOAD_START, NULL);
     lv_obj_add_event_cb(ui_Screen3, nc_info_screen_event_cb, LV_EVENT_SCREEN_UNLOAD_START, NULL);
+
+    lv_obj_add_event_cb(ui_Slider1_temp1, jacketslider1function, LV_EVENT_VALUE_CHANGED, NULL);
 
     lv_obj_set_style_size(ui_Chart1, 0, LV_PART_INDICATOR);
 
@@ -37,6 +40,14 @@ void nc_info_screen_event_cb(lv_event_t * event){
     else if(event->code == LV_EVENT_SCREEN_UNLOAD_START){
         notecardManager.serviceEnabled = false;
     }
+}
+
+void jacketslider1function(lv_event_t * e)
+{
+    lv_obj_t * target = lv_event_get_target(e);
+    int temp = (int)lv_slider_get_value(target);
+	ESP_LOGE("GUI", "Slider1 event %d", temp);
+    stateMachine.envVars["targetTempTank1"] = temp;
 }
 
 void display_pressure_enthalpy(lv_timer_t * timer){
@@ -67,6 +78,22 @@ void display_pressure_enthalpy(lv_timer_t * timer){
         // static lv_coord_t ui_Chart1_r290_yarray[] = {   0,  53, 103, 140, 160, 162, 141,  96,  36,   0,};
         // lv_chart_set_ext_y_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_r290_yarray);
         // lv_chart_set_ext_x_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_r290_xarray);
+    }
+}
+
+void display_jacket_setpoints(lv_timer_t * timer){
+    if (lv_scr_act() == ui_Screen1){
+        sprintf(text_buffer, "%d°", (int)stateMachine.envVars["targetTempTank1"]);
+        lv_label_set_text(ui_Label1_temp1, text_buffer);
+        lv_slider_set_value(ui_Slider1_temp1, (int)stateMachine.envVars["targetTempTank1"], LV_ANIM_OFF);
+
+        sprintf(text_buffer, "%d°", (int)stateMachine.envVars["targetTempTank2"]);
+        lv_label_set_text(ui_Label1_temp2, text_buffer);
+        lv_slider_set_value(ui_Slider1_temp2, (int)stateMachine.envVars["targetTempTank2"], LV_ANIM_OFF);
+
+        sprintf(text_buffer, "%d°", (int)stateMachine.envVars["targetTempTank3"]);
+        lv_label_set_text(ui_Label1_temp3, text_buffer);
+        lv_slider_set_value(ui_Slider1_temp3, (int)stateMachine.envVars["targetTempTank3"], LV_ANIM_OFF);
     }
 }
 
