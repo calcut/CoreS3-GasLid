@@ -31,7 +31,7 @@ lv_obj_set_height( ui_Label02, 66);
 lv_obj_set_x( ui_Label02, 0 );
 lv_obj_set_y( ui_Label02, -78 );
 lv_obj_set_align( ui_Label02, LV_ALIGN_CENTER );
-lv_label_set_text(ui_Label02,"\nTemp\nSensors");
+lv_label_set_text(ui_Label02,"\nGas Sample\nTimes");
 lv_obj_add_flag( ui_Label02, LV_OBJ_FLAG_CLICKABLE );   /// Flags
 lv_obj_set_style_text_color(ui_Label02, lv_color_hex(0x161414), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_Label02, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
@@ -119,7 +119,7 @@ lv_obj_set_height( ui_Label07, 66);
 lv_obj_set_x( ui_Label07, -104 );
 lv_obj_set_y( ui_Label07, 78 );
 lv_obj_set_align( ui_Label07, LV_ALIGN_CENTER );
-lv_label_set_text(ui_Label07,"\nScreen\n7");
+lv_label_set_text(ui_Label07,"\npH / Gas\nSensors");
 lv_obj_add_flag( ui_Label07, LV_OBJ_FLAG_CLICKABLE );   /// Flags
 lv_obj_set_style_text_color(ui_Label07, lv_color_hex(0x161414), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_Label07, 255, LV_PART_MAIN| LV_STATE_DEFAULT);

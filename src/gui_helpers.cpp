@@ -32,7 +32,8 @@ void setupGui(){
     lv_chart_set_ext_y_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_r290_yarray);
     lv_chart_set_ext_x_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_r290_xarray);
 
-    ui_Screen2_populate_widgets();
+    populate_widgets();
+
 }
 
 void nc_info_screen_event_cb(lv_event_t * event){
@@ -192,44 +193,53 @@ void display_notecard_info(lv_timer_t * timer){
 }
 
 void display_sensor_info(lv_timer_t * timer){
-    if (lv_scr_act() == ui_Screen2){
+    if (lv_scr_act() == ui_Screen7 
+        || lv_scr_act() == ui_Screen8 
+        || lv_scr_act() == ui_Screen9)
+    {
 
         // gather the ui objects into arrays for easier looping
         lv_obj_t *tc_values[8] = {
-            ui_Label2_value1,
-            ui_Label2_value2,
-            ui_Label2_value3,
-            ui_Label2_value4,
-            ui_Label2_value5,
-            ui_Label2_value6
+            ui_s7_value1,
+            ui_s7_value2,
+            ui_s7_value3,
+            ui_s7_value4,
+            ui_s7_value5,
+            ui_s7_value6,
+            ui_s7_value7,
+            ui_s7_value8
         };
 
         lv_obj_t *tc_names[8] = {
-            ui_Label2_name1,
-            ui_Label2_name2,
-            ui_Label2_name3,
-            ui_Label2_name4,
-            ui_Label2_name5,
-            ui_Label2_name6
+            ui_s7_name1,
+            ui_s7_name2,
+            ui_s7_name3,
+            ui_s7_name4,
+            ui_s7_name5,
+            ui_s7_name6,
+            ui_s7_name7,
+            ui_s7_name8
         };
 
         lv_obj_t *pr_values[8] = {
-            ui_Label2_value7,
-            ui_Label2_value8
+            ui_s8_value1,
+            ui_s8_value2,
         };
 
         lv_obj_t *tc_bars[8] = {
-            ui_Bar2_value1,
-            ui_Bar2_value2,
-            ui_Bar2_value3,
-            ui_Bar2_value4,
-            ui_Bar2_value5,
-            ui_Bar2_value6
+            ui_s7_bar1,
+            ui_s7_bar2,
+            ui_s7_bar3,
+            ui_s7_bar4,
+            ui_s7_bar5,
+            ui_s7_bar6,
+            ui_s7_bar7,
+            ui_s7_bar8
         };
 
         lv_obj_t *pr_bars[8] = {
-            ui_Bar2_value7,
-            ui_Bar2_value8
+            ui_s8_bar1,
+            ui_s8_bar2,
         };
 
         // loop over all ui_Label2_valueX objects and update with new values
@@ -242,7 +252,7 @@ void display_sensor_info(lv_timer_t * timer){
             lv_label_set_text(tc_names[i], key);
             lv_bar_set_value(tc_bars[i], keyval.second, LV_ANIM_OFF);
             i++;
-            if (i > 5) break;
+            if (i >= 8) break;
         }
 
         // float value = inputs.temperatureData["Tr1_CompressorOut"];

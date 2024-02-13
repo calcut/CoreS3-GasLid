@@ -60,12 +60,9 @@ lv_obj_t *ui_Screen2;
 lv_obj_t *ui_Header2;
 lv_obj_t *ui_BackLabel02;
 lv_obj_t *ui_Header_Title2;
-lv_obj_t *ui_Panel2_sensor1;
-lv_obj_t *ui_Bar2_value1;
-lv_obj_t *ui_Label2_value1;
-lv_obj_t *ui_Label2_name1;
 void ui_event_Button2( lv_event_t * e);
 lv_obj_t *ui_Button2;
+lv_obj_t *ui_Roller1;
 
 
 // SCREEN: ui_Screen3
@@ -146,6 +143,10 @@ lv_obj_t *ui_BackLabel7;
 lv_obj_t *ui_Header_Title7;
 void ui_event_Button7( lv_event_t * e);
 lv_obj_t *ui_Button7;
+lv_obj_t *ui_s7_panel1;
+lv_obj_t *ui_s7_bar1;
+lv_obj_t *ui_s7_value1;
+lv_obj_t *ui_s7_name1;
 
 
 // SCREEN: ui_Screen8

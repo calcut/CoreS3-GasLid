@@ -36,7 +36,7 @@ lv_obj_set_height( ui_Header_Title7, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_x( ui_Header_Title7, 0 );
 lv_obj_set_y( ui_Header_Title7, -9 );
 lv_obj_set_align( ui_Header_Title7, LV_ALIGN_TOP_MID );
-lv_label_set_text(ui_Header_Title7,"Screen 7");
+lv_label_set_text(ui_Header_Title7,"pH and Gas Sensors");
 lv_obj_set_style_text_color(ui_Header_Title7, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_Header_Title7, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 
@@ -51,6 +51,41 @@ lv_obj_set_style_border_color(ui_Button7, lv_color_hex(0x000000), LV_PART_MAIN |
 lv_obj_set_style_border_opa(ui_Button7, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_shadow_color(ui_Button7, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_shadow_opa(ui_Button7, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_s7_panel1 = lv_obj_create(ui_Screen7);
+lv_obj_set_width( ui_s7_panel1, 320);
+lv_obj_set_height( ui_s7_panel1, 25);
+lv_obj_set_x( ui_s7_panel1, 0 );
+lv_obj_set_y( ui_s7_panel1, 25 );
+lv_obj_clear_flag( ui_s7_panel1, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_obj_set_style_radius(ui_s7_panel1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_bg_color(ui_s7_panel1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_bg_opa(ui_s7_panel1, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_border_width(ui_s7_panel1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_s7_bar1 = lv_bar_create(ui_s7_panel1);
+lv_bar_set_range(ui_s7_bar1, -10,50);
+lv_obj_set_width( ui_s7_bar1, 95);
+lv_obj_set_height( ui_s7_bar1, 10);
+lv_obj_set_x( ui_s7_bar1, 60 );
+lv_obj_set_y( ui_s7_bar1, -7 );
+
+ui_s7_value1 = lv_label_create(ui_s7_panel1);
+lv_obj_set_width( ui_s7_value1, 55);
+lv_obj_set_height( ui_s7_value1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_s7_value1, -5 );
+lv_obj_set_y( ui_s7_value1, -10 );
+lv_label_set_long_mode(ui_s7_value1,LV_LABEL_LONG_DOT);
+lv_label_set_text(ui_s7_value1," --.-°C");
+lv_obj_set_style_text_align(ui_s7_value1, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_s7_value1, &lv_font_montserrat_12, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_s7_name1 = lv_label_create(ui_s7_panel1);
+lv_obj_set_width( ui_s7_name1, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_s7_name1, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_s7_name1, 165 );
+lv_obj_set_y( ui_s7_name1, -10 );
+lv_label_set_text(ui_s7_name1,"Sensor Name");
 
 lv_obj_add_event_cb(ui_Button7, ui_event_Button7, LV_EVENT_ALL, NULL);
 

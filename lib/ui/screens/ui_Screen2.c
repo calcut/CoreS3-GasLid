@@ -36,45 +36,10 @@ lv_obj_set_height( ui_Header_Title2, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_x( ui_Header_Title2, 0 );
 lv_obj_set_y( ui_Header_Title2, -9 );
 lv_obj_set_align( ui_Header_Title2, LV_ALIGN_TOP_MID );
-lv_label_set_text(ui_Header_Title2,"Temperature Sensors");
+lv_label_set_text(ui_Header_Title2,"Gas Sample Times");
 lv_label_set_recolor(ui_Header_Title2,"true");
 lv_obj_set_style_text_color(ui_Header_Title2, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_Header_Title2, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
-
-ui_Panel2_sensor1 = lv_obj_create(ui_Screen2);
-lv_obj_set_width( ui_Panel2_sensor1, 320);
-lv_obj_set_height( ui_Panel2_sensor1, 25);
-lv_obj_set_x( ui_Panel2_sensor1, 0 );
-lv_obj_set_y( ui_Panel2_sensor1, 25 );
-lv_obj_clear_flag( ui_Panel2_sensor1, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
-lv_obj_set_style_radius(ui_Panel2_sensor1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_bg_color(ui_Panel2_sensor1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
-lv_obj_set_style_bg_opa(ui_Panel2_sensor1, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_border_width(ui_Panel2_sensor1, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
-
-ui_Bar2_value1 = lv_bar_create(ui_Panel2_sensor1);
-lv_bar_set_range(ui_Bar2_value1, -10,50);
-lv_obj_set_width( ui_Bar2_value1, 95);
-lv_obj_set_height( ui_Bar2_value1, 10);
-lv_obj_set_x( ui_Bar2_value1, 60 );
-lv_obj_set_y( ui_Bar2_value1, -7 );
-
-ui_Label2_value1 = lv_label_create(ui_Panel2_sensor1);
-lv_obj_set_width( ui_Label2_value1, 55);
-lv_obj_set_height( ui_Label2_value1, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_x( ui_Label2_value1, -5 );
-lv_obj_set_y( ui_Label2_value1, -10 );
-lv_label_set_long_mode(ui_Label2_value1,LV_LABEL_LONG_DOT);
-lv_label_set_text(ui_Label2_value1," --.-°C");
-lv_obj_set_style_text_align(ui_Label2_value1, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN| LV_STATE_DEFAULT);
-lv_obj_set_style_text_font(ui_Label2_value1, &lv_font_montserrat_12, LV_PART_MAIN| LV_STATE_DEFAULT);
-
-ui_Label2_name1 = lv_label_create(ui_Panel2_sensor1);
-lv_obj_set_width( ui_Label2_name1, LV_SIZE_CONTENT);  /// 1
-lv_obj_set_height( ui_Label2_name1, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_x( ui_Label2_name1, 165 );
-lv_obj_set_y( ui_Label2_name1, -10 );
-lv_label_set_text(ui_Label2_name1,"Compressor Inlet");
 
 ui_Button2 = lv_btn_create(ui_Screen2);
 lv_obj_set_width( ui_Button2, 100);
@@ -89,6 +54,12 @@ lv_obj_set_style_border_color(ui_Button2, lv_color_hex(0x000000), LV_PART_MAIN |
 lv_obj_set_style_border_opa(ui_Button2, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
 lv_obj_set_style_shadow_color(ui_Button2, lv_color_hex(0x000000), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_shadow_opa(ui_Button2, 0, LV_PART_MAIN| LV_STATE_DEFAULT);
+
+ui_Roller1 = lv_roller_create(ui_Screen2);
+lv_roller_set_options( ui_Roller1, "00\n05\n10\n15\n20\n25\n30\n35\n40\n45\n50\n55", LV_ROLLER_MODE_NORMAL );
+lv_obj_set_height( ui_Roller1, 100);
+lv_obj_set_width( ui_Roller1, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_align( ui_Roller1, LV_ALIGN_CENTER );
 
 lv_obj_add_event_cb(ui_Button2, ui_event_Button2, LV_EVENT_ALL, NULL);
 
