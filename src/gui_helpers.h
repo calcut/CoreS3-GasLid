@@ -5,6 +5,7 @@
 #include <math.h>
 #include <ui.h>
 
+#include "gui_populate_widgets.h"
 #include "notecard_manager.h"
 #include "state_machine.h"
 #ifdef WOKWI

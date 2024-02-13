@@ -31,6 +31,8 @@ void setupGui(){
     static lv_coord_t ui_Chart1_r290_yarray[] = {   0,  53, 103, 140, 160, 162, 141,  96,  36,   0,};
     lv_chart_set_ext_y_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_r290_yarray);
     lv_chart_set_ext_x_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_r290_xarray);
+
+    ui_Screen2_populate_widgets();
 }
 
 void nc_info_screen_event_cb(lv_event_t * event){
