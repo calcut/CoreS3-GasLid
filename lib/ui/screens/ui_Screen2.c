@@ -60,11 +60,14 @@ lv_obj_set_x( ui_Bar2_value1, 60 );
 lv_obj_set_y( ui_Bar2_value1, -7 );
 
 ui_Label2_value1 = lv_label_create(ui_Panel2_sensor1);
-lv_obj_set_width( ui_Label2_value1, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_width( ui_Label2_value1, 55);
 lv_obj_set_height( ui_Label2_value1, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_x( ui_Label2_value1, -2 );
+lv_obj_set_x( ui_Label2_value1, -5 );
 lv_obj_set_y( ui_Label2_value1, -10 );
-lv_label_set_text(ui_Label2_value1," 0.0 °C");
+lv_label_set_long_mode(ui_Label2_value1,LV_LABEL_LONG_DOT);
+lv_label_set_text(ui_Label2_value1," --.-°C");
+lv_obj_set_style_text_align(ui_Label2_value1, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN| LV_STATE_DEFAULT);
+lv_obj_set_style_text_font(ui_Label2_value1, &lv_font_montserrat_12, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Label2_name1 = lv_label_create(ui_Panel2_sensor1);
 lv_obj_set_width( ui_Label2_name1, LV_SIZE_CONTENT);  /// 1
