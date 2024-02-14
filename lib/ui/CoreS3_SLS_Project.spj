@@ -2702,7 +2702,7 @@
               {
                 "nid": -1303302244,
                 "strtype": "LABEL/Text",
-                "strval": "\\nScreen\\n8",
+                "strval": "\\nTemp\\nSensors",
                 "InheritedType": 10
               },
               {
@@ -3512,7 +3512,7 @@
               {
                 "nid": 1065190686,
                 "strtype": "LABEL/Text",
-                "strval": "\\nScreen\\n9",
+                "strval": "\\nOther\\nSensors",
                 "InheritedType": 10
               },
               {
@@ -25074,7 +25074,7 @@
               {
                 "nid": -430766673,
                 "strtype": "OBJECT/Name",
-                "strval": "sl4 Pterm val",
+                "strval": "s4 Pterm val",
                 "InheritedType": 10
               },
               {
@@ -37418,7 +37418,7 @@
     "theme_color2": 0,
     "uiExportFolderPath": "/Users/calum/git/CoreS3-GasLid/lib/ui",
     "projectExportFolderPath": "/Users/calum/git/CoreS3-GasLid/lib/ui",
-    "backup_cnt": 1831,
+    "backup_cnt": 1846,
     "autosave_cnt": 0,
     "lvgl_version": "8.3.6",
     "callfuncsexport": "C_FILE",

@@ -246,13 +246,10 @@ void display_notecard_info(lv_timer_t * timer){
 }
 
 void display_sensor_info(lv_timer_t * timer){
-    if (lv_scr_act() == ui_Screen7 
-        || lv_scr_act() == ui_Screen8 
-        || lv_scr_act() == ui_Screen9)
+    if (lv_scr_act() == ui_Screen7 )
     {
-
         // gather the ui objects into arrays for easier looping
-        lv_obj_t *tc_values[8] = {
+        lv_obj_t *s7_values[8] = {
             ui_s7_value1,
             ui_s7_value2,
             ui_s7_value3,
@@ -263,7 +260,7 @@ void display_sensor_info(lv_timer_t * timer){
             ui_s7_value8
         };
 
-        lv_obj_t *tc_names[8] = {
+        lv_obj_t *s7_names[8] = {
             ui_s7_name1,
             ui_s7_name2,
             ui_s7_name3,
@@ -274,12 +271,7 @@ void display_sensor_info(lv_timer_t * timer){
             ui_s7_name8
         };
 
-        lv_obj_t *pr_values[8] = {
-            ui_s8_value1,
-            ui_s8_value2,
-        };
-
-        lv_obj_t *tc_bars[8] = {
+        lv_obj_t *s7_bars[8] = {
             ui_s7_bar1,
             ui_s7_bar2,
             ui_s7_bar3,
@@ -290,36 +282,153 @@ void display_sensor_info(lv_timer_t * timer){
             ui_s7_bar8
         };
 
-        lv_obj_t *pr_bars[8] = {
-            ui_s8_bar1,
-            ui_s8_bar2,
+        char* key;
+        int i = 0;
+        for (auto& keyval : inputData.gasData) {
+            key = const_cast<char*>(keyval.first.c_str());
+            sprintf(text_buffer, "%0.1f %", keyval.second);
+            lv_label_set_text(s7_values[i], text_buffer);
+            lv_label_set_text(s7_names[i], key);
+            lv_bar_set_value(s7_bars[i], keyval.second, LV_ANIM_OFF);
+            lv_bar_set_range(s7_bars[i], 0, 50);
+            i++;
+            if (i >= 8) break;
+        }
+
+        key = "GasFlow";
+        sprintf(text_buffer, "%0.1f", inputData.flowData[key]);
+        lv_label_set_text(s7_values[i], text_buffer);
+        lv_label_set_text(s7_names[i], "GasFlow (ml/min)");
+        lv_bar_set_value(s7_bars[i], inputData.flowData[key], LV_ANIM_OFF);
+        lv_bar_set_range(s7_bars[i], 0, 1200);
+        i++;
+
+        for (auto& keyval : inputData.pHData) {
+            key = const_cast<char*>(keyval.first.c_str());
+            sprintf(text_buffer, "pH %0.1f", keyval.second);
+            lv_label_set_text(s7_values[i], text_buffer);
+            lv_label_set_text(s7_names[i], key);
+            lv_bar_set_value(s7_bars[i], keyval.second, LV_ANIM_OFF);
+            lv_bar_set_range(s7_bars[i], 0, 14);
+            i++;
+            if (i >= 8) break;
+        }
+    }
+
+    if (lv_scr_act() == ui_Screen8 )
+    {
+        // gather the ui objects into arrays for easier looping
+        lv_obj_t *s8_values[8] = {
+            ui_s8_value1,
+            ui_s8_value2,
+            ui_s8_value3,
+            ui_s8_value4,
+            ui_s8_value5,
+            ui_s8_value6,
+            ui_s8_value7,
+            ui_s8_value8
         };
 
-        // loop over all ui_Label2_valueX objects and update with new values
+        lv_obj_t *s8_names[8] = {
+            ui_s8_name1,
+            ui_s8_name2,
+            ui_s8_name3,
+            ui_s8_name4,
+            ui_s8_name5,
+            ui_s8_name6,
+            ui_s8_name7,
+            ui_s8_name8
+        };
+
+        lv_obj_t *s8_bars[8] = {
+            ui_s8_bar1,
+            ui_s8_bar2,
+            ui_s8_bar3,
+            ui_s8_bar4,
+            ui_s8_bar5,
+            ui_s8_bar6,
+            ui_s8_bar7,
+            ui_s8_bar8
+        };
+
         char* key;
         int i = 0;
         for (auto& keyval : inputData.temperatureData) {
             key = const_cast<char*>(keyval.first.c_str());
             sprintf(text_buffer, "%0.1f C", keyval.second);
-            lv_label_set_text(tc_values[i], text_buffer);
-            lv_label_set_text(tc_names[i], key);
-            lv_bar_set_value(tc_bars[i], keyval.second, LV_ANIM_OFF);
+            lv_label_set_text(s8_values[i], text_buffer);
+            lv_label_set_text(s8_names[i], key);
+            lv_bar_set_value(s8_bars[i], keyval.second, LV_ANIM_OFF);
             i++;
             if (i >= 8) break;
         }
+    }
 
-        // float value = inputs.temperatureData["Tr1_CompressorOut"];
-        // sprintf(text_buffer, "%0.1f C", value);
-        // lv_label_set_text(tc_values[0], text_buffer);
-        // lv_bar_set_value(tc_bars[0], value, LV_ANIM_OFF);
+    if (lv_scr_act() == ui_Screen9 )
+    {
+        // gather the ui objects into arrays for easier looping
+        lv_obj_t *s9_values[8] = {
+            ui_s9_value1,
+            ui_s9_value2,
+            ui_s9_value3,
+            ui_s9_value4,
+            ui_s9_value5,
+            ui_s9_value6,
+            ui_s9_value7,
+            ui_s9_value8
+        };
 
-        // for (int i = 0; i < 6; i++){
-        //     sprintf(text_buffer, "%0.1f C", 99.9);
-        //     lv_label_set_text(tc_values[i], text_buffer);
-        //     lv_bar_set_value(tc_bars[i], 99.9, LV_ANIM_OFF);
-        // }
+        lv_obj_t *s9_names[8] = {
+            ui_s9_name1,
+            ui_s9_name2,
+            ui_s9_name3,
+            ui_s9_name4,
+            ui_s9_name5,
+            ui_s9_name6,
+            ui_s9_name7,
+            ui_s9_name8
+        };
+
+        lv_obj_t *s9_bars[8] = {
+            ui_s9_bar1,
+            ui_s9_bar2,
+            ui_s9_bar3,
+            ui_s9_bar4,
+            ui_s9_bar5,
+            ui_s9_bar6,
+            ui_s9_bar7,
+            ui_s9_bar8
+        };
+
+        char* key;
+        int i = 0;
+
+        key = "Power";
+        sprintf(text_buffer, "%0.1f", inputData.powerData[key]);
+        lv_label_set_text(s9_values[i], text_buffer);
+        lv_label_set_text(s9_names[i], "Power (Watts)");
+        lv_bar_set_value(s9_bars[i], inputData.flowData[key], LV_ANIM_OFF);
+        lv_bar_set_range(s9_bars[i], 0, 4000);
+        i++;
+
+        key = "Energy";
+        sprintf(text_buffer, "%0.1f", inputData.powerData[key]);
+        lv_label_set_text(s9_values[i], text_buffer);
+        lv_label_set_text(s9_names[i], "Energy (kWh)");
+        lv_bar_set_value(s9_bars[i], inputData.flowData[key], LV_ANIM_OFF);
+        lv_bar_set_range(s9_bars[i], 0, 100);
+        i++;
+
+        key = "WaterFlow";
+        sprintf(text_buffer, "%0.1f", inputData.flowData[key]);
+        lv_label_set_text(s9_values[i], text_buffer);
+        lv_label_set_text(s9_names[i], "WaterFlow (l/min)");
+        lv_bar_set_value(s9_bars[i], inputData.flowData[key], LV_ANIM_OFF);
+        lv_bar_set_range(s9_bars[i], 0, 8);
+        i++;
     }
 }
+
 
 void display_date_time_labels(lv_timer_t * timer){
     //Get Time from system, then update the label on the display

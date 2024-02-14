@@ -36,6 +36,12 @@ public:
         {"N2O", nan("0")},
     };
 
+    std::unordered_map<std::string, float> pHData = {
+        {"pH1", nan("0")},
+        {"pH2", nan("0")},
+        {"pH3", nan("0")},
+    };
+
     enum HandOffAuto {
         OFF,
         HAND,
