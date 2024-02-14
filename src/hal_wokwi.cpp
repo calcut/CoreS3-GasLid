@@ -115,7 +115,7 @@ void Outputs::setReturnValve(int index, bool ValveState) {
 }
 
 void Outputs::setGasPumpSpeed(float percent) {
-    ESP_LOGI("HAL", "setGasPumpSpeed %f", percent);
+    ESP_LOGD("HAL", "setGasPumpSpeed %f", percent);
     analogWrite(41, percent*255);
 }
 
@@ -155,25 +155,25 @@ void Inputs::pollSensorData(void){
     int mintemp = 0;
     int maxtemp = 50;
 
-    float in1 = analogRead(11)/4095.0*(maxtemp-mintemp)+mintemp;
-    float in2 = analogRead(12)/4095.0*(maxtemp-mintemp)+mintemp;
-    float in3 = analogRead(13)/4095.0*(maxtemp-mintemp)+mintemp;
-    float in4 = analogRead(14)/4095.0*(maxtemp-mintemp)+mintemp;
-    ESP_LOGW("HAL", "AnalogRead = %0.2f %0.2f %0.2f %0.2f", in1, in2, in3, in4);
+    // float in1 = analogRead(11)/4095.0*(maxtemp-mintemp)+mintemp;
+    // float in2 = analogRead(12)/4095.0*(maxtemp-mintemp)+mintemp;
+    // float in3 = analogRead(13)/4095.0*(maxtemp-mintemp)+mintemp;
+    // float in4 = analogRead(14)/4095.0*(maxtemp-mintemp)+mintemp;
+    // ESP_LOGW("HAL", "AnalogRead = %0.2f %0.2f %0.2f %0.2f", in1, in2, in3, in4);
 
-    tsensors.requestTemperatures();
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    // tsensors.requestTemperatures();
+    // vTaskDelay(100 / portTICK_PERIOD_MS);
 
-    inputData.temperatureData["T_flow"]    = tsensors.getTempC(tc1Addr);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
-    inputData.temperatureData["T_rtrn"]    = tsensors.getTempC(tc2Addr);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
-    inputData.temperatureData["T_shrt"]    = tsensors.getTempC(tc3Addr);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
-    inputData.temperatureData["T_long"]    = tsensors.getTempC(tc4Addr);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
-    inputData.temperatureData["T_biof"]    = tsensors.getTempC(tc5Addr);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
+    // inputData.temperatureData["T_flow"]    = tsensors.getTempC(tc1Addr);
+    // vTaskDelay(10 / portTICK_PERIOD_MS);
+    // inputData.temperatureData["T_rtrn"]    = tsensors.getTempC(tc2Addr);
+    // vTaskDelay(10 / portTICK_PERIOD_MS);
+    // inputData.temperatureData["T_shrt"]    = tsensors.getTempC(tc3Addr);
+    // vTaskDelay(10 / portTICK_PERIOD_MS);
+    // inputData.temperatureData["T_long"]    = tsensors.getTempC(tc4Addr);
+    // vTaskDelay(10 / portTICK_PERIOD_MS);
+    // inputData.temperatureData["T_biof"]    = tsensors.getTempC(tc5Addr);
+    // vTaskDelay(10 / portTICK_PERIOD_MS);
 
     // inputData.pressureData["Pr1"]       = 0.2;
     // inputData.pressureData["Pr2"]       = 0.2;
@@ -270,6 +270,11 @@ void setRTC(time_t epoch_time, int UTC_offset_minutes){
     //Not implemented because Wokwi sets the time automatically
 }
 
+static void lvgl_tick_task(void *arg) {
+    (void)arg;
+    lv_tick_inc(LV_TICK_PERIOD_MS);
+}
+
 void initDisplay(void){
     lv_init();
     tft.begin();
@@ -310,6 +315,13 @@ void initDisplay(void){
 
     lv_coord_t disp_dpi = lv_disp_get_dpi(NULL);
     ESP_LOGI("HAL", "LVGL Display DPI: %d", disp_dpi);
+
+    const esp_timer_create_args_t periodic_timer_args = {
+    .callback = &lvgl_tick_task, .name = "periodic_gui"};
+    esp_timer_handle_t periodic_timer;
+    ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
+    ESP_ERROR_CHECK(
+    esp_timer_start_periodic(periodic_timer, LV_TICK_PERIOD_MS * 1000));
 }
 
 int serialLogger(const char* format, va_list args){
@@ -319,6 +331,7 @@ int serialLogger(const char* format, va_list args){
 
     int ret = vsnprintf(txt_in, sizeof(txt_in), format, args);
     Serial.print(txt_in);
+    Serial.print("\r");
 
     uint16_t txt_len = strlen(txt_in);
     uint16_t old_len = strlen(logBuffer); 
