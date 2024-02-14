@@ -426,7 +426,7 @@ void populate_widgets(){
     );
 
     //Keep back buttons on top so they can be pressed
-    lv_obj_move_foreground(ui_Button7);
-    lv_obj_move_foreground(ui_Button9);
-    lv_obj_move_foreground(ui_Button8);
+    lv_obj_move_foreground(ui_s7_backButton);
+    lv_obj_move_foreground(ui_s8_backButton);
+    lv_obj_move_foreground(ui_s9_backButton);
 }

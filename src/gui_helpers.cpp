@@ -2,96 +2,10 @@
 
 char text_buffer[64];
 
-static void gas_sample_edit_text_event_cb(lv_event_t * e);
+static void gas_sample_time_text_event_cb(lv_event_t * e);
 static void gas_sample_selected_event_cb(lv_event_t * e);
-
-static void gas_sample_time_text_event_cb(lv_event_t * e)
-{
-    lv_obj_t * ta = lv_event_get_target(e);
-    const char * txt = lv_textarea_get_text(ta);
-
-    // if a character has just been added (rather than deleted)
-    // we need to cut it to 5 characters appropriately and let the callback run again.
-    if(strlen(txt) > 5) {
-        //if we are not at the end, overtype what is there
-        if (lv_textarea_get_cursor_pos(ta) < 6){
-            lv_textarea_del_char_forward(ta);
-            return;
-        }
-        else{
-        // if the string is complete, don't accept more input
-            lv_textarea_del_char(ta);
-            return;
-        }
-    }
-        
-    //validate the first two characters make a number less than 24
-    txt = lv_textarea_get_text(ta);
-    int num;
-    char hr_str[3] = {txt[0], txt[1], '\0'};
-    num = atoi(hr_str);
-
-    if (num > 23) {
-        gas_sample_selected_event_cb(e);
-        Serial.println("Invalid hour time");
-    }
-
-    char min_str[3] = {txt[3], txt[4], '\0'};
-    num = atoi(min_str);
-
-    if (num > 59) {
-        gas_sample_selected_event_cb(e);
-        Serial.println("Invalid minute time");
-    }
-
-    //if cursor position is 2, then skip over the colon to 3
-    if(lv_textarea_get_cursor_pos(ta) == 2) {
-        lv_textarea_set_cursor_pos(ta, 3);
-    }
-
-    if((lv_textarea_get_cursor_pos(ta) == 5)
-        && (strlen(txt) == 5)
-        && (txt[4] != '-'))
-        {
-        lv_obj_clear_state(ta, LV_STATE_FOCUSED);
-        Serial.println("Time string is complete, deselecting");
-
-        if (ta == ui_s2_Time1){
-            stateMachine.envVars["sampleTime1_hour"] = atof(hr_str);
-            stateMachine.envVars["sampleTime1_min"] = atof(min_str);
-            ESP_LOGW("GUI", "Time1: %s:%s", hr_str, min_str);
-        }
-        else if (ta == ui_s2_Time2){
-            stateMachine.envVars["sampleTime2_hour"] = atof(hr_str);
-            stateMachine.envVars["sampleTime2_min"] = atof(min_str);
-            ESP_LOGW("GUI", "Time2: %s:%s", hr_str, min_str);
-        }
-        else if (ta == ui_s2_Time3){
-            stateMachine.envVars["sampleTime3_hour"] = atof(hr_str);
-            stateMachine.envVars["sampleTime3_min"] = atof(min_str);
-            ESP_LOGW("GUI", "Time3: %s:%s", hr_str, min_str);
-        }
-        else if (ta == ui_s2_Time4){
-            stateMachine.envVars["sampleTime4_hour"] = atof(hr_str);
-            stateMachine.envVars["sampleTime4_min"] = atof(min_str);
-            ESP_LOGW("GUI", "Time4: %s:%s", hr_str, min_str);
-        }
-
-    }
-
-}
-
-static void gas_sample_selected_event_cb(lv_event_t * e)
-{
-    lv_obj_t * ta = lv_event_get_target(e);
-    const char * txt = "--:--";
-
-    lv_keyboard_set_textarea(ui_s2_Keyboard, ta);
-    lv_textarea_set_accepted_chars(ta, "0123456789:-");
-    lv_textarea_set_text(ta, txt);
-    lv_textarea_set_cursor_pos(ta, 0);
-    lv_obj_add_state(ta, LV_STATE_FOCUSED);
-}
+static void gas_sample_go_event_cb(lv_event_t * e);
+static void gas_sample_stop_event_cb(lv_event_t * e);
 
 
 void setupGui(){
@@ -99,7 +13,6 @@ void setupGui(){
     initDisplay();
     ui_init();
 
-    lv_timer_t * timer_jacket_setpoints = lv_timer_create(display_jacket_setpoints, 1000, NULL);
     lv_timer_t * timer_datetime = lv_timer_create(display_date_time_labels, 1000, NULL);
     lv_timer_t * timer_notecard_info = lv_timer_create(display_notecard_info, 1000, NULL);
     lv_timer_t * timer_sensor_info = lv_timer_create(display_sensor_info, 1000, NULL);
@@ -110,32 +23,27 @@ void setupGui(){
     lv_obj_add_event_cb(ui_Screen3, nc_info_screen_event_cb, LV_EVENT_SCREEN_LOAD_START, NULL);
     lv_obj_add_event_cb(ui_Screen3, nc_info_screen_event_cb, LV_EVENT_SCREEN_UNLOAD_START, NULL);
 
-    lv_obj_add_event_cb(ui_Slider1_temp1, jacketslider1function, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(ui_s1_tempSlider1, jacketslider_cb, LV_EVENT_RELEASED, NULL);
+    lv_obj_add_event_cb(ui_s1_tempSlider2, jacketslider_cb, LV_EVENT_RELEASED, NULL);
+    lv_obj_add_event_cb(ui_s1_tempSlider3, jacketslider_cb, LV_EVENT_RELEASED, NULL);
 
-    lv_obj_set_style_size(ui_Chart1, 0, LV_PART_INDICATOR);
+    lv_obj_add_event_cb(ui_s2_GoButton, gas_sample_go_event_cb, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(ui_s2_StopButton, gas_sample_stop_event_cb, LV_EVENT_PRESSED, NULL);
 
-    lv_chart_set_range( ui_Chart1, LV_CHART_AXIS_PRIMARY_X, 100, 800);
-    lv_chart_set_range( ui_Chart1, LV_CHART_AXIS_PRIMARY_Y, 0, 170);
+    lv_obj_set_style_size(ui_s6_Chart, 0, LV_PART_INDICATOR);
 
-    lv_chart_set_point_count(ui_Chart1, 10);
-    lv_chart_series_t* ui_Chart1_series_1 = lv_chart_add_series(ui_Chart1, lv_color_hex(0x808080), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_set_range( ui_s6_Chart, LV_CHART_AXIS_PRIMARY_X, 100, 800);
+    lv_chart_set_range( ui_s6_Chart, LV_CHART_AXIS_PRIMARY_Y, 0, 170);
+
+    lv_chart_set_point_count(ui_s6_Chart, 10);
+    lv_chart_series_t* ui_Chart1_series_1 = lv_chart_add_series(ui_s6_Chart, lv_color_hex(0x808080), LV_CHART_AXIS_PRIMARY_Y);
     static lv_coord_t ui_Chart1_r290_xarray[] = { 100, 175, 280, 400, 500, 600, 630, 600, 550, 525,};
     static lv_coord_t ui_Chart1_r290_yarray[] = {   0,  53, 103, 140, 160, 162, 141,  96,  36,   0,};
-    lv_chart_set_ext_y_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_r290_yarray);
-    lv_chart_set_ext_x_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_r290_xarray);
+    lv_chart_set_ext_y_array(ui_s6_Chart, ui_Chart1_series_1, ui_Chart1_r290_yarray);
+    lv_chart_set_ext_x_array(ui_s6_Chart, ui_Chart1_series_1, ui_Chart1_r290_xarray);
 
     populate_widgets();
-
-    lv_obj_add_event_cb(ui_s2_Time1, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
-    lv_obj_add_event_cb(ui_s2_Time2, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
-    lv_obj_add_event_cb(ui_s2_Time3, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
-    lv_obj_add_event_cb(ui_s2_Time4, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
-    lv_obj_add_event_cb(ui_s2_Time1, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(ui_s2_Time2, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(ui_s2_Time3, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
-    lv_obj_add_event_cb(ui_s2_Time4, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
-
-
+    display_refresh_envVars();
 
 }
 
@@ -148,12 +56,25 @@ void nc_info_screen_event_cb(lv_event_t * event){
     }
 }
 
-void jacketslider1function(lv_event_t * e)
+void jacketslider_cb(lv_event_t * e)
 {
     lv_obj_t * target = lv_event_get_target(e);
-    int temp = (int)lv_slider_get_value(target);
-	ESP_LOGE("GUI", "Slider1 event %d", temp);
-    stateMachine.envVars["targetTempTank1"] = temp;
+    char temp[4];
+    sprintf(temp, "%d", (int)lv_slider_get_value(target));
+	// ESP_LOGI("GUI", "Slider1 event %s", temp);
+    // stateMachine.envVars["targetTempTank1"] = temp;
+    // changeEnvVar("targetTempTank1", temp);
+    // notecardManager.getEnvironment();
+
+    if (target == ui_s1_tempSlider1){
+            changeEnvVar("targetTempTank1", temp);
+    }
+    else if (target == ui_s1_tempSlider2){
+            changeEnvVar("targetTempTank2", temp);
+    }
+    else if (target == ui_s1_tempSlider3){
+            changeEnvVar("targetTempTank3", temp);
+    }
 }
 
 void display_pressure_enthalpy(lv_timer_t * timer){
@@ -187,58 +108,87 @@ void display_pressure_enthalpy(lv_timer_t * timer){
     }
 }
 
-void display_jacket_setpoints(lv_timer_t * timer){
-    if (lv_scr_act() == ui_Screen1){
-        sprintf(text_buffer, "%d°", (int)stateMachine.envVars["targetTempTank1"]);
-        lv_label_set_text(ui_Label1_temp1, text_buffer);
-        lv_slider_set_value(ui_Slider1_temp1, (int)stateMachine.envVars["targetTempTank1"], LV_ANIM_OFF);
+void display_refresh_envVars(){
+    //to be called when environment variables have been updated
 
-        sprintf(text_buffer, "%d°", (int)stateMachine.envVars["targetTempTank2"]);
-        lv_label_set_text(ui_Label1_temp2, text_buffer);
-        lv_slider_set_value(ui_Slider1_temp2, (int)stateMachine.envVars["targetTempTank2"], LV_ANIM_OFF);
+    //Screen1
+    sprintf(text_buffer, "%d°", (int)stateMachine.envVars["targetTempTank1"]);
+    lv_label_set_text(ui_s1_tempLabel1, text_buffer);
+    lv_slider_set_value(ui_s1_tempSlider1, (int)stateMachine.envVars["targetTempTank1"], LV_ANIM_OFF);
 
-        sprintf(text_buffer, "%d°", (int)stateMachine.envVars["targetTempTank3"]);
-        lv_label_set_text(ui_Label1_temp3, text_buffer);
-        lv_slider_set_value(ui_Slider1_temp3, (int)stateMachine.envVars["targetTempTank3"], LV_ANIM_OFF);
-    }
+    sprintf(text_buffer, "%d°", (int)stateMachine.envVars["targetTempTank2"]);
+    lv_label_set_text(ui_s1_tempLabel2, text_buffer);
+    lv_slider_set_value(ui_s1_tempSlider2, (int)stateMachine.envVars["targetTempTank2"], LV_ANIM_OFF);
+
+    sprintf(text_buffer, "%d°", (int)stateMachine.envVars["targetTempTank3"]);
+    lv_label_set_text(ui_s1_tempLabel3, text_buffer);
+    lv_slider_set_value(ui_s1_tempSlider3, (int)stateMachine.envVars["targetTempTank3"], LV_ANIM_OFF);
+
+    //Screen2
+    char buf[6];
+    //need to remove the callbacks to avoid infinite loop
+    lv_obj_remove_event_cb(ui_s2_Time1, gas_sample_time_text_event_cb); 
+    lv_obj_remove_event_cb(ui_s2_Time2, gas_sample_time_text_event_cb);
+    lv_obj_remove_event_cb(ui_s2_Time3, gas_sample_time_text_event_cb);
+    lv_obj_remove_event_cb(ui_s2_Time4, gas_sample_time_text_event_cb);
+
+    sprintf(buf, "%02d:%02d", (int)stateMachine.envVars["sampleTime1_hour"], (int)stateMachine.envVars["sampleTime1_min"]);
+    lv_textarea_set_text(ui_s2_Time1, buf);
+    sprintf(buf, "%02d:%02d", (int)stateMachine.envVars["sampleTime2_hour"], (int)stateMachine.envVars["sampleTime2_min"]);
+    lv_textarea_set_text(ui_s2_Time2, buf);
+    sprintf(buf, "%02d:%02d", (int)stateMachine.envVars["sampleTime3_hour"], (int)stateMachine.envVars["sampleTime3_min"]);
+    lv_textarea_set_text(ui_s2_Time3, buf);
+    sprintf(buf, "%02d:%02d", (int)stateMachine.envVars["sampleTime4_hour"], (int)stateMachine.envVars["sampleTime4_min"]);
+    lv_textarea_set_text(ui_s2_Time4, buf);
+
+    //add the callbacks back
+    lv_obj_add_event_cb(ui_s2_Time1, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time2, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time3, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time4, gas_sample_time_text_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time1, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time2, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time3, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
+    lv_obj_add_event_cb(ui_s2_Time4, gas_sample_selected_event_cb, LV_EVENT_PRESSED, NULL);
+    
 }
 
 void display_pid_info(lv_timer_t * timer){
     if (lv_scr_act() == ui_Screen4){
 
         sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetKp());
-        lv_label_set_text(ui_Label4_Kp_val, text_buffer);
+        lv_label_set_text(ui_s4_Kp_val, text_buffer);
 
         sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetKi());
-        lv_label_set_text(ui_Label4_Ki_val, text_buffer);
+        lv_label_set_text(ui_s4_Ki_val, text_buffer);
 
         sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetKd());
-        lv_label_set_text(ui_Label4_Kd_val, text_buffer);
+        lv_label_set_text(ui_s4_Kd_val, text_buffer);
 
         sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetPterm());
-        lv_label_set_text(ui_Label4_Pterm_val, text_buffer);
+        lv_label_set_text(ui_s4_Pterm_val, text_buffer);
 
         //This is just the most recent term, not the integrated history
         // sprintf(text_buffer, "%.3g", gasPID->GetIterm()); 
 
         sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetOutputSum()); //include history
-        lv_label_set_text(ui_Label4_Iterm_val, text_buffer);
+        lv_label_set_text(ui_s4_Iterm_val, text_buffer);
 
         sprintf(text_buffer, "%.3g", stateMachine.gasPID->GetDterm());
-        lv_label_set_text(ui_Label4_Dterm_val, text_buffer);
+        lv_label_set_text(ui_s4_Dterm_val, text_buffer);
 
         sprintf(text_buffer, "%.3g", stateMachine.gasPIDoutput);
-        lv_label_set_text(ui_Label4_Output_val, text_buffer);
+        lv_label_set_text(ui_s4_Output_val, text_buffer);
 
         sprintf(text_buffer, "%.3g", *stateMachine.gasPIDsetpoint);
-        lv_label_set_text(ui_Label4_Setpoint_val, text_buffer);
+        lv_label_set_text(ui_s4_Setpoint_val, text_buffer);
 
         sprintf(text_buffer, "%.3g", *stateMachine.gasPIDinput);
-        lv_label_set_text(ui_Label4_Input_val, text_buffer);
+        lv_label_set_text(ui_s4_Input_val, text_buffer);
 
         sprintf(text_buffer, "%.3g", *stateMachine.gasPIDsetpoint
                                      - *stateMachine.gasPIDinput);
-        lv_label_set_text(ui_Label4_Error_val, text_buffer);
+        lv_label_set_text(ui_s4_Error_val, text_buffer);
 
     }
 }
@@ -247,50 +197,50 @@ void display_pid_info(lv_timer_t * timer){
 void display_notecard_info(lv_timer_t * timer){
     if (lv_scr_act() == ui_Screen3){    
         if(notecardManager.connected){
-            lv_label_set_text(ui_LabelConnected, "Connected: Yes");
+            lv_label_set_text(ui_s3_LabelConnected, "Connected: Yes");
         }
         else{
-            lv_label_set_text(ui_LabelConnected, "Connected: No");
+            lv_label_set_text(ui_s3_LabelConnected, "Connected: No");
         }
 
         sprintf(text_buffer, "UID: %s", notecardManager.deviceUID);
-        lv_label_set_text(ui_LabelDevice, text_buffer);
+        lv_label_set_text(ui_s3_LabelDevice, text_buffer);
         
         sprintf(text_buffer, "SN: %s", notecardManager.sn);
-        lv_label_set_text(ui_LabelSerial, text_buffer);
+        lv_label_set_text(ui_s3_LabelSerial, text_buffer);
 
         sprintf(text_buffer, "RSSI: %d dB", notecardManager.rssi);
-        lv_label_set_text(ui_LabelRSSI, text_buffer);
+        lv_label_set_text(ui_s3_LabelRSSI, text_buffer);
 
         sprintf(text_buffer, "RAT: %s", notecardManager.rat);
-        lv_label_set_text(ui_LabelRat, text_buffer);
+        lv_label_set_text(ui_s3_LabelRat, text_buffer);
 
         sprintf(text_buffer, "Band: %s", notecardManager.band);
-        lv_label_set_text(ui_LabelBand, text_buffer);
+        lv_label_set_text(ui_s3_LabelBand, text_buffer);
 
         // fill in ui_BarX depending on reported bars
         if (notecardManager.bars > 0){
-            lv_bar_set_value(ui_Bar1, 100, LV_ANIM_OFF);
+            lv_bar_set_value(ui_s3_Bar1, 100, LV_ANIM_OFF);
         };
         if (notecardManager.bars > 1){
-            lv_bar_set_value(ui_Bar2, 100, LV_ANIM_OFF);
+            lv_bar_set_value(ui_s3_Bar2, 100, LV_ANIM_OFF);
         };
         if (notecardManager.bars > 2){
-            lv_bar_set_value(ui_Bar3, 100, LV_ANIM_OFF);
+            lv_bar_set_value(ui_s3_Bar3, 100, LV_ANIM_OFF);
         };
         if (notecardManager.bars > 3){
-            lv_bar_set_value(ui_Bar4, 100, LV_ANIM_OFF);
+            lv_bar_set_value(ui_s3_Bar4, 100, LV_ANIM_OFF);
         };
 
-        lv_textarea_set_text(ui_TextAreaHubStatus, notecardManager.hub_status);
-        lv_textarea_set_text(ui_TextAreaSyncStatus, notecardManager.hub_sync_status);
+        lv_textarea_set_text(ui_s3_TextAreaHubStatus, notecardManager.hub_status);
+        lv_textarea_set_text(ui_s3_TextAreaSyncStatus, notecardManager.hub_sync_status);
 
         if (notecardManager.serviceTick){
-            lv_obj_clear_state(ui_Button3_Refresh, LV_STATE_CHECKED);
-            lv_obj_add_state(ui_Button3_Refresh, LV_STATE_DISABLED);
+            lv_obj_clear_state(ui_s3_Button_Refresh, LV_STATE_CHECKED);
+            lv_obj_add_state(ui_s3_Button_Refresh, LV_STATE_DISABLED);
         } else {
-            lv_obj_clear_state(ui_Button3_Refresh, LV_STATE_DISABLED);
-            lv_obj_add_state(ui_Button3_Refresh, LV_STATE_CHECKED);
+            lv_obj_clear_state(ui_s3_Button_Refresh, LV_STATE_DISABLED);
+            lv_obj_add_state(ui_s3_Button_Refresh, LV_STATE_CHECKED);
         }
     }
 }
@@ -382,25 +332,126 @@ void display_date_time_labels(lv_timer_t * timer){
 
     // to show only the time
     strftime(time_str, sizeof(time_str), "%X", time_info);
-    // lv_label_set_text(ui_Header_Time1, time_str);
-    // lv_label_set_text(ui_Header_Time2, time_str);
-    lv_label_set_text(ui_Header_Time3, time_str);
-    // lv_label_set_text(ui_Header_Time4, time_str);
+    lv_label_set_text(ui_s1_headerTime, time_str);
+    lv_label_set_text(ui_s2_headerTime, time_str);
+    lv_label_set_text(ui_s3_headerTime, time_str);
+    lv_label_set_text(ui_s4_headerTime, time_str);
+    // lv_label_set_text(ui_s5_headerTime, time_str);
+    lv_label_set_text(ui_s6_headerTime, time_str);
+    lv_label_set_text(ui_s7_headerTime, time_str);
+    lv_label_set_text(ui_s8_headerTime, time_str);
+    lv_label_set_text(ui_s9_headerTime, time_str);
 
-    // silly hack to display boot time
-    // char * time_str_temp;
-    // time_str_temp = lv_label_get_text(ui_Header_Time5);
-    // if (strcmp("--:--:--", time_str_temp) == 0){
-    //     lv_label_set_text(ui_Header_Time5, time_str);
-    // }
-    // lv_label_set_text(ui_Header_Time5, time_str);
-
-    // to show the full date and time
+    // display boot time
+    char * time_str_temp;
+    char time_str_boot[64];
+    time_str_temp = lv_label_get_text(ui_s5_headerTime);
+    if (strcmp("--:--:--", time_str_temp) == 0){
+        sprintf(time_str_boot, "boot time: %s", time_str);
+        lv_label_set_text(ui_s5_headerTime, time_str_boot);
+    }
     // strftime(time_str, sizeof(time_str), "%Y-%m-%d %X", time_info);
-    // lv_label_set_text(ui_Header_Time1, time_str);
-    // lv_label_set_text(ui_Header_Time3, time_str);
+
 }
 
 void display_log(lv_timer_t * timer){
-    lv_textarea_set_text(ui_TextAreaLog, logBuffer);
+    if (lv_scr_act() == ui_Screen5){ 
+        lv_textarea_set_text(ui_s5_TextAreaLog, logBuffer);
+    }
+}
+
+static void gas_sample_go_event_cb(lv_event_t * e)
+{
+    // changeEnvVar("gasSampleNow", "1");
+    stateMachine.envVars["gasSampleNow"] = 1;
+}
+
+static void gas_sample_stop_event_cb(lv_event_t * e)
+{
+    // changeEnvVar("gasSampleStop", "1");
+    stateMachine.envVars["gasSampleStop"] = 1;
+}
+
+static void gas_sample_time_text_event_cb(lv_event_t * e)
+{
+    lv_obj_t * ta = lv_event_get_target(e);
+    const char * txt = lv_textarea_get_text(ta);
+
+    // if a character has just been added (rather than deleted)
+    // we need to cut it to 5 characters appropriately and let the callback run again.
+    if(strlen(txt) > 5) {
+        //if we are not at the end, overtype what is there
+        if (lv_textarea_get_cursor_pos(ta) < 6){
+            lv_textarea_del_char_forward(ta);
+            return;
+        }
+        else{
+        // if the string is complete, don't accept more input
+            lv_textarea_del_char(ta);
+            return;
+        }
+    }
+        
+    //validate the first two characters make a number less than 24
+    //Note this doesn't catch the case where the characters are --:--
+    txt = lv_textarea_get_text(ta);
+    int num;
+    char hr_str[3] = {txt[0], txt[1], '\0'};
+    num = atoi(hr_str);
+
+    if (num > 23) {
+        gas_sample_selected_event_cb(e);
+        Serial.println("Invalid hour time");
+    }
+
+    char min_str[3] = {txt[3], txt[4], '\0'};
+    num = atoi(min_str);
+
+    if (num > 59) {
+        gas_sample_selected_event_cb(e);
+        Serial.println("Invalid minute time");
+    }
+
+    //if cursor position is 2, then skip over the colon to 3
+    if(lv_textarea_get_cursor_pos(ta) == 2) {
+        lv_textarea_set_cursor_pos(ta, 3);
+    }
+
+    if((lv_textarea_get_cursor_pos(ta) == 5)
+        && (strlen(txt) == 5)
+        && (txt[4] != '-'))
+        {
+        lv_obj_clear_state(ta, LV_STATE_FOCUSED);
+        ESP_LOGI("GUI", "Time string is complete, parsing");
+
+        if (ta == ui_s2_Time1){
+            myEnvVarCb("sampleTime1_hour", hr_str, NULL);
+            myEnvVarCb("sampleTime1_min", min_str, NULL);
+        }
+        else if (ta == ui_s2_Time2){
+            myEnvVarCb("sampleTime2_hour", hr_str, NULL);
+            myEnvVarCb("sampleTime2_min", min_str, NULL);
+        }
+        else if (ta == ui_s2_Time3){
+            myEnvVarCb("sampleTime3_hour", hr_str, NULL);
+            myEnvVarCb("sampleTime3_min", min_str, NULL);
+        }
+        else if (ta == ui_s2_Time4){
+            myEnvVarCb("sampleTime4_hour", hr_str, NULL);
+            myEnvVarCb("sampleTime4_min", min_str, NULL);
+        }
+        refreshEnvironment();
+    }
+}
+
+static void gas_sample_selected_event_cb(lv_event_t * e)
+{
+    lv_obj_t * ta = lv_event_get_target(e);
+    const char * txt = "--:--";
+
+    lv_keyboard_set_textarea(ui_s2_Keyboard, ta);
+    lv_textarea_set_accepted_chars(ta, "0123456789:-");
+    lv_textarea_set_text(ta, txt);
+    lv_textarea_set_cursor_pos(ta, 0);
+    lv_obj_add_state(ta, LV_STATE_FOCUSED);
 }
