@@ -22,6 +22,7 @@ void servicePID(void * pvParameters);
 void serviceGUI(void * pvParameters);
 void readFlowMeters(void *pvParameters);
 void serviceGasCards(void *pvParameters);
+void changeEnvVar(const char* key, const char* value);
 void refreshEnvironment(void);
 void gasSampleTimerCallback(TimerHandle_t xTimer);
 

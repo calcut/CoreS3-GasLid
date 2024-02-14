@@ -39,6 +39,14 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
         }
     }
 
+    if(strcmp(key, "clearEnvVar") == 0)
+    {
+        ESP_LOGI("NCARD", "Clearing environment variable: %s", val);
+        notecardManager.deleteEnvironmentVar(val);
+        notecardManager.newEnvVars = true;
+        return;
+    }
+
     try{
         stateMachine.envVars.at(key) = atof(val);
         ESP_LOGD("NCARD", "set stateMachine.envVars[\"%s\"]=%d",

@@ -230,11 +230,10 @@ void timeSyncNotecard(void * pvParameters){
     else{
         ESP_LOGW("RTOS","Notecard not connected, skipping time sync");
     }
-    notecardManager.getEnvironment();
 
-    // ESP_LOGI("RTOS", "Notecard sendSensorData...");
-    // sendSensorData();
-    // ESP_LOGI("RTOS", "... Notecard sendSensorData done");
+    //Need to regularly check for envVar updates.
+    notecardManager.getEnvironment();
+    refreshEnvironment();
 
     xSemaphoreGive(nc_mutex);
     vTaskDelay(notecardManager.envVars["timeSyncInterval_s"]*1000 / portTICK_PERIOD_MS);
@@ -286,13 +285,13 @@ void serviceSerialInput(void * pvParameters){
 
                     ESP_LOGD("RTOS","key=%s, value=%s", key, value);
 
-                    myEnvVarCb(key, value, NULL);
+                    // myEnvVarCb(key, value, NULL);
+                    changeEnvVar(key, value);
                 }
 
                 // clear the string for new input:
                 inputString = "";
                 stringComplete = false;
-                refreshEnvironment();
             }
 
         }
@@ -307,7 +306,6 @@ void debugTask(void * pvParameters){
 
         if (stateMachine.envVars["gasSampleNow"]){
             stateMachine.sampleGasCards();
-            stateMachine.envVars["gasSampleNow"] = 0;
         }
 
         // ESP_LOGD("RTOS", "5 second debug print %d", millis());
@@ -339,6 +337,25 @@ void gasSampleTimerCallback(TimerHandle_t xTimer) {
     xSemaphoreGive(gasSampleSemaphore);
 }
 
+void changeEnvVar(const char* key, const char* value){
+    ESP_LOGI("RTOS", "Changing envVar %s to %s", key, value);
+
+#ifdef USE_NOTECARD
+    notecardManager.setEnvironmentVar(key, value);
+    notecardManager.getEnvironment();
+    // notecardManager.newEnvVars = true;  // shouldn't be needed
+    refreshEnvironment();
+
+#else
+    //not properly tested yet
+    float f = atof(value);
+    stateMachine.envVars[key] = f;
+    // myEnvVarCb(key, value, NULL); // might want this
+#endif
+
+
+}
+
 void refreshEnvironment(void) {
 
     if (notecardManager.newEnvVars) {
@@ -359,6 +376,9 @@ void refreshEnvironment(void) {
 
         //Refresh the PID tuning
         stateMachine.tunePID();
+
+        //update the GUI
+        display_refresh_envVars();
 
         notecardManager.newEnvVars = false;
     }

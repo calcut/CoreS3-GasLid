@@ -43,6 +43,7 @@ public:
 
     std::unordered_map<std::string, float> envVars = {
         {"gasSampleNow", 0},
+        {"gasSampleStop", 0},
         {"gasPurgeTime_s", 10},
         {"gasPumpTime_s", 10},
         {"gasSampleChannels", 4},
@@ -52,6 +53,8 @@ public:
         {"sampleTime2_min", 30},
         {"sampleTime3_hour", 15},
         {"sampleTime3_min", 0},
+        {"sampleTime4_hour", 15},
+        {"sampleTime4_min", 0},
         {"targetTempTank1", 30},
         {"targetTempTank2", 30},
         {"targetTempTank3", 30},

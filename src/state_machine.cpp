@@ -70,6 +70,15 @@ void StateMachine::sampleGasCards(){
 
     for (int i = 0; i < sampleChannels; i++){
 
+        if (envVars["gasSampleNow"] == 1){
+            envVars["gasSampleNow"] = 0;
+        }
+
+        if (envVars["gasSampleStop"] == 1){
+            envVars["gasSampleStop"] = 0;
+            return;
+        }
+
         ESP_LOGI("SM", "Opening valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::OPEN);
         outputs.setReturnValve(i, outputs.ValveState::OPEN);

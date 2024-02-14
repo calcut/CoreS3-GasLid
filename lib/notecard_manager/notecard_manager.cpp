@@ -163,13 +163,18 @@ void NotecardManager::getEnvironment(){
     }   
 }   
 
-void NotecardManager::setEnvironmentVar(char *name, char * text){
+void NotecardManager::setEnvironmentVar(const char *name, const char *text){
     J *req = notecard.newRequest("env.set");
     JAddStringToObject(req, "name", name);
     JAddStringToObject(req, "text", text);
     notecard.sendRequest(req);
 }
 
+void NotecardManager::deleteEnvironmentVar(const char *name){
+    J *req = notecard.newRequest("env.set");
+    JAddStringToObject(req, "name", name);
+    notecard.sendRequest(req);
+}
 
 void NotecardManager::getTime(){
     if (J *req = notecard.newRequest("card.time")) {
@@ -180,7 +185,7 @@ void NotecardManager::getTime(){
     }
 }
 
-void NotecardManager::setDefaultEnvironmentVar(char *name, char *text){
+void NotecardManager::setDefaultEnvironmentVar(const char *name, const char *text){
     J *req = notecard.newRequest("env.default");
     JAddStringToObject(req, "name", name);
     JAddStringToObject(req, "text", text);

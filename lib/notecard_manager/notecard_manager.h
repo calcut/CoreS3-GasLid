@@ -30,8 +30,9 @@ class NotecardManager {
         void cardWireless();
         void cardWirelessPenaltyReset();
         void getEnvironment();
-        void setEnvironmentVar(char *name, char * text);
-        void setDefaultEnvironmentVar(char *name, char * text);
+        void setEnvironmentVar(const char *name, const char * text);
+        void deleteEnvironmentVar(const char *name);
+        void setDefaultEnvironmentVar(const char *name, const char * text);
         void getTime();
         bool connected;
         bool newEnvVars = false;
