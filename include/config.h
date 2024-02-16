@@ -7,16 +7,16 @@
 #define USE_NOTECARD
 
 // From Demo
-#define GC0308_ADDR  0x21
-#define LTR553_ADDR  0x23
-#define AXP2101_ADDR 0x34
-#define AW88298_ADDR 0x36
-#define FT6336_ADDR  0x38
-#define ES7210_ADDR  0x40
-#define BM8563_ADDR  0x51
-#define AW9523_ADDR  0x58
-#define BMI270_ADDR  0x69
-#define BMM150_ADDR  0x10
+#define GC0308_ADDR  0x21 //Camera
+#define LTR553_ADDR  0x23 //Ambient light sensor
+#define AXP2101_ADDR 0x34 //Power management
+#define AW88298_ADDR 0x36 //Audio Amp
+#define FT6336_ADDR  0x38 //Cap Touch
+#define ES7210_ADDR  0x40 //Audio ADC
+#define BM8563_ADDR  0x51 //RTC
+#define AW9523_ADDR  0x58 //IO Expander
+#define BMI270_ADDR  0x69 //IMU
+#define BMM150_ADDR  0x10 //Compass
 
 #define SYS_I2C_PORT 0
 #define SYS_I2C_SDA  12
