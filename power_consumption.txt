@@ -1,0 +1,40 @@
+12V currents
+
+Motor Featherwing
+9mA = 108mW
+
+Flow Meter
+27mA = 324mW
+
+Relay board
+3mA = 26mW
+~800mW per relay activated
+
+Yotta A-1019
+75mA = 900mW
+
+Gascard (each)
+Inrush - 2A = 24W
+Warmup - 600mA = 7W
+
+CoreS3 + Notecard Wifi
+~1W
+
+CoreS3 display on, no notecard or battery
+~350mW
+
+display OFF
+~ 300mW
+
+Display off no code
+250mW
+
+Display off no code, bus out, otg, boost all off
+190mW
+
+80MHz clock
+165mW
+
+After AXP2101 power off
+86mW
+
