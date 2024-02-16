@@ -26,11 +26,11 @@ void hal_setup(void){
     ModbusRTUClient.coilRead(0,0);
 
     //Default is just boost enabled (so can start from battery), AKA POWER_MODE_USB_IN_BUS_IN
-    M5.In_I2C.bitOff(AW9523_ADDR, 0x03, 0b10000000, 100000L);  // BOOST_EN = 0
-    // M5.In_I2C.bitOn(AW9523_ADDR, 0x03, 0b10000000, 100000L);  // BOOST_EN = 1
+    // M5.In_I2C.bitOff(AW9523_ADDR, 0x03, 0b10000000, 100000L);  // BOOST_EN = 0
+    M5.In_I2C.bitOn(AW9523_ADDR, 0x03, 0b10000000, 100000L);  // BOOST_EN = 1
 
-    M5.In_I2C.bitOff(AW9523_ADDR, 0x02, 0b00000010, 100000L);  // BUS_OUT_EN = 0
-    // M5.In_I2C.bitOn(AW9523_ADDR, 0x02, 0b00000010, 100000L);  // BUS_OUT_EN = 1
+    // M5.In_I2C.bitOff(AW9523_ADDR, 0x02, 0b00000010, 100000L);  // BUS_OUT_EN = 0
+    M5.In_I2C.bitOn(AW9523_ADDR, 0x02, 0b00000010, 100000L);  // BUS_OUT_EN = 1
 
     M5.In_I2C.bitOff(AW9523_ADDR, 0x02, 0b00100000, 100000L);  // USB_OTG_EN = 0
     // M5.In_I2C.bitOn(AW9523_ADDR, 0x02, 0b00100000, 100000L);  // USB_OTG_EN = 1
@@ -48,6 +48,8 @@ void hal_setup(void){
     M5.In_I2C.bitOff(AW9523_ADDR, 0x02, 0b00000100, 100000L);  // AW_RST = 0 // Audio Amp Off
     M5.In_I2C.bitOff(AW9523_ADDR, 0x03, 0b00000001, 100000L);  // CAM_RST = 0 //Camera Off
     // M5.In_I2C.bitOff(AW9523_ADDR, 0x03, 0b00000010, 100000L);  // LCD_RST = 0 //Screen OFF
+
+    
 
     // M5.Power.Axp2101.setALDO1(0);    //VDD_1V8 for Audio Amp
     // M5.Power.Axp2101.setALDO2(0);    //VDDA_3V3 for Audio ADC
@@ -69,6 +71,16 @@ void hal_setup(void){
     ESP_LOGW("HAL", "Warning message");
     ESP_LOGI("HAL", "Info message");
     ESP_LOGD("HAL", "Debug message");
+
+    ESP_LOGI("HAL", "Battery Level: %d", M5.Power.getBatteryLevel());
+    ESP_LOGI("HAL", "Battery Voltage: %d", M5.Power.getBatteryVoltage());
+    ESP_LOGI("HAL", "Battery Current: %d", M5.Power.getBatteryCurrent());
+    ESP_LOGI("HAL", "BUS Out: %d", M5.Power.getExtOutput());
+    ESP_LOGI("HAL", "USB Out: %d", M5.Power.getUsbOutput());
+    ESP_LOGI("HAL", "VBUS Voltage: %0.2f", M5.Power.Axp2101.getVBUSVoltage());
+    ESP_LOGI("HAL", "VBUS Current: %0.2f", M5.Power.Axp2101.getVBUSCurrent());
+    ESP_LOGI("HAL", "ACIN Current: %0.2f", M5.Power.Axp2101.getACINCurrent());
+    ESP_LOGI("HAL", "ACIN Voltage: %0.2f", M5.Power.Axp2101.getACINVoltage());
 
     inputs.init();
     outputs.init();
@@ -347,6 +359,9 @@ void Inputs::pollSensorData(void){
     inputData.temperatureData["T_long"]     = AI[3];
     inputData.temperatureData["T_biof"]     = AI[4];
 
+    inputData.powerData["BatteryVoltage"]    = (float)M5.Power.getBatteryVoltage();
+    inputData.powerData["BatteryLevel"]      = (float)M5.Power.getBatteryLevel();
+    inputData.powerData["BatteryCurrent"]    = (float)M5.Power.getBatteryCurrent();
     // inputData.powerData["Power"]            = 0.4;
     // inputData.powerData["Energy"]           = 0.4;
 
