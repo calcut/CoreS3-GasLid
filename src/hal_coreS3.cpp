@@ -19,7 +19,6 @@ void hal_setup(void){
     #endif
 
     M5.begin();
-    M5.Display.setBrightness(100);
     ModbusRTUClient.begin(9600, SERIAL_8N1);
 
     // The first modbus transaction always fails, so do a dummy read to get it out of the way
@@ -35,6 +34,30 @@ void hal_setup(void){
 
     M5.In_I2C.bitOff(AW9523_ADDR, 0x02, 0b00100000, 100000L);  // USB_OTG_EN = 0
     // M5.In_I2C.bitOn(AW9523_ADDR, 0x02, 0b00100000, 100000L);  // USB_OTG_EN = 1
+
+    //Power Saving Options
+    setCpuFrequencyMhz(240);
+    M5.Display.setBrightness(100);
+
+    M5.In_I2C.bitOn(AW9523_ADDR, 0x02, 0b00000001, 100000L);  // TOUCH_RST = 1
+    // M5.In_I2C.bitOn(AW9523_ADDR, 0x02, 0b00000100, 100000L);  // AW_RST = 1
+    // M5.In_I2C.bitOn(AW9523_ADDR, 0x03, 0b00000001, 100000L);  // CAM_RST = 1
+    M5.In_I2C.bitOn(AW9523_ADDR, 0x03, 0b00000010, 100000L);  // LCD_RST = 1
+
+    // M5.In_I2C.bitOff(AW9523_ADDR, 0x02, 0b00000001, 100000L);  // TOUCH_RST = 0 // Touch Off
+    M5.In_I2C.bitOff(AW9523_ADDR, 0x02, 0b00000100, 100000L);  // AW_RST = 0 // Audio Amp Off
+    M5.In_I2C.bitOff(AW9523_ADDR, 0x03, 0b00000001, 100000L);  // CAM_RST = 0 //Camera Off
+    // M5.In_I2C.bitOff(AW9523_ADDR, 0x03, 0b00000010, 100000L);  // LCD_RST = 0 //Screen OFF
+
+    // M5.Power.Axp2101.setALDO1(0);    //VDD_1V8 for Audio Amp
+    // M5.Power.Axp2101.setALDO2(0);    //VDDA_3V3 for Audio ADC
+    // M5.Power.Axp2101.setALDO3(0);    //VDDCAM_3V3
+    // M5.Power.Axp2101.setALDO4(0);    //VDD3V3 for SD Card
+    // M5.Power.Axp2101.setBLDO1(0);    //AVDD for Camera
+    // M5.Power.Axp2101.setBLDO2(0);    //DVDD for Camera
+    // M5.Power.Axp2101.setDLDO1(0);    // VCC_BL for LCD backlight
+    // M5.Power.Axp2101.setDLDO2(0);    // Not used
+
 
     Wire.begin(PIN_SDA_I2C_EXT, PIN_SCL_I2C_EXT, 400000);  //Init I2C_EXT
 
