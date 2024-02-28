@@ -115,10 +115,10 @@ public:
     void pollPhysicalControls(void);
 
     int err_ads1100_count = 0;
-    bool err_ads1100_enabled = true;
+    bool err_ads1100_enabled = false;
 
     int err_a1019_count = 0;
-    bool err_a1019_enabled = true;
+    bool err_a1019_enabled = false;
 
 private:
     void initFlowMeters(int pin);

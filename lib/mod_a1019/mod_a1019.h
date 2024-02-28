@@ -31,7 +31,7 @@ class Mod_a1019 {
         void setTypeTC();
         void setType(int channel, channelType type);
         void getType();
-        void init();
+        bool init();
 };
 
 #endif

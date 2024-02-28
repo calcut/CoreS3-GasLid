@@ -274,17 +274,21 @@ void Inputs::init(void){
     ESP_LOGI("HAL", "Inputs init");
     
     vTaskDelay(20 / portTICK_PERIOD_MS);
-    mod_a1019.init();
-    mod_a1019.setType(0, Mod_a1019::TYPE_THERMOCOUPLE_K);
-    mod_a1019.setType(1, Mod_a1019::TYPE_THERMOCOUPLE_K);
-    mod_a1019.setType(2, Mod_a1019::TYPE_THERMOCOUPLE_K);
-    mod_a1019.setType(3, Mod_a1019::TYPE_THERMOCOUPLE_K);
-    mod_a1019.setType(4, Mod_a1019::TYPE_THERMOCOUPLE_K);
-    mod_a1019.setType(5, Mod_a1019::TYPE_0_20MA);
-    mod_a1019.setType(6, Mod_a1019::TYPE_0_20MA);
-    mod_a1019.setType(7, Mod_a1019::TYPE_0_20MA);
-    mod_a1019.getType();
-    vTaskDelay(20 / portTICK_PERIOD_MS);
+
+
+    if(mod_a1019.init()){
+        err_a1019_enabled = true;
+        mod_a1019.setType(0, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019.setType(1, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019.setType(2, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019.setType(3, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019.setType(4, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019.setType(5, Mod_a1019::TYPE_0_20MA);
+        mod_a1019.setType(6, Mod_a1019::TYPE_0_20MA);
+        mod_a1019.setType(7, Mod_a1019::TYPE_0_20MA);
+        mod_a1019.getType();
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+    }
 
     initFlowMeters(PIN_PULSE_COUNT);
 
@@ -386,7 +390,15 @@ void Inputs::pollSensorData(void){
 
     float AI[8];
     float voltage;
-    mod_a1019.getInputs_float(AI);
+
+    if(err_a1019_enabled){
+        mod_a1019.getInputs_float(AI);
+    }
+    else{
+        for (int i = 0; i < 8; i++) {
+            AI[i] = nan("0");
+        }
+    }
     // Delay seems to be needed to prevent Modbus errors
     vTaskDelay(20 / portTICK_PERIOD_MS);
 
