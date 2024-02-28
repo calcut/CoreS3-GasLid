@@ -113,6 +113,7 @@ void StateMachine::computePID(){
     if(isnan(*gasPIDinput)){
         ESP_LOGW("RTOS", "Invalid PID input");
         gasPumpEnabled = false;
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
     //Check if out of bounds
     if (*gasPIDinput > 1200){
@@ -136,7 +137,6 @@ void StateMachine::computePID(){
     // ESP_LOGD("RTOS", "PID input: %f", *gasPIDinput);
     // ESP_LOGD("RTOS", "PID setpoint: %f", *gasPIDsetpoint);
     // ESP_LOGD("RTOS", "PID output: %f", gasPIDoutput);
-    vTaskDelay(100 / portTICK_PERIOD_MS);
     outputs.setGasPumpSpeed(gasPIDoutput);
 }
 

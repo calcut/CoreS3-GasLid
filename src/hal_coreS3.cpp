@@ -7,19 +7,31 @@ InputData inputData;
 MODULE_4IN8OUT moduleIO;
 
 char logBuffer[TERMINAL_LOG_LENGTH + 1];
+esp_err_t err;
+
 
 // RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, PIN_DE_RS485, -1);
 
 void errorHandler(hal_err_t err){
+
+    //Strategy is:
+    // Attempt to init the hardware, if it fails, retry up to 3 times
+    // If it succeeds, it should be marked as "enabled"
+
+    // Once enabled, if a poll fails, increment the error count and do something sensible
+    // e.g. retry the operation or set to a default value like nan("0")
+
     
     switch(err){
-        case HAL_ERR_ADS1100:
-            inputs.err_ads1100_count++;
-            ESP_LOGE("HAL", "ADS1100 not found, error count: %i", inputs.err_ads1100_count);
+        case HAL_ERR_GASFLOW_ADC:
+            inputs.err_gasflow_adc_count++;
+            ESP_LOGE("HAL", "Gas Flow ADC not found, error count: %i", inputs.err_gasflow_adc_count);
 
-            if (inputs.err_ads1100_count > 5){
-                ESP_LOGE("HAL", "ADS1100 not found after 5 attempts. Disabling.");
-                inputs.err_ads1100_enabled = false;
+            if (inputs.err_gasflow_adc_count > 5){
+                ESP_LOGE("HAL", "Gas Flow ADC not found after 5 attempts. Disabling.");
+
+                //May want to do something else here, like a reset?
+                inputs.err_gasflow_adc_enabled = false;
             }
             break;
 
@@ -31,7 +43,19 @@ void errorHandler(hal_err_t err){
                 ESP_LOGE("HAL", "A1019 not found after 5 attempts. Disabling.");
                 inputs.err_a1019_enabled = false;
             }
-            
+            break;
+
+        case HAL_ERR_FLOWMETER:
+            ESP_LOGE("HAL", "Flowmeter error");
+            break;
+
+        case HAL_ERR_4IN8OUT:
+            ESP_LOGE("HAL", "4IN8OUT Module error");
+            break;
+
+        case HAL_ERR_MOTORSHIELD:
+            break;
+
         default:
             break;
     }
@@ -201,16 +225,19 @@ void Outputs::init() {
     if (!MS1.begin()) {         // create with the default frequency 1.6KHz
         // if (!MS1.begin(1000)) {  // OR with a different frequency, say 1KHz
         ESP_LOGW("HAL", "Could not find Motor Shield 1. Check wiring.");
+        errorHandler(HAL_ERR_MOTORSHIELD);
     }
     else ESP_LOGI("HAL", "Motor Shield 1 found.");
 
     if (!MS2.begin()) {         // create with the default frequency 1.6KHz
         ESP_LOGW("HAL", "Could not find Motor Shield 2. Check wiring.");
+        errorHandler(HAL_ERR_MOTORSHIELD);
     }
     else ESP_LOGI("HAL", "Motor Shield 2 found.");
 
     if (!MS3.begin()) {         // create with the default frequency 1.6KHz
         ESP_LOGW("HAL", "Could not find Motor Shield 3. Check wiring.");
+        errorHandler(HAL_ERR_MOTORSHIELD);
     }
     else ESP_LOGI("HAL", "Motor Shield 3 found.");
 
@@ -226,14 +253,18 @@ void Outputs::init() {
     else
         ESP_LOGI("HAL", "Qwiic Relay Found.");
 
-    quadRelay.turnAllRelaysOff(); 
+    quadRelay.turnAllRelaysOff();
 
-    while (!moduleIO.begin(&Wire1, PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, MODULE_4IN8OUT_ADDR)) {
-        Serial.println("4IN8OUT INIT ERROR");
-        delay(1000);
-    };
-    Serial.println("4IN8OUT INIT SUCCESS");
+
+    if(!moduleIO.begin(&Wire1, PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, MODULE_4IN8OUT_ADDR)){
+        errorHandler(HAL_ERR_4IN8OUT);
+    }
+    else ESP_LOGI("HAL", "4IN8OUT Module Found");
+    
+
+    ESP_LOGI("HAL", "Outputs init complete");
 }
+
 
 
 void Outputs::setFlowValve(int index, bool ValveState) {
@@ -273,10 +304,11 @@ void Inputs::init(void){
 
     ESP_LOGI("HAL", "Inputs init");
     
-    vTaskDelay(20 / portTICK_PERIOD_MS);
-
-
-    if(mod_a1019.init()){
+    err = mod_a1019.init();
+    if(err != ESP_OK){
+        errorHandler(HAL_ERR_A1019);
+    }
+    else{
         err_a1019_enabled = true;
         mod_a1019.setType(0, Mod_a1019::TYPE_THERMOCOUPLE_K);
         mod_a1019.setType(1, Mod_a1019::TYPE_THERMOCOUPLE_K);
@@ -290,17 +322,15 @@ void Inputs::init(void){
         vTaskDelay(20 / portTICK_PERIOD_MS);
     }
 
-    initFlowMeters(PIN_PULSE_COUNT);
+    err = initFlowMeters(PIN_PULSE_COUNT);
+    if (err != ESP_OK){
+        errorHandler(HAL_ERR_FLOWMETER);
+    }
 
-    //ADC for gas flow meter 
-    ads.setGain(GAIN_ONE);  // 1x gain(default)
-    ads.setMode(MODE_CONTIN);  // Continuous conversion mode (default)
-    ads.setRate(RATE_8);  // 8SPS (default)
-    ads.getAddr_ADS1100(
-        ADS1100_DEFAULT_ADDRESS);
-    ads.setOSMode(
-        OSMODE_SINGLE);  // Set to start a single-conversion.  设置开始一次转换
-    // ads.begin();
+    err = initGasFlowADC();
+    if (err != ESP_OK){
+        errorHandler(HAL_ERR_GASFLOW_ADC);
+    }
 
     ESP_LOGI("HAL", "Inputs init complete");
 
@@ -312,7 +342,28 @@ void Inputs::init(void){
     // gpioExpander.pinMode(pinModes);
 }
 
-void Inputs::initFlowMeters(int pin){
+esp_err_t Inputs::initGasFlowADC(){
+    //ADC for gas flow meter 
+    byte error;
+    Wire.beginTransmission(ads.ads_i2cAddress);
+    error = Wire.endTransmission();
+    if (error == 0){  // If the device is connected.
+        err_gasflow_adc_enabled = true;
+        ads.setGain(GAIN_ONE);  // 1x gain(default)
+        ads.setMode(MODE_CONTIN);  // Continuous conversion mode (default)
+        ads.setRate(RATE_8);  // 8SPS (default)
+        ads.getAddr_ADS1100(
+            ADS1100_DEFAULT_ADDRESS);
+        ads.setOSMode(
+            OSMODE_SINGLE);  // Set to start a single-conversion.
+        return ESP_OK;
+    }
+    else{
+        return ESP_FAIL;
+    }
+}
+
+esp_err_t Inputs::initFlowMeters(int pin){
     ESP_LOGI("HAL", "Init Flow Meters");
 
     pcnt_config_t pcntCh1 = {
@@ -327,9 +378,10 @@ void Inputs::initFlowMeters(int pin){
         .unit = PCNT_UNIT_0,
         .channel = PCNT_CHANNEL_0,
     };
-    pcnt_unit_config(&pcntCh1);
+    esp_err_t e = pcnt_unit_config(&pcntCh1);
     pcnt_counter_clear(PCNT_UNIT_0);
     ESP_LOGI("HAL", "Flow meter initialised on pin %d", pin);
+    return e;
 }
 
 void Inputs::serviceFlowMeters(void){
@@ -393,14 +445,14 @@ void Inputs::pollSensorData(void){
 
     if(err_a1019_enabled){
         mod_a1019.getInputs_float(AI);
+        // Delay seems to be needed to prevent Modbus errors
+        vTaskDelay(20 / portTICK_PERIOD_MS);
     }
     else{
         for (int i = 0; i < 8; i++) {
             AI[i] = nan("0");
         }
     }
-    // Delay seems to be needed to prevent Modbus errors
-    vTaskDelay(20 / portTICK_PERIOD_MS);
 
     inputData.temperatureData["T_flow"]     = AI[2];
     inputData.temperatureData["T_rtrn"]     = AI[1];
@@ -422,10 +474,17 @@ void Inputs::pollGasSensors(void){
     //The gas sensors are connected to the Mod_a1019 ADC
 
     float AI[8];
-    mod_a1019.getInputs_float(AI);
-    // Delay seems to be needed to prevent Modbus errors
-    vTaskDelay(20 / portTICK_PERIOD_MS);
 
+    if(err_a1019_enabled){
+        mod_a1019.getInputs_float(AI);
+        // Delay seems to be needed to prevent Modbus errors
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+    }
+    else{
+        for (int i = 0; i < 8; i++) {
+            AI[i] = nan("0");
+        }
+    }
     inputData.gasData["CH4"]                = AI[5];
     inputData.gasData["CO2"]                = AI[6];
     inputData.gasData["N2O"]                = AI[7];
@@ -433,7 +492,7 @@ void Inputs::pollGasSensors(void){
 
 float Inputs::readADCvoltage(void){
 
-    if (err_ads1100_enabled){
+    if (err_gasflow_adc_enabled){
         byte error;
         Wire.beginTransmission(ads.ads_i2cAddress);
         error = Wire.endTransmission();
@@ -450,10 +509,10 @@ float Inputs::readADCvoltage(void){
             ESP_LOGD("HAL", "ADC: %0.2f V", result_volts);
             return result_volts;
         } else {
-            errorHandler(HAL_ERR_ADS1100);
+            errorHandler(HAL_ERR_GASFLOW_ADC);
         }
     }
-    return -1;
+    return nan("0");
 }
 
 void setSystemTime(){

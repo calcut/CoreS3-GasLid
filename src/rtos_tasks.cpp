@@ -130,6 +130,7 @@ void servicePID(void * pvParameters){
 
     while(1){
         stateMachine.computePID();
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
 

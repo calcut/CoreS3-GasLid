@@ -87,24 +87,19 @@ void Mod_a1019::getType(){
     }
 }
 
-bool Mod_a1019::init(){
+esp_err_t Mod_a1019::init(){
     ESP_LOGI("a1019", "**** Mod_a1019 init ****");
 
-    int retry = 0;
 
-    while(retry < 3){
-        if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
-                                MODULE_NAME_ADDR, 1)) {
-            while (ModbusRTUClient.available()) {
-                ESP_LOGD("a1019", "Module Detected: A-%X ", ModbusRTUClient.read());
-            }
-            return true;
+    if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
+                            MODULE_NAME_ADDR, 1)) {
+        while (ModbusRTUClient.available()) {
+            ESP_LOGD("a1019", "Module Detected: A-%X ", ModbusRTUClient.read());
         }
-        else {
-            ESP_LOGE("a1019", "A-1019 Module not detected! [%s]", ModbusRTUClient.lastError());
-            retry++;
-        }
+        return ESP_OK;
     }
-    ESP_LOGE("a1019", "A-1019 Module not connected after %d attempts", retry);
-    return false;
+    else {
+        ESP_LOGE("a1019", "A-1019 Module not detected! [%s]", ModbusRTUClient.lastError());
+        return ESP_FAIL;
+    }
 }

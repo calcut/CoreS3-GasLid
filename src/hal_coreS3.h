@@ -43,8 +43,11 @@ typedef enum {
     HAL_ERR_I2C,
     HAL_ERR_SPI,
     HAL_ERR_ADC,
-    HAL_ERR_ADS1100,
+    HAL_ERR_GASFLOW_ADC,
     HAL_ERR_A1019,
+    HAL_ERR_FLOWMETER,
+    HAL_ERR_4IN8OUT,
+    HAL_ERR_MOTORSHIELD,
 
 } hal_err_t;
 
@@ -114,14 +117,15 @@ public:
     void pollGasSensors(void);
     void pollPhysicalControls(void);
 
-    int err_ads1100_count = 0;
-    bool err_ads1100_enabled = false;
+    int err_gasflow_adc_count = 0;
+    bool err_gasflow_adc_enabled = false;
 
     int err_a1019_count = 0;
     bool err_a1019_enabled = false;
 
 private:
-    void initFlowMeters(int pin);
+    esp_err_t initFlowMeters(int pin);
+    esp_err_t initGasFlowADC();
     float readADCvoltage(void);
     TCA9534 gpioExpander;
     Mod_a1019 mod_a1019;
