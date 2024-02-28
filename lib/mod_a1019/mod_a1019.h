@@ -15,6 +15,7 @@ class Mod_a1019 {
 
     private:
         int id = MOD_A1019_ADDRESS;
+        bool isConnected = false;
 
     public:
 
