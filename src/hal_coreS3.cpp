@@ -4,10 +4,38 @@ RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, -1, -1);
 Outputs outputs;
 Inputs inputs;
 InputData inputData;
+MODULE_4IN8OUT moduleIO;
 
 char logBuffer[TERMINAL_LOG_LENGTH + 1];
 
 // RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, PIN_DE_RS485, -1);
+
+void errorHandler(hal_err_t err){
+    
+    switch(err){
+        case HAL_ERR_ADS1100:
+            inputs.err_ads1100_count++;
+            ESP_LOGE("HAL", "ADS1100 not found, error count: %i", inputs.err_ads1100_count);
+
+            if (inputs.err_ads1100_count > 5){
+                ESP_LOGE("HAL", "ADS1100 not found after 5 attempts. Disabling.");
+                inputs.err_ads1100_enabled = false;
+            }
+            break;
+
+        case HAL_ERR_A1019:
+            inputs.err_a1019_count++;
+            ESP_LOGE("HAL", "A1019 not found, error count: %i", inputs.err_a1019_count);
+
+            if (inputs.err_a1019_count > 5){
+                ESP_LOGE("HAL", "A1019 not found after 5 attempts. Disabling.");
+                inputs.err_a1019_enabled = false;
+            }
+            
+        default:
+            break;
+    }
+}
 
 void hal_setup(void){
     Serial.begin();
@@ -62,6 +90,8 @@ void hal_setup(void){
 
 
     Wire.begin(PIN_SDA_I2C_EXT, PIN_SCL_I2C_EXT, 400000);  //Init I2C_EXT
+    Wire1.begin(PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, 400000);  //Init I2C_SYS
+    
 
     esp_log_level_set("*", ESP_LOG_WARN);
     esp_log_level_set("HAL", ESP_LOG_DEBUG);
@@ -197,7 +227,14 @@ void Outputs::init() {
         ESP_LOGI("HAL", "Qwiic Relay Found.");
 
     quadRelay.turnAllRelaysOff(); 
+
+    while (!moduleIO.begin(&Wire1, PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, MODULE_4IN8OUT_ADDR)) {
+        Serial.println("4IN8OUT INIT ERROR");
+        delay(1000);
+    };
+    Serial.println("4IN8OUT INIT SUCCESS");
 }
+
 
 void Outputs::setFlowValve(int index, bool ValveState) {
     flowValves[index]->setSpeed(255);
@@ -384,25 +421,27 @@ void Inputs::pollGasSensors(void){
 
 float Inputs::readADCvoltage(void){
 
-    byte error;
-    Wire.beginTransmission(ads.ads_i2cAddress);
-    error = Wire.endTransmission();
+    if (err_ads1100_enabled){
+        byte error;
+        Wire.beginTransmission(ads.ads_i2cAddress);
+        error = Wire.endTransmission();
 
-    if (error == 0)  // If the device is connected.
-    {
-        int16_t result_raw;
-        Wire.requestFrom(ads.ads_i2cAddress, (uint8_t)2);
-        result_raw = (int16_t)((Wire.read() << 8) | Wire.read());
+        if (error == 0)  // If the device is connected.
+        {
+            int16_t result_raw;
+            Wire.requestFrom(ads.ads_i2cAddress, (uint8_t)2);
+            result_raw = (int16_t)((Wire.read() << 8) | Wire.read());
 
-        // Reference voltage appears to be ~3.8V on these units. unsure why, should be 3.3V
-        // Also, there is a divide by 4 resistor divider on the input.
-        float result_volts = result_raw/32768.0 * ADS_REF_VOLTS * 4;
-        ESP_LOGD("HAL", "ADC: %0.2f V", result_volts);
-        return result_volts;
-    } else {
-        ESP_LOGE("HAL", "ADS1100 not found");
-        return -1;
+            // Reference voltage appears to be ~3.8V on these units. unsure why, should be 3.3V
+            // Also, there is a divide by 4 resistor divider on the input.
+            float result_volts = result_raw/32768.0 * ADS_REF_VOLTS * 4;
+            ESP_LOGD("HAL", "ADC: %0.2f V", result_volts);
+            return result_volts;
+        } else {
+            errorHandler(HAL_ERR_ADS1100);
+        }
     }
+    return -1;
 }
 
 void setSystemTime(){

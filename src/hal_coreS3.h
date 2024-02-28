@@ -17,6 +17,7 @@
 // OUTPUTS
 #include <Adafruit_MotorShield.h>
 #include <SparkFun_Qwiic_Relay.h>
+#include "MODULE_4IN8OUT.h"
 
 // INPUTS
 #include "mod_a1019.h"  //Temperature sensors
@@ -35,6 +36,19 @@
 
 // Sets up I2C, Serial, Display etc
 void hal_setup(void);
+
+
+typedef enum {
+    HAL_ERR_NONE = 1,
+    HAL_ERR_I2C,
+    HAL_ERR_SPI,
+    HAL_ERR_ADC,
+    HAL_ERR_ADS1100,
+    HAL_ERR_A1019,
+
+} hal_err_t;
+
+void errorHandler(hal_err_t err);
 
 //To set the system time from the on-board RTC chip
 void setSystemTime();
@@ -100,6 +114,12 @@ public:
     void pollGasSensors(void);
     void pollPhysicalControls(void);
 
+    int err_ads1100_count = 0;
+    bool err_ads1100_enabled = true;
+
+    int err_a1019_count = 0;
+    bool err_a1019_enabled = true;
+
 private:
     void initFlowMeters(int pin);
     float readADCvoltage(void);
@@ -112,6 +132,8 @@ private:
     int previousPulseTime = 0;
     int16_t counterVal;
     int flowPPS;
+
+
 };
 extern Inputs inputs;
 
