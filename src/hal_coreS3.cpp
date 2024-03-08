@@ -53,6 +53,10 @@ void errorHandler(hal_err_t err){
             ESP_LOGE("HAL", "4IN8OUT Module error");
             break;
 
+        case HAL_ERR_PH_ADC:
+            ESP_LOGE("HAL", "pH ADC error");
+            break;
+
         case HAL_ERR_MOTORSHIELD:
             break;
 
@@ -125,6 +129,8 @@ void hal_setup(void){
     ESP_LOGW("HAL", "Warning message");
     ESP_LOGI("HAL", "Info message");
     ESP_LOGD("HAL", "Debug message");
+
+    // I2C_scan(); // This isn't working for Wire1, super slow and no results. TODO: Fix this
 
     ESP_LOGI("HAL", "Battery Level: %d", M5.Power.getBatteryLevel());
     ESP_LOGI("HAL", "Battery Voltage: %d", M5.Power.getBatteryVoltage());
@@ -332,6 +338,11 @@ void Inputs::init(void){
         errorHandler(HAL_ERR_GASFLOW_ADC);
     }
 
+    err = adc_ph.begin();
+    if (err != true){
+        errorHandler(HAL_ERR_PH_ADC);
+    }
+
     ESP_LOGI("HAL", "Inputs init complete");
 
     // if (gpioExpander.begin() == false) {
@@ -463,6 +474,14 @@ void Inputs::pollSensorData(void){
     inputData.powerData["BatteryVoltage"]    = (float)M5.Power.getBatteryVoltage();
     inputData.powerData["BatteryLevel"]      = (float)M5.Power.getBatteryLevel();
     inputData.powerData["BatteryCurrent"]    = (float)M5.Power.getBatteryCurrent();
+
+    inputData.pHData["pH1"] = phProbe1.read_ph();
+    inputData.pHData["pH2"] = phProbe2.read_ph();
+    inputData.pHData["pH3"] = phProbe3.read_ph();
+
+    // adc0 = adc_pH.readVoltage(0);
+
+    // ESP_LOGW("HAL", "pH Voltages: %d %d %d", adc_pH.readVoltage(0), adc_pH.readVoltage(1), adc_pH.readVoltage(2));
     // inputData.powerData["Power"]            = 0.4;
     // inputData.powerData["Energy"]           = 0.4;
 
@@ -552,4 +571,98 @@ void initDisplay(void){
     //Called from setupGUI in gui_helpers.cpp
     lv_init();
     m5gfx_lvgl_init();
+}
+
+void I2C_scan(){
+    byte error, address;
+    int nDevices;
+
+    Serial.println("Scanning...");
+
+    nDevices = 0;
+    for(address = 1; address < 127; address++ )
+    {
+        // The i2c_scanner uses the return value of
+        // the Write.endTransmisstion to see if
+        // a device did acknowledge to the address.
+        Wire.beginTransmission(address);
+        error = Wire.endTransmission();
+
+        if (error == 0)
+        {
+        Serial.print("I2C EXT (Wire) device found at address 0x");
+        if (address<16)
+            Serial.print("0");
+        Serial.print(address,HEX);
+        Serial.println("  !");
+
+        nDevices++;
+        }
+        else if (error==4)
+        {
+        Serial.print("Unknown error at address 0x");
+        if (address<16)
+            Serial.print("0");
+        Serial.println(address,HEX);
+        }
+    }
+    if (nDevices == 0)
+        Serial.println("No I2C devices found\n");
+    else
+        Serial.println("done\n");
+
+    nDevices = 0;
+    for(address = 1; address < 127; address++ )
+    {
+        Serial.printf("Scanning I2C SYS (Wire1) address 0x%02X\n", address);
+        // The i2c_scanner uses the return value of
+        // the Write.endTransmisstion to see if
+        // a device did acknowledge to the address.
+        Wire1.beginTransmission(address);
+        error = Wire1.endTransmission();
+
+        if (error == 0)
+        {
+        Serial.print("I2C INT (Wire1) device found at address 0x");
+        if (address<16)
+            Serial.print("0");
+        Serial.print(address,HEX);
+        Serial.println("  !");
+
+        nDevices++;
+        }
+        else if (error==4)
+        {
+        Serial.print("Unknown error at address 0x");
+        if (address<16)
+            Serial.print("0");
+        Serial.println(address,HEX);
+        }
+    }
+    if (nDevices == 0)
+        Serial.println("No I2C devices found\n");
+    else
+        Serial.println("done\n");
+}
+
+PHProbe::PHProbe(int channel, ADS1115 *adc_ph){
+    _adc_ph = adc_ph;
+    _channel = channel;
+}
+
+float PHProbe::read_ph(){
+    _adc_ph->setGain(0);
+
+    int16_t counts = _adc_ph->readADC(_channel);  
+    float f = _adc_ph->toVoltage(1);  //  voltage factor
+    float voltage = counts * f;
+
+    float slope = (7-4) / (neutralVoltage - acidVoltage); //pH/V
+
+    // Temperature compensation not implemented
+    // slope = slope + (slope * temperatureCoefficient*(calibrationTemperature-temperature))
+
+    float ph = (voltage - neutralVoltage) * slope + 7;
+
+    return ph;
 }

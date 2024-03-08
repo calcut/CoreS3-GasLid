@@ -25,6 +25,7 @@
 #include "SparkFun_TCA9534.h" //GPIO Expander for physical Controls
 #include <driver/pcnt.h> //ESP32 Pulse counter
 #include "M5_ADS1100.h" //ADC for gas flow meter
+#include "ADS1X15.h" //ADC for pH probes
 
 #ifndef TERMINAL_LOG_LENGTH
 #define TERMINAL_LOG_LENGTH 512
@@ -44,6 +45,7 @@ typedef enum {
     HAL_ERR_SPI,
     HAL_ERR_ADC,
     HAL_ERR_GASFLOW_ADC,
+    HAL_ERR_PH_ADC,
     HAL_ERR_A1019,
     HAL_ERR_FLOWMETER,
     HAL_ERR_4IN8OUT,
@@ -61,6 +63,7 @@ void setRTC(time_t epoch_time, int UTC_offset_minutes);
 
 void initDisplay(void);
 
+void I2C_scan();
 
 class Outputs {
 public:
@@ -108,6 +111,20 @@ private:
 };
 extern Outputs outputs;
 
+class PHProbe{
+    public:
+        PHProbe(int channel, ADS1115 *adc_ph);
+        float read_ph();
+    private:
+        ADS1115 *_adc_ph;
+        int _channel;
+        float neutralVoltage = 1.5;
+        float acidVoltage = 2.03244;
+        float temperatureCoefficient = 0.00335;
+        float calibrationTemperature = 25;
+
+};
+
 class Inputs {
 public:
 
@@ -127,16 +144,21 @@ private:
     esp_err_t initFlowMeters(int pin);
     esp_err_t initGasFlowADC();
     float readADCvoltage(void);
+
     TCA9534 gpioExpander;
     Mod_a1019 mod_a1019;
     Mod_sdm120 mod_sdm120;
     ADS1100 ads;
 
+    ADS1115 adc_ph = ADS1115(0x49);
+    PHProbe phProbe1 = PHProbe(0, &adc_ph);
+    PHProbe phProbe2 = PHProbe(1, &adc_ph);
+    PHProbe phProbe3 = PHProbe(2, &adc_ph);
+
     int previousPulseCount = 0;
     int previousPulseTime = 0;
     int16_t counterVal;
     int flowPPS;
-
 
 };
 extern Inputs inputs;
