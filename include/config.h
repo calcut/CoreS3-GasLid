@@ -18,6 +18,9 @@
 #define BMI270_ADDR  0x69 //IMU
 #define BMM150_ADDR  0x10 //Compass
 
+#define MODULE_4IN8OUT_1_ADDR 0x45 //On SYS I2C Bus
+#define MODULE_4IN8OUT_2_ADDR 0x46 //On SYS I2C Bus
+
 #define SYS_I2C_PORT 0
 #define SYS_I2C_SDA  12
 #define SYS_I2C_SCL  11
