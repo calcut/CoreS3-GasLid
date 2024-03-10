@@ -301,6 +301,10 @@ void debugTask(void * pvParameters){
 
         if (stateMachine.envVars["gasSampleNow"]){
             stateMachine.sampleGasCards();
+            
+            xSemaphoreTake(nc_mutex, portMAX_DELAY);
+            sendSensorData(inputData.gasData);
+            xSemaphoreGive(nc_mutex);
         }
 
         // ESP_LOGD("RTOS", "5 second debug print %d", millis());
