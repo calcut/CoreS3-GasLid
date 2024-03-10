@@ -1,8 +1,6 @@
 #include "rtos_tasks.h"
 
 SemaphoreHandle_t nc_mutex = xSemaphoreCreateMutex();
-SemaphoreHandle_t modbus_mutex = xSemaphoreCreateMutex();
-
 SemaphoreHandle_t gasSampleSemaphore = xSemaphoreCreateBinary();
 TimerHandle_t gasSampleTimer;
 
@@ -107,14 +105,10 @@ void setupRtos(void){
 
 void runStateMachine(void * pvParameters){
 
-    xSemaphoreTake(modbus_mutex, portMAX_DELAY);
     stateMachine.init();
-    xSemaphoreGive(modbus_mutex);
     
     while(1){
-        xSemaphoreTake(modbus_mutex, portMAX_DELAY);
         stateMachine.run();
-        xSemaphoreGive(modbus_mutex);
         
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }

@@ -46,7 +46,7 @@ public:
         {"gasSampleStop", 0},
         {"gasPurgeTime_s", 10},
         {"gasPumpTime_s", 10},
-        {"gasSampleChannels", 4},
+        {"gasSampleChannels", 3},
         {"sampleTime1_hour", 12},
         {"sampleTime1_min", 51},
         {"sampleTime2_hour", 13},
@@ -63,8 +63,8 @@ public:
         {"gasPID_I", 0.01},
         {"gasPID_D", 0.001},
         {"GasFlowSetpoint", 1000}, // mL/minute
-        {"GasFlowMin", 200}, //Something is broken if below this
-        {"GasFlowMax", 1100}, //Something is broken if below this
+        {"GasFlowMin", 100}, //Something is broken if below this
+        {"GasFlowMax", 1200}, //Something is broken if above this
     };
 
     // This will be equal to either flexStoreLow or flexStoreHigh

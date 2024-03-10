@@ -4,10 +4,13 @@ RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, -1, -1);
 Outputs outputs;
 Inputs inputs;
 InputData inputData;
-MODULE_4IN8OUT moduleIO;
+MODULE_4IN8OUT moduleIO1;
+MODULE_4IN8OUT moduleIO2;
 
 char logBuffer[TERMINAL_LOG_LENGTH + 1];
 esp_err_t err;
+
+SemaphoreHandle_t modbus_mutex = xSemaphoreCreateMutex();
 
 
 // RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, PIN_DE_RS485, -1);
@@ -228,6 +231,20 @@ int serialLogger(const char* format, va_list args){
 void Outputs::init() {
     ESP_LOGI("HAL", "Outputs init");
 
+    if(!moduleIO1.begin(&Wire, PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, MODULE_4IN8OUT_1_ADDR)){
+        errorHandler(HAL_ERR_4IN8OUT);
+    }
+    else ESP_LOGI("HAL", "4IN8OUT Module 1 Found");
+    
+    moduleIO1.setAllOutput(false);
+
+    if(!moduleIO2.begin(&Wire, PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, MODULE_4IN8OUT_2_ADDR)){
+        errorHandler(HAL_ERR_4IN8OUT);
+    }
+    else ESP_LOGI("HAL", "4IN8OUT Module 2 Found");
+    
+    moduleIO2.setAllOutput(false);
+
     if (!MS1.begin()) {         // create with the default frequency 1.6KHz
         // if (!MS1.begin(1000)) {  // OR with a different frequency, say 1KHz
         ESP_LOGW("HAL", "Could not find Motor Shield 1. Check wiring.");
@@ -235,23 +252,20 @@ void Outputs::init() {
     }
     else ESP_LOGI("HAL", "Motor Shield 1 found.");
 
-    if (!MS2.begin()) {         // create with the default frequency 1.6KHz
-        ESP_LOGW("HAL", "Could not find Motor Shield 2. Check wiring.");
-        errorHandler(HAL_ERR_MOTORSHIELD);
-    }
-    else ESP_LOGI("HAL", "Motor Shield 2 found.");
-
-    if (!MS3.begin()) {         // create with the default frequency 1.6KHz
-        ESP_LOGW("HAL", "Could not find Motor Shield 3. Check wiring.");
-        errorHandler(HAL_ERR_MOTORSHIELD);
-    }
-    else ESP_LOGI("HAL", "Motor Shield 3 found.");
 
     setFlowValve(0, ValveState::CLOSED);
     setFlowValve(1, ValveState::CLOSED);
     setFlowValve(2, ValveState::CLOSED);
     setFlowValve(3, ValveState::CLOSED);
     setFlowValve(4, ValveState::CLOSED);
+    setFlowValve(5, ValveState::CLOSED);
+    
+    setReturnValve(0, ValveState::CLOSED);
+    setReturnValve(1, ValveState::CLOSED);
+    setReturnValve(2, ValveState::CLOSED);
+    setReturnValve(3, ValveState::CLOSED);
+    setReturnValve(4, ValveState::CLOSED);
+    setReturnValve(5, ValveState::CLOSED);
     setGasPumpSpeed(0); 
 
     if(!quadRelay.begin())
@@ -261,26 +275,24 @@ void Outputs::init() {
 
     quadRelay.turnAllRelaysOff();
 
-
-    if(!moduleIO.begin(&Wire1, PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, MODULE_4IN8OUT_ADDR)){
-        errorHandler(HAL_ERR_4IN8OUT);
-    }
-    else ESP_LOGI("HAL", "4IN8OUT Module Found");
-    
-
     ESP_LOGI("HAL", "Outputs init complete");
 }
 
 
 
 void Outputs::setFlowValve(int index, bool ValveState) {
-    flowValves[index]->setSpeed(255);
-    flowValves[index]->run(ValveState ? FORWARD : RELEASE);
+
+    bool result = moduleIO1.setOutput(index, ValveState);
+    ESP_LOGI("HAL", "Flow Valve %d set to %d, success=%d", index, ValveState, result);
+
 }
 
 void Outputs::setReturnValve(int index, bool ValveState) {
-    returnValves[index]->setSpeed(255);
-    returnValves[index]->run(ValveState ? FORWARD : RELEASE);
+    moduleIO2.setAllOutput(false);
+    bool result = moduleIO2.setOutput(index, ValveState);
+
+    ESP_LOGI("HAL", "Return Valve %d set to %d, success=%d", index, ValveState, result);
+
 }
 
 void Outputs::setGasPumpSpeed(float percent) {
@@ -310,6 +322,7 @@ void Inputs::init(void){
 
     ESP_LOGI("HAL", "Inputs init");
     
+    xSemaphoreTake(modbus_mutex, portMAX_DELAY);
     err = mod_a1019.init();
     if(err != ESP_OK){
         errorHandler(HAL_ERR_A1019);
@@ -327,6 +340,7 @@ void Inputs::init(void){
         mod_a1019.getType();
         vTaskDelay(20 / portTICK_PERIOD_MS);
     }
+    xSemaphoreGive(modbus_mutex);
 
     err = initFlowMeters(PIN_PULSE_COUNT);
     if (err != ESP_OK){
@@ -455,7 +469,9 @@ void Inputs::pollSensorData(void){
     float voltage;
 
     if(err_a1019_enabled){
+        xSemaphoreTake(modbus_mutex, portMAX_DELAY);
         mod_a1019.getInputs_float(AI);
+        xSemaphoreGive(modbus_mutex);
         // Delay seems to be needed to prevent Modbus errors
         vTaskDelay(20 / portTICK_PERIOD_MS);
     }
@@ -495,7 +511,9 @@ void Inputs::pollGasSensors(void){
     float AI[8];
 
     if(err_a1019_enabled){
+        xSemaphoreTake(modbus_mutex, portMAX_DELAY);
         mod_a1019.getInputs_float(AI);
+        xSemaphoreGive(modbus_mutex);
         // Delay seems to be needed to prevent Modbus errors
         vTaskDelay(20 / portTICK_PERIOD_MS);
     }

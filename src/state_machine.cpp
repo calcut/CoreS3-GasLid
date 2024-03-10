@@ -96,16 +96,19 @@ void StateMachine::sampleGasCards(){
         outputs.setReturnValve(i, outputs.ValveState::CLOSED);
 
         ESP_LOGI("SM", "Purging for %d seconds", purgeTime_s);
-        outputs.setFlowValve(4, outputs.ValveState::OPEN);
-        outputs.setReturnValve(4, outputs.ValveState::OPEN);
+        outputs.setFlowValve(5, outputs.ValveState::OPEN);
+        outputs.setReturnValve(5, outputs.ValveState::OPEN);
+
         vTaskDelay(purgeTime_s*1000 / portTICK_PERIOD_MS);
-        outputs.setFlowValve(4, outputs.ValveState::CLOSED);
-        outputs.setReturnValve(4, outputs.ValveState::CLOSED);
+
+        outputs.setFlowValve(5, outputs.ValveState::CLOSED);
+        outputs.setReturnValve(5, outputs.ValveState::CLOSED);
+
 
         ESP_LOGI("SM", "Purge Complete");
-        gasPumpEnabled = false;
 
     }
+    gasPumpEnabled = false;
 }
 
 void StateMachine::computePID(){
@@ -116,11 +119,13 @@ void StateMachine::computePID(){
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
     //Check if out of bounds
-    if (*gasPIDinput > 1200){
+    float max = envVars["GasFlowMax"];
+    float min = envVars["GasFlowMin"];
+    if (*gasPIDinput > max){
         ESP_LOGW("RTOS", "PID Error, Gas flow too high");
         gasPumpEnabled = false;
     }
-    if (*gasPIDinput < 200 && gasPIDoutput > 40){
+    if (*gasPIDinput < min && gasPIDoutput > 40){
         ESP_LOGW("RTOS", "PID Error, Gas flow too low - connection failure?");
         gasPumpEnabled = false;
     }
