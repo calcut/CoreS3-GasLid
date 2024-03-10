@@ -18,6 +18,11 @@ void NotecardManager::begin(){
         ESP_LOGE("NCARD", "Failed to allocate NotecardEnvVarManager.");
     }
 
+    err = hubGet();
+    if(err != ESP_OK){
+        ESP_LOGE("NCARD", "Failed to communicate with notecard");
+    }
+
     configureOutboardDFU();
 
 }
@@ -72,7 +77,7 @@ void NotecardManager::configureOutboardDFU(){
     }
 }
 
-void NotecardManager::hubGet(){
+esp_err_t NotecardManager::hubGet(){
     if (J *req = notecard.newRequest("hub.get")) {
         J *rsp = notecard.requestAndResponse(req);
         char *tempDevice = JGetString(rsp, "device");
@@ -80,7 +85,8 @@ void NotecardManager::hubGet(){
         char *tempSN = JGetString(rsp, "sn");
         strlcpy(sn, tempSN, sizeof(sn));
         notecard.deleteResponse(rsp);
-    }
+        return ESP_OK;
+    } else return ESP_FAIL;
 }
 
 void NotecardManager::hubStatus(){

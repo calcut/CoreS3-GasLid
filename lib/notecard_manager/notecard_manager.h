@@ -16,6 +16,7 @@ class NotecardManager {
     private:
         Notecard notecard;
         uint32_t env_modified_time = 0;
+        esp_err_t err;
         
     public:
         NotecardManager();
@@ -23,7 +24,7 @@ class NotecardManager {
         void begin();
         void init(const char *uid, const char *mode, int inbound, int outbound, bool sync);
         void configureOutboardDFU();
-        void hubGet();
+        esp_err_t hubGet();
         void hubStatus();
         void hubSyncStatus();
         void cardStatus();
