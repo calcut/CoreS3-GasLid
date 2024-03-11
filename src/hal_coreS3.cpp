@@ -511,6 +511,15 @@ void Inputs::pollSensorData(void){
     inputData.powerData["BatteryLevel"]      = (float)M5.Power.getBatteryLevel();
     inputData.powerData["BatteryCurrent"]    = (float)M5.Power.getBatteryCurrent();
 
+    xSemaphoreTake(modbus_mutex, portMAX_DELAY);
+    inputData.powerData["Voltage"]           = mod_sdm120.readRegister(SDM120_VOLTAGE);
+    inputData.powerData["Power"]             = mod_sdm120.readRegister(SDM120_ACTIVE_POWER);
+    inputData.powerData["PowerApparent"]     = mod_sdm120.readRegister(SDM120_APPARENT_POWER);
+    inputData.powerData["Energy"]            = mod_sdm120.readRegister(SDM120_TOTAL_ACTIVE_ENERGY);
+    inputData.powerData["JacketOn"]          = (float)outputs.getJacketHeater();
+
+    xSemaphoreGive(modbus_mutex);
+
     inputData.pHData["pH1"] = phProbe1.read_ph();
     inputData.pHData["pH2"] = phProbe2.read_ph();
     inputData.pHData["pH3"] = phProbe3.read_ph();

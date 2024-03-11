@@ -29,8 +29,6 @@ private:
     int id = MOD_SDM120_ADDRESS;
 
 public:
-    void init();
-    // void readVoltage(float *voltage);
     float readRegister(int reg);
     void writeRegister(int reg, int value);
 };
