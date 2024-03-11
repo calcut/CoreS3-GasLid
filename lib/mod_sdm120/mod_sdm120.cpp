@@ -38,3 +38,19 @@ void Mod_sdm120::writeRegister(int reg, int value) {
         ESP_LOGD("SDM120", "Success");
     }
 }
+
+bool Mod_sdm120::isConnected() {
+    int reg = 0;
+    bool connected = false;
+    if (ModbusRTUClient.requestFrom(id, INPUT_REGISTERS, reg, 2))
+    {        
+        uint16_t msbs = ModbusRTUClient.read();
+        uint16_t lsbs = ModbusRTUClient.read();        
+        connected = true;
+    }
+    else {
+        ESP_LOGE("SDM120", "Not Found! %s", ModbusRTUClient.lastError());
+        connected = false;
+    }
+    return connected;
+}

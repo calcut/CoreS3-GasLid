@@ -31,6 +31,7 @@ private:
 public:
     float readRegister(int reg);
     void writeRegister(int reg, int value);
+    bool isConnected();
 };
 
 #endif

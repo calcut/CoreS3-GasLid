@@ -47,6 +47,7 @@ typedef enum {
     HAL_ERR_GASFLOW_ADC,
     HAL_ERR_PH_ADC,
     HAL_ERR_A1019,
+    HAL_ERR_SDM120,
     HAL_ERR_FLOWMETER,
     HAL_ERR_4IN8OUT,
     HAL_ERR_MOTORSHIELD,
@@ -122,6 +123,9 @@ public:
 
     int err_a1019_count = 0;
     bool err_a1019_enabled = false;
+
+    int err_sdm120_count = 0;
+    bool err_sdm120_enabled = false;
 
 private:
     esp_err_t initFlowMeters(int pin);

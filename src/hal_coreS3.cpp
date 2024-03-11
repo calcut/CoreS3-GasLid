@@ -30,7 +30,7 @@ void errorHandler(hal_err_t err){
             inputs.err_gasflow_adc_count++;
             ESP_LOGE("HAL", "Gas Flow ADC not found, error count: %i", inputs.err_gasflow_adc_count);
 
-            if (inputs.err_gasflow_adc_count > 5){
+            if (inputs.err_gasflow_adc_count >= 5){
                 ESP_LOGE("HAL", "Gas Flow ADC not found after 5 attempts. Disabling.");
 
                 //May want to do something else here, like a reset?
@@ -42,9 +42,19 @@ void errorHandler(hal_err_t err){
             inputs.err_a1019_count++;
             ESP_LOGE("HAL", "A1019 not found, error count: %i", inputs.err_a1019_count);
 
-            if (inputs.err_a1019_count > 5){
+            if (inputs.err_a1019_count >= 5){
                 ESP_LOGE("HAL", "A1019 not found after 5 attempts. Disabling.");
                 inputs.err_a1019_enabled = false;
+            }
+            break;
+
+        case HAL_ERR_SDM120:
+            inputs.err_sdm120_count++;
+            ESP_LOGE("HAL", "SDM120 not found, error count: %i", inputs.err_sdm120_count);
+
+            if (inputs.err_sdm120_count >= 5){
+                ESP_LOGE("HAL", "SDM120 not found after 5 attempts. Disabling.");
+                inputs.err_sdm120_enabled = false;
             }
             break;
 
@@ -355,6 +365,8 @@ void Inputs::init(void){
     }
     xSemaphoreGive(modbus_mutex);
 
+    err_sdm120_enabled = true;
+
     err = initFlowMeters(PIN_PULSE_COUNT);
     if (err != ESP_OK){
         errorHandler(HAL_ERR_FLOWMETER);
@@ -512,13 +524,20 @@ void Inputs::pollSensorData(void){
     inputData.powerData["BatteryCurrent"]    = (float)M5.Power.getBatteryCurrent();
 
     xSemaphoreTake(modbus_mutex, portMAX_DELAY);
-    inputData.powerData["Voltage"]           = mod_sdm120.readRegister(SDM120_VOLTAGE);
-    inputData.powerData["Power"]             = mod_sdm120.readRegister(SDM120_ACTIVE_POWER);
-    inputData.powerData["PowerApparent"]     = mod_sdm120.readRegister(SDM120_APPARENT_POWER);
-    inputData.powerData["Energy"]            = mod_sdm120.readRegister(SDM120_TOTAL_ACTIVE_ENERGY);
+    if(err_sdm120_enabled){
+        if(mod_sdm120.isConnected()){
+            inputData.powerData["Voltage"]           = mod_sdm120.readRegister(SDM120_VOLTAGE);
+            inputData.powerData["Power"]             = mod_sdm120.readRegister(SDM120_ACTIVE_POWER);
+            inputData.powerData["PowerApparent"]     = mod_sdm120.readRegister(SDM120_APPARENT_POWER);
+            inputData.powerData["Energy"]            = mod_sdm120.readRegister(SDM120_TOTAL_ACTIVE_ENERGY);
+        }
+        else{
+            errorHandler(HAL_ERR_SDM120);
+        }
+    }
+    xSemaphoreGive(modbus_mutex);
     inputData.powerData["JacketOn"]          = (float)outputs.getJacketHeater();
 
-    xSemaphoreGive(modbus_mutex);
 
     inputData.pHData["pH1"] = phProbe1.read_ph();
     inputData.pHData["pH2"] = phProbe2.read_ph();
