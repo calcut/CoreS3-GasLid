@@ -18,8 +18,14 @@
 #define BMI270_ADDR  0x69 //IMU
 #define BMM150_ADDR  0x10 //Compass
 
-#define MODULE_4IN8OUT_1_ADDR 0x45 //On SYS I2C Bus
-#define MODULE_4IN8OUT_2_ADDR 0x46 //On SYS I2C Bus
+//On EXT I2C Bus
+#define NOTECARD_ADDR           0x17 //Not actually applied, but this is the default
+#define MODULE_4IN8OUT_1_ADDR   0x45 
+#define MODULE_4IN8OUT_2_ADDR   0x46
+#define ADC_GAS_FLOW_ADDR       0x48
+#define ADC_PH_ADDR             0x49
+#define QUIIC_RELAY_ADDR        0x6C
+#define MOTOR_FEATHERWING_ADDR  0x6F
 
 #define SYS_I2C_PORT 0
 #define SYS_I2C_SDA  12
@@ -53,6 +59,7 @@
 #define PIN_TX0 43
 
 #define PIN_PULSE_COUNT 8
+#define PIN_JACKET_RELAY 9
 
 #define MOD_16RO_ID 1
 #define NOTECARD_FETCH_INTERVAL_MS (10 * 1000)

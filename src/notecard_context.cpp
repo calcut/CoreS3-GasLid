@@ -78,7 +78,8 @@ void sendBatchSensorData(){
 
     J *body = JCreateObject();
     JAddFloatMapToObject(body, inputData.temperatureData);
-    JAddFloatMapToObject(body, inputData.flowData);
+    JAddFloatMapToObject(body, inputData.pHData);
+    // JAddFloatMapToObject(body, inputData.flowData);
     JAddNumberToObject(body, "Timestamp", unixTime);
 
     JAddStringToObject(req, "file", "inputs.qo");

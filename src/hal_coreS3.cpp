@@ -61,6 +61,11 @@ void errorHandler(hal_err_t err){
             break;
 
         case HAL_ERR_MOTORSHIELD:
+            ESP_LOGE("HAL", "Motorshield error");
+            break;
+
+        case HAL_ERR_QUADRELAY:
+            ESP_LOGE("HAL", "Quad Relay error");
             break;
 
         default:
@@ -133,7 +138,7 @@ void hal_setup(void){
     ESP_LOGI("HAL", "Info message");
     ESP_LOGD("HAL", "Debug message");
 
-    // I2C_scan(); // This isn't working for Wire1, super slow and no results. TODO: Fix this
+    I2C_scan(); // This isn't working for Wire1, super slow and no results. TODO: Fix this
 
     ESP_LOGI("HAL", "Battery Level: %d", M5.Power.getBatteryLevel());
     ESP_LOGI("HAL", "Battery Voltage: %d", M5.Power.getBatteryVoltage());
@@ -268,12 +273,15 @@ void Outputs::init() {
     setReturnValve(5, ValveState::CLOSED);
     setGasPumpSpeed(0); 
 
-    if(!quadRelay.begin())
-        ESP_LOGW("HAL", "Could not find Qwiic Relay. Check wiring.");
-    else
-        ESP_LOGI("HAL", "Qwiic Relay Found.");
-
+    if(!quadRelay.begin()){
+        errorHandler(HAL_ERR_QUADRELAY);
+    } else ESP_LOGI("HAL", "Qwiic Relay Found.");
+    
     quadRelay.turnAllRelaysOff();
+
+    // set pin 9 as an output (Jacket Heater), workaround while quadrelay isn't working
+    pinMode(PIN_JACKET_RELAY, OUTPUT);
+    digitalWrite(PIN_JACKET_RELAY, LOW);
 
     ESP_LOGI("HAL", "Outputs init complete");
 }
@@ -302,15 +310,20 @@ void Outputs::setGasPumpSpeed(float percent) {
 
 void Outputs::enableJacketHeater(bool enable) {
     if(enable){
-        quadRelay.turnRelayOn(JACKET_HEATER_RELAY);
+        // quadRelay.turnRelayOn(JACKET_HEATER_RELAY);
+        digitalWrite(PIN_JACKET_RELAY, HIGH);
     }
     else{
-        quadRelay.turnRelayOff(JACKET_HEATER_RELAY);
+        // quadRelay.turnRelayOff(JACKET_HEATER_RELAY);
+        digitalWrite(PIN_JACKET_RELAY, LOW);
     }
 }
 
 bool Outputs::getJacketHeater(void){
-    return quadRelay.getState(JACKET_HEATER_RELAY);
+    // return quadRelay.getState(JACKET_HEATER_RELAY);
+
+    // get state of PIN_JACKET_RELAY
+    return digitalRead(PIN_JACKET_RELAY);
 }
 
 void Outputs::enableWaterPump(bool enable) {
@@ -346,16 +359,20 @@ void Inputs::init(void){
     if (err != ESP_OK){
         errorHandler(HAL_ERR_FLOWMETER);
     }
+    else ESP_LOGI("HAL", "Flow meter initialised on pin %d", PIN_PULSE_COUNT);
+
 
     err = initGasFlowADC();
     if (err != ESP_OK){
         errorHandler(HAL_ERR_GASFLOW_ADC);
     }
+    else ESP_LOGI("HAL", "Gas Flow ADC found");
 
     err = adc_ph.begin();
     if (err != true){
         errorHandler(HAL_ERR_PH_ADC);
     }
+    else ESP_LOGI("HAL", "pH ADC found");
 
     ESP_LOGI("HAL", "Inputs init complete");
 
@@ -405,7 +422,6 @@ esp_err_t Inputs::initFlowMeters(int pin){
     };
     esp_err_t e = pcnt_unit_config(&pcntCh1);
     pcnt_counter_clear(PCNT_UNIT_0);
-    ESP_LOGI("HAL", "Flow meter initialised on pin %d", pin);
     return e;
 }
 
@@ -481,11 +497,15 @@ void Inputs::pollSensorData(void){
         }
     }
 
-    inputData.temperatureData["T_flow"]     = AI[2];
-    inputData.temperatureData["T_rtrn"]     = AI[1];
-    inputData.temperatureData["T_shrt"]     = AI[0];
-    inputData.temperatureData["T_long"]     = AI[3];
-    inputData.temperatureData["T_biof"]     = AI[4];
+    inputData.temperatureData["ts1"]     = AI[0];
+    inputData.temperatureData["ts2"]     = AI[1];
+    inputData.temperatureData["ts3"]     = AI[2];
+    inputData.temperatureData["tl1"]     = AI[3];
+    inputData.temperatureData["tl2"]     = AI[4];
+    inputData.temperatureData["tl3"]     = AI[5];
+    // inputData.temperatureData["T_flow"]     = AI[2];
+    // inputData.temperatureData["T_rtrn"]     = AI[3];
+    // inputData.temperatureData["T_biof"]     = AI[4];
 
     inputData.powerData["BatteryVoltage"]    = (float)M5.Power.getBatteryVoltage();
     inputData.powerData["BatteryLevel"]      = (float)M5.Power.getBatteryLevel();
@@ -504,10 +524,7 @@ void Inputs::pollSensorData(void){
 
 }
 
-void Inputs::pollGasSensors(void){
-    //Reads the gas sensors and updates the inputData.gasData map
-    //The gas sensors are connected to the Mod_a1019 ADC
-
+void Inputs::pollGasSensors(int tankNumber){
     float AI[8];
 
     if(err_a1019_enabled){
@@ -522,9 +539,20 @@ void Inputs::pollGasSensors(void){
             AI[i] = nan("0");
         }
     }
-    inputData.gasData["CH4"]                = AI[5];
-    inputData.gasData["CO2"]                = AI[6];
-    inputData.gasData["N2O"]                = AI[7];
+
+    //Gascard data is 4-20mA, so 20mA = 100% gas, 4mA = 0% gas
+    float current = AI[7];
+    float gasPercent = (current - 4) / 16 * 100;
+
+    // inputData.gasData["CH4"]                = AI[5];
+    // inputData.gasData["CO2"]                = AI[6];
+    // inputData.gasData["N2O"]                = AI[7];
+
+    char name[4];
+    sprintf(name, "gc%d", tankNumber);
+
+    inputData.gasData[name] = gasPercent;
+
 }
 
 float Inputs::readADCvoltage(void){
@@ -609,39 +637,6 @@ void I2C_scan(){
         if (error == 0)
         {
         Serial.print("I2C EXT (Wire) device found at address 0x");
-        if (address<16)
-            Serial.print("0");
-        Serial.print(address,HEX);
-        Serial.println("  !");
-
-        nDevices++;
-        }
-        else if (error==4)
-        {
-        Serial.print("Unknown error at address 0x");
-        if (address<16)
-            Serial.print("0");
-        Serial.println(address,HEX);
-        }
-    }
-    if (nDevices == 0)
-        Serial.println("No I2C devices found\n");
-    else
-        Serial.println("done\n");
-
-    nDevices = 0;
-    for(address = 1; address < 127; address++ )
-    {
-        Serial.printf("Scanning I2C SYS (Wire1) address 0x%02X\n", address);
-        // The i2c_scanner uses the return value of
-        // the Write.endTransmisstion to see if
-        // a device did acknowledge to the address.
-        Wire1.beginTransmission(address);
-        error = Wire1.endTransmission();
-
-        if (error == 0)
-        {
-        Serial.print("I2C INT (Wire1) device found at address 0x");
         if (address<16)
             Serial.print("0");
         Serial.print(address,HEX);

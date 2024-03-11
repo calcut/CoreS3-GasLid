@@ -40,19 +40,19 @@ void StateMachine::run(void){
 
     if(outputs.getJacketHeater()){
         ESP_LOGD("SM", "Jacket Heater is on");
-        if(inputData.temperatureData["T_shrt"] > envVars["targetTempTank1"] 
+        if(inputData.temperatureData["ts1"] > envVars["targetTempTank1"] 
                                     + envVars["jacketHeaterHysteresis"]){
             ESP_LOGD("SM", "Tank1 Heating Off");
-            ESP_LOGD("SM", "T_shrt= %f, target= %f", inputData.temperatureData["T_shrt"], envVars["targetTempTank1"]);
+            ESP_LOGD("SM", "ts1= %f, target= %f", inputData.temperatureData["ts1"], envVars["targetTempTank1"]);
             outputs.enableJacketHeater(false);
         }
     }
     else{
         ESP_LOGD("SM", "Jacket Heater is off");
-        if(inputData.temperatureData["T_shrt"] < envVars["targetTempTank1"] 
+        if(inputData.temperatureData["ts1"] < envVars["targetTempTank1"] 
                                 - envVars["jacketHeaterHysteresis"]){
         ESP_LOGD("SM", "Tank1 Heating On");
-        ESP_LOGD("SM", "T_shrt= %f, target= %f", inputData.temperatureData["T_shrt"], envVars["targetTempTank1"]);
+        ESP_LOGD("SM", "ts1= %f, target= %f", inputData.temperatureData["ts1"], envVars["targetTempTank1"]);
         outputs.enableJacketHeater(true);
         }
     }
@@ -90,7 +90,7 @@ void StateMachine::sampleGasCards(){
 
         ESP_LOGI("SM", "Sampling gas cards now %d", i);
         //Actually sample the gas cards here
-        inputs.pollGasSensors();
+        inputs.pollGasSensors(i+1);
         ESP_LOGI("SM", "Closing valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::CLOSED);
         outputs.setReturnValve(i, outputs.ValveState::CLOSED);
@@ -114,7 +114,7 @@ void StateMachine::sampleGasCards(){
 void StateMachine::computePID(){
     //check if input is valid
     if(isnan(*gasPIDinput)){
-        ESP_LOGW("RTOS", "Invalid PID input");
+        ESP_LOGW("RTOS", "Invalid PID input, gasPIDinput is nan");
         gasPumpEnabled = false;
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }

@@ -50,6 +50,7 @@ typedef enum {
     HAL_ERR_FLOWMETER,
     HAL_ERR_4IN8OUT,
     HAL_ERR_MOTORSHIELD,
+    HAL_ERR_QUADRELAY,
 
 } hal_err_t;
 
@@ -82,27 +83,9 @@ public:
     void enableWaterPump(bool enable);
 
 private:
-    Qwiic_Relay quadRelay = Qwiic_Relay(0x6C); // Alternate address 0x6C
+    Qwiic_Relay quadRelay = Qwiic_Relay(QUIIC_RELAY_ADDR); // Alternate address 0x6C
 
-    Adafruit_MotorShield MS1 = Adafruit_MotorShield(0x6F);
-    Adafruit_MotorShield MS2 = Adafruit_MotorShield(0x6D);
-    Adafruit_MotorShield MS3 = Adafruit_MotorShield(0x6E);
-
-    Adafruit_DCMotor *flowValves[5] = {
-        MS3.getMotor(1),
-        MS3.getMotor(2),
-        MS3.getMotor(3),
-        MS3.getMotor(4),
-        MS2.getMotor(4),
-    };
-
-    Adafruit_DCMotor *returnValves[5] = {
-        MS2.getMotor(1),
-        MS2.getMotor(2),
-        MS1.getMotor(3),
-        MS1.getMotor(1),
-        MS1.getMotor(2),
-    };
+    Adafruit_MotorShield MS1 = Adafruit_MotorShield(MOTOR_FEATHERWING_ADDR); //0x6F
 
     Adafruit_DCMotor *gasPump[1] = {
         MS1.getMotor(4),
@@ -131,7 +114,7 @@ public:
     void init(void);
     void serviceFlowMeters(void);
     void pollSensorData(void);
-    void pollGasSensors(void);
+    void pollGasSensors(int tankNumber);
     void pollPhysicalControls(void);
 
     int err_gasflow_adc_count = 0;
@@ -150,7 +133,7 @@ private:
     Mod_sdm120 mod_sdm120;
     ADS1100 ads;
 
-    ADS1115 adc_ph = ADS1115(0x49);
+    ADS1115 adc_ph = ADS1115(ADC_PH_ADDR);
     PHProbe phProbe1 = PHProbe(0, &adc_ph);
     PHProbe phProbe2 = PHProbe(1, &adc_ph);
     PHProbe phProbe3 = PHProbe(2, &adc_ph);
