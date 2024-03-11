@@ -347,8 +347,8 @@ void Inputs::init(void){
         mod_a1019.setType(2, Mod_a1019::TYPE_THERMOCOUPLE_K);
         mod_a1019.setType(3, Mod_a1019::TYPE_THERMOCOUPLE_K);
         mod_a1019.setType(4, Mod_a1019::TYPE_THERMOCOUPLE_K);
-        mod_a1019.setType(5, Mod_a1019::TYPE_0_20MA);
-        mod_a1019.setType(6, Mod_a1019::TYPE_0_20MA);
+        mod_a1019.setType(5, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019.setType(6, Mod_a1019::TYPE_THERMOCOUPLE_K);
         mod_a1019.setType(7, Mod_a1019::TYPE_0_20MA);
         mod_a1019.getType();
         vTaskDelay(20 / portTICK_PERIOD_MS);
