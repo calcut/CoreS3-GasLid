@@ -156,6 +156,8 @@ void serviceNotecard(void * pvParameters){
 
     notecardManager.begin();
     notecardManager.cardWirelessPenaltyReset();
+
+    notecardManager.init("dwt.ac.uk.septicsensor", "continuous", 0, 0, true);
     
     if (NotecardEnvVarManager_setEnvVarCb(notecardManager.envVarManager,
                              myEnvVarCb, NULL) != NEVM_SUCCESS)
