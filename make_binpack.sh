@@ -7,4 +7,5 @@ split -b 300K .pio/build/m5stack-cores3/firmware.bin ./split_firmware_
   0x8000:.pio/build/m5stack-cores3/partitions.bin \
   0x10000:split_firmware_aa \
   0x5B000:split_firmware_ab \
-  0xA6000:split_firmware_ac 
+  0xA6000:split_firmware_ac \
+  0xF1000:split_firmware_ad 
