@@ -49,6 +49,7 @@ class NotecardManager {
         int utc_offset_minutes = 0;
         bool serviceEnabled = false;
         bool serviceTick = false;
+        J *queue;
         
         std::unordered_map<std::string, int> envVars = {
             {"serviceInterval_s", 10},

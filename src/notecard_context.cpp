@@ -90,11 +90,48 @@ void sendBatchSensorData(){
 
 }
 
-// void sendQueuedSensorData(void){
-    // Could not get data queue to work
-    // J* JSON objects appear to exist on the heap and do not persist
-    // Which means you can't retrieve anything from a queue
-// }
+
+void appendToQueue(std::unordered_map<std::string, float> floatMap){
+
+    // get unix timestamp from system time
+    char timestr[12];
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    int unixTime = tv.tv_sec;
+    sprintf(timestr, "%d", unixTime);
+    ESP_LOGD("NCARD", "appendToQueue: %s", timestr); 
+
+    J *entry = JCreateObject();
+    JAddFloatMapToObject(entry, floatMap);
+    JAddItemToObject(notecardManager.queue, timestr, entry);
+    // if (queue == NULL) {
+    //     queue = JCreateObject();
+    // }
+    // J *body = JCreateObject();
+    // JAddFloatMapToObject(body, floatMap);
+    // JAddItemToObject(queue, timestr, body);
+}
+
+void sendQueuedSensorData(void){
+    
+    char *queueStr = JConvertToJSONString(notecardManager.queue);
+
+    if (queueStr == NULL) {
+        ESP_LOGW("NCARD", "Error converting queue to JSONString");
+    }
+    else {
+        ESP_LOGI("NCARD", "Sending Queue: %s\n", queueStr);
+    }
+
+    // J *body = JCreateObject();
+    J *req = NoteNewRequest("note.add");
+    JAddBoolToObject(req, "sync", true);
+    JAddStringToObject(req, "file", "inputs.qo");
+    JAddItemToObject(req, "body", notecardManager.queue);
+
+    notecardManager.queue = JCreateObject();
+    NoteRequest(req);
+}
 
 
 void sendSensorData(std::unordered_map<std::string, float> dataMap){

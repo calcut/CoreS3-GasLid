@@ -25,6 +25,8 @@ void NotecardManager::begin(){
 
     configureOutboardDFU();
 
+    queue = JCreateObject();
+
 }
 
 
