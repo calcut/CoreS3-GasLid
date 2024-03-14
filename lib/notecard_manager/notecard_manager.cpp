@@ -204,14 +204,25 @@ size_t SerialDebug::write(const uint8_t *buffer, size_t size){
 
     //Intended to intercept log messages from the notecard and translate them to ESP_LOGx messages
     //Append the buffer to the tempBuffer
-    memcpy(&tempBuffer[tempBufferIndex], buffer, size);
-    tempBufferIndex += size;
 
-    //if tempbuffer ends in a newline, then send it to the ESP_LOGD hander
-    if (tempBuffer[tempBufferIndex-1] == '\n'){
-        tempBuffer[tempBufferIndex-1] = '\0';
-        ESP_LOGD("NCARD", "%s", tempBuffer);
+    // if the tempBuffer will overflow, then print the current contents and reset the buffer
+    if(tempBufferIndex + size >= sizeof(tempBuffer)){
+        ESP_LOGD("NCARD", "Following log message is truncated");
+        size = sizeof(tempBuffer) - tempBufferIndex;
+        memcpy(&tempBuffer[tempBufferIndex], buffer, size);
+        ESP_LOGD("NCARD", "[Truncated] %s", tempBuffer);
         tempBufferIndex = 0;
+    }
+    else{
+        memcpy(&tempBuffer[tempBufferIndex], buffer, size);
+        tempBufferIndex += size;
+
+        //if tempbuffer ends in a newline, then send it to the ESP_LOGD hander
+        if (tempBuffer[tempBufferIndex-1] == '\n'){
+            tempBuffer[tempBufferIndex-1] = '\0';
+            ESP_LOGD("NCARD", "%s", tempBuffer);
+            tempBufferIndex = 0;
+        }
     }
 
     return size;
