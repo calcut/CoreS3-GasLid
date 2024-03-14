@@ -113,8 +113,8 @@ void StateMachine::sampleGasCards(){
 
 void StateMachine::computePID(){
     //check if input is valid
-    if(isnan(*gasPIDinput)){
-        ESP_LOGW("RTOS", "Invalid PID input, gasPIDinput is nan");
+    if(isnan(*gasPIDinput) & gasPumpEnabled){
+        ESP_LOGW("RTOS", "Invalid PID input, gasPIDinput is nan, disabling gas pump");
         gasPumpEnabled = false;
         vTaskDelay(5000 / portTICK_PERIOD_MS);
     }
