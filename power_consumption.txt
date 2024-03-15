@@ -38,3 +38,30 @@ Display off no code, bus out, otg, boost all off
 After AXP2101 power off
 86mW
 
+
+Measuring via USB cheap meter - probably shite.
+240MHz Screen On 27mA@5V = 135mW
+80Mhz Screen off 16mA@5V = 86mW 
+Deep sleep 9mA@5V = 46mW
+Timersleep 8mA@5V = 41mW
+
+Now Measuring from battery rather than USB!
+
+Using PPK2 at 4V. Make sure aux power is available!
+240MHz Screen On 86mA@4V =345mW -- why are these so high?
+80Mhz Screen off 45mA@4V = 180mW -- 
+Deep sleep 5.7mA@4V = 23mW
+Timersleep 27uA@4V = 0.1mW
+
+
+Measuring via USB PPK at 5V
+240MHz Screen On 110mA@5V = 550mW
+80Mhz Screen off 67mA@5V = 335mW 
+Deep sleep 31mA@5V = 155mW (possible delay in wakeup?)
+Timersleep 31mA@5V = 155mW
+
+
+
+
+
+
