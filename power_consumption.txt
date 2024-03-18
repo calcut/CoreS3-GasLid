@@ -48,8 +48,8 @@ Timersleep 8mA@5V = 41mW
 Now Measuring from battery rather than USB!
 
 Using PPK2 at 4V. Make sure aux power is available!
-240MHz Screen On 86mA@4V =345mW -- why are these so high?
-80Mhz Screen off 45mA@4V = 180mW -- 
+240MHz Screen On 86mA@4V =345mW 
+80Mhz Screen off 45mA@4V = 180mW
 Deep sleep 5.7mA@4V = 23mW
 Timersleep 27uA@4V = 0.1mW
 
