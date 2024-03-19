@@ -3,8 +3,8 @@
 
 // If DEBUG is defined, it won't boot without a USB cable
 #define DEBUG
-#define USE_GUI
-#define USE_NOTECARD
+// #define USE_GUI
+// #define USE_NOTECARD
 
 // From Demo
 #define GC0308_ADDR  0x21 //Camera
@@ -68,7 +68,11 @@
 #define NC_MODE "continuous"
 #define NC_INBOUND 1
 #define NC_OUTBOUND 1
-#define NC_UID "dwt.ac.uk.heatpump"
+
+// defined in platformio.ini
+// #define NC_UID "dwt.ac.uk.heatpump"
+// #define NC_UID "dwt.ac.uk.septicsensor"
+// #define NC_UID "dwt.ac.uk.gaslid"
 
 #define RS485_BAUD 9600
 
