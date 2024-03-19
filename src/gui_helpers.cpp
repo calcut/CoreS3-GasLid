@@ -282,7 +282,7 @@ void display_sensor_info(lv_timer_t * timer){
             ui_s7_bar8
         };
 
-        char* key;
+        const char* key;
         int i = 0;
         for (auto& keyval : inputData.gasData) {
             key = const_cast<char*>(keyval.first.c_str());
@@ -351,7 +351,7 @@ void display_sensor_info(lv_timer_t * timer){
             ui_s8_bar8
         };
 
-        char* key;
+        const char* key;
         int i = 0;
         for (auto& keyval : inputData.temperatureData) {
             key = const_cast<char*>(keyval.first.c_str());
@@ -400,7 +400,7 @@ void display_sensor_info(lv_timer_t * timer){
             ui_s9_bar8
         };
 
-        char* key;
+        const char* key;
         int i = 0;
 
         key = "Power";
