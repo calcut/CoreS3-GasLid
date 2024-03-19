@@ -29,6 +29,50 @@ void NotecardManager::begin(){
 
 }
 
+void NotecardManager::getWifiConnection(){
+
+    J *req = NoteNewRequest("card.wifi");
+
+    if (J *rsp = NoteRequestResponse(req))
+    {
+        if(NoteResponseError(rsp)){
+            ESP_LOGE("NCARD", "Failed to get wifi credentials - likely not a Wifi Notecard.");
+            return;
+        }
+
+        char *ssid = JGetString(rsp, "ssid");
+        NoteDeleteResponse(rsp);
+
+
+        if(strcmp(ssid, "") == 0){
+            ESP_LOGI("NCARD", "No wifi credentials found. Starting SoftAP");
+            softAP();
+        }
+        else{
+            ESP_LOGI("NCARD", "Wifi credentials found");
+            ESP_LOGI("NCARD", "Current SSID: %s", ssid);
+        }
+    }
+}
+
+void NotecardManager::clearWifiConnection(){
+    J *req = NoteNewRequest("card.wifi");
+    JAddStringToObject(req, "ssid", "-");
+    JAddStringToObject(req, "password", "-");
+
+    NoteRequest(req);
+    ESP_LOGI("NCARD", "Cleared Wifi Credentials");
+}
+
+void NotecardManager::softAP(){
+    J *req = NoteNewRequest("card.wifi");
+    JAddStringToObject(req, "name", "Notecard-");
+    JAddBoolToObject(req, "start", true);
+    // JAddStringToObject(req, "org", "ACME Inc");
+
+    NoteRequest(req);
+    ESP_LOGI("NCARD", "SoftAP enabled");
+}
 
 
 void NotecardManager::init(const char *uid, const char *mode, int inbound, int outbound, bool sync){

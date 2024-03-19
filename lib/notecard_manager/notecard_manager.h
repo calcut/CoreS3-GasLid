@@ -22,6 +22,9 @@ class NotecardManager {
         NotecardManager();
         NotecardEnvVarManager *envVarManager = NULL;
         void begin();
+        void softAP();
+        void getWifiConnection();
+        void clearWifiConnection();
         void init(const char *uid, const char *mode, int inbound, int outbound, bool sync);
         void configureOutboardDFU();
         esp_err_t hubGet();
