@@ -13,6 +13,7 @@
 void setupRtos(void);
 
 void timeSyncNotecard(void * pvParameters);
+void sampleDataNotecard(void * pvParameters);
 void sendDataNotecard(void * pvParameters);
 void serviceNotecard(void * pvParameters);
 void serviceSerialInput(void * pvParameters);

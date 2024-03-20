@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include "NotecardEnvVarManager.h"
 
+void JAddFloatMapToObject(J *obj, std::unordered_map<std::string, float> map);
 
 class NotecardManager {
 
@@ -38,6 +39,10 @@ class NotecardManager {
         void deleteEnvironmentVar(const char *name);
         void setDefaultEnvironmentVar(const char *name, const char * text);
         void getTime();
+        void sendSensorData(std::unordered_map<std::string, float> DataMap);
+        void appendToQueue(std::unordered_map<std::string, float> floatMap);
+        void sendQueuedSensorData(void);
+
         bool connected;
         bool newEnvVars = false;
         int bars;
@@ -58,6 +63,7 @@ class NotecardManager {
             {"serviceInterval_s", 10},
             {"timeSyncInterval_s", 10},
             {"noteSendInterval_s", 60},
+            {"noteSampleInterval_s", 15},
         };
 };
 

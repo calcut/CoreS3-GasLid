@@ -4,8 +4,4 @@
 
 void myEnvVarCb(const char *key, const char *val, void *userCtx);
 void setDefaultEnvironment(void);
-void sendSensorData(std::unordered_map<std::string, float> DataMap);
-void sendBatchSensorData();
-void sendQueuedSensorData(void);
-void appendToQueue(std::unordered_map<std::string, float> floatMap);
-void JAddFloatMapToObject(J *obj, std::unordered_map<std::string, float> map);
+void queueBatchSensorData();

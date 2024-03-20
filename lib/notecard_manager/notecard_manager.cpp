@@ -244,6 +244,65 @@ void NotecardManager::setDefaultEnvironmentVar(const char *name, const char *tex
     notecard.sendRequest(req);
 }
 
+void NotecardManager::sendSensorData(std::unordered_map<std::string, float> dataMap){
+
+    // get unix timestamp from system time
+    char timestr[12];
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    int unixTime = tv.tv_sec;
+    sprintf(timestr, "%d", unixTime);
+
+    J *req = NoteNewRequest("note.add");
+
+    JAddStringToObject(req, "file", "inputs.qo");
+    JAddBoolToObject(req, "sync", true);
+
+    J *body = JCreateObject();
+
+    JAddFloatMapToObject(body, dataMap);
+    JAddNumberToObject(body, "Timestamp", unixTime);
+    JAddItemToObject(req, "body", body);
+    NoteRequest(req);
+}
+
+void NotecardManager::appendToQueue(std::unordered_map<std::string, float> floatMap){
+
+    // get unix timestamp from system time
+    char timestr[12];
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    int unixTime = tv.tv_sec;
+    sprintf(timestr, "%d", unixTime);
+    ESP_LOGD("NCARD", "appendToQueue: %s", timestr); 
+
+    J *entry = JCreateObject();
+    JAddFloatMapToObject(entry, floatMap);
+    JAddItemToObject(queue, timestr, entry);
+
+}
+
+void NotecardManager::sendQueuedSensorData(void){
+    
+    char *queueStr = JConvertToJSONString(notecardManager.queue);
+
+    if (queueStr == NULL) {
+        ESP_LOGW("NCARD", "Error converting queue to JSONString");
+    }
+    else {
+        ESP_LOGI("NCARD", "Sending Queue: %s\n", queueStr);
+    }
+
+    // J *body = JCreateObject();
+    J *req = NoteNewRequest("note.add");
+    JAddBoolToObject(req, "sync", true);
+    JAddStringToObject(req, "file", "inputs.qo");
+    JAddItemToObject(req, "body", notecardManager.queue);
+
+    notecardManager.queue = JCreateObject();
+    NoteRequest(req);
+}
+
 size_t SerialDebug::write(const uint8_t *buffer, size_t size){
 
     //Intended to intercept log messages from the notecard and translate them to ESP_LOGx messages
@@ -271,3 +330,16 @@ size_t SerialDebug::write(const uint8_t *buffer, size_t size){
 
     return size;
 }
+
+void JAddFloatMapToObject(J *obj, std::unordered_map<std::string, float> map){
+
+    for (auto& keyval : map) {
+        if (!isnan(keyval.second)) {
+            char buffer[12];
+            dtostrf(keyval.second, 0, 2, buffer);
+            JAddStringToObject(obj,
+                const_cast<char*>(keyval.first.c_str()),
+                buffer);
+        }
+    }
+}   

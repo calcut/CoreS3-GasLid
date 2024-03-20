@@ -80,6 +80,14 @@ void setupRtos(void){
         NULL, // pointer to parameters
         1, // priority
         NULL); // out pointer to task handle
+
+    xTaskCreate(
+        sampleDataNotecard, // task function
+        "Notecard Sample Data", // task name
+        16384, // stack size in bytes
+        NULL, // pointer to parameters
+        1, // priority
+        NULL); // out pointer to task handle
 #endif
 
 #ifdef USE_GUI
@@ -201,16 +209,27 @@ void serviceNotecard(void * pvParameters){
     }
 }
 
+void sampleDataNotecard(void * pvParameters){
+    while(1) {
+    xSemaphoreTake(nc_mutex, portMAX_DELAY);
+    ESP_LOGI("RTOS", "Notecard sampleSensorData...");
+    queueBatchSensorData();
+
+
+    xSemaphoreGive(nc_mutex);
+    vTaskDelay(notecardManager.envVars["noteSampleInterval_s"]*1000 / portTICK_PERIOD_MS);
+    }
+}
+
 void sendDataNotecard(void * pvParameters){
   while(1) {
     xSemaphoreTake(nc_mutex, portMAX_DELAY);
 
 
     ESP_LOGI("RTOS", "Notecard sendSensorData...");
-    sendBatchSensorData();
     // queueSensorData(inputData.flowData);
     // ESP_LOGI("RTOS", "... Notecard sendSensorData done");
-    // sendQueuedSensorData();
+    notecardManager.sendQueuedSensorData();
 
     xSemaphoreGive(nc_mutex);
     vTaskDelay(notecardManager.envVars["noteSendInterval_s"]*1000 / portTICK_PERIOD_MS);
@@ -307,7 +326,7 @@ void debugTask(void * pvParameters){
             stateMachine.sampleGasCards();
             
             xSemaphoreTake(nc_mutex, portMAX_DELAY);
-            sendSensorData(inputData.gasData);
+            notecardManager.sendSensorData(inputData.gasData);
             xSemaphoreGive(nc_mutex);
         }
 
@@ -329,7 +348,7 @@ void serviceGasCards(void * pvParameters){
         stateMachine.sampleGasCards();
 
         xSemaphoreTake(nc_mutex, portMAX_DELAY);
-        sendSensorData(inputData.gasData);
+        notecardManager.sendSensorData(inputData.gasData);
         xSemaphoreGive(nc_mutex);
 
     }

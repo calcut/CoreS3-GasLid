@@ -64,9 +64,7 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
     notecardManager.newEnvVars = true;
 }
 
-void sendBatchSensorData(){
-
-    J *req = NoteNewRequest("note.add");
+void queueBatchSensorData(){
 
     // get unix timestamp from system time
     char timestr[12];
@@ -74,102 +72,16 @@ void sendBatchSensorData(){
     gettimeofday(&tv, NULL);
     int unixTime = tv.tv_sec;
     sprintf(timestr, "%d", unixTime);
-    ESP_LOGD("NCARD", "Batch sensor data: %s", timestr); 
-
-    J *body = JCreateObject();
-    JAddFloatMapToObject(body, inputData.temperatureData);
-    JAddFloatMapToObject(body, inputData.pHData);
-    JAddFloatMapToObject(body, inputData.powerData);
-    // JAddFloatMapToObject(body, inputData.flowData);
-    JAddNumberToObject(body, "Timestamp", unixTime);
-
-    JAddStringToObject(req, "file", "inputs.qo");
-    JAddBoolToObject(req, "sync", true);
-    JAddItemToObject(req, "body", body);
-    NoteRequest(req);
-
-}
-
-
-void appendToQueue(std::unordered_map<std::string, float> floatMap){
-
-    // get unix timestamp from system time
-    char timestr[12];
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    int unixTime = tv.tv_sec;
-    sprintf(timestr, "%d", unixTime);
-    ESP_LOGD("NCARD", "appendToQueue: %s", timestr); 
+    ESP_LOGD("NCARD", "queueBatchSensorData: %s", timestr); 
 
     J *entry = JCreateObject();
-    JAddFloatMapToObject(entry, floatMap);
+    JAddFloatMapToObject(entry, inputData.temperatureData);
+    JAddFloatMapToObject(entry, inputData.pHData);
+    JAddFloatMapToObject(entry, inputData.powerData);
     JAddItemToObject(notecardManager.queue, timestr, entry);
-    // if (queue == NULL) {
-    //     queue = JCreateObject();
-    // }
-    // J *body = JCreateObject();
-    // JAddFloatMapToObject(body, floatMap);
-    // JAddItemToObject(queue, timestr, body);
-}
-
-void sendQueuedSensorData(void){
-    
-    char *queueStr = JConvertToJSONString(notecardManager.queue);
-
-    if (queueStr == NULL) {
-        ESP_LOGW("NCARD", "Error converting queue to JSONString");
-    }
-    else {
-        ESP_LOGI("NCARD", "Sending Queue: %s\n", queueStr);
-    }
-
-    // J *body = JCreateObject();
-    J *req = NoteNewRequest("note.add");
-    JAddBoolToObject(req, "sync", true);
-    JAddStringToObject(req, "file", "inputs.qo");
-    JAddItemToObject(req, "body", notecardManager.queue);
-
-    notecardManager.queue = JCreateObject();
-    NoteRequest(req);
 }
 
 
-void sendSensorData(std::unordered_map<std::string, float> dataMap){
-
-    // get unix timestamp from system time
-    char timestr[12];
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    int unixTime = tv.tv_sec;
-    sprintf(timestr, "%d", unixTime);
-
-    J *req = NoteNewRequest("note.add");
-
-    JAddStringToObject(req, "file", "inputs.qo");
-    JAddBoolToObject(req, "sync", true);
-
-    J *body = JCreateObject();
-
-    JAddFloatMapToObject(body, dataMap);
-    JAddNumberToObject(body, "Timestamp", unixTime);
-    JAddItemToObject(req, "body", body);
-    NoteRequest(req);
-
-}
-
-void JAddFloatMapToObject(J *obj, std::unordered_map<std::string, float> map){
-
-    for (auto& keyval : map) {
-        if (!isnan(keyval.second)) {
-            char buffer[12];
-            dtostrf(keyval.second, 0, 2, buffer);
-            JAddStringToObject(obj,
-                const_cast<char*>(keyval.first.c_str()),
-                buffer);
-        }
-    }
-}   
-    
 void setDefaultEnvironment(void){
 
     // Copies the current value of the environment variables to the Notecard
