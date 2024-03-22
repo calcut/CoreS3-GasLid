@@ -26,6 +26,8 @@ void display_pressure_enthalpy(lv_timer_t * timer);
 void nc_info_screen_event_cb(lv_event_t * event);
 
 void jacketslider_cb(lv_event_t * e);
+void switchRelay_cb(lv_event_t * e);
+
 
 //Timer to update date/time on screen
 // void lv_timer_1s(lv_timer_t * timer);

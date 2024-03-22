@@ -7,7 +7,13 @@
 #include "notecard_context.h"
 
 #ifdef USE_GUI
-#include "gui_helpers.h" 
+    #ifdef GASLID
+    #include "ui_gaslid/gui_helpers.h" 
+    #endif
+
+    #ifdef SEPTICSENSOR
+    #include "ui_septicsensor/gui_helpers.h"
+    #endif
 #endif
 
 void setupRtos(void);
