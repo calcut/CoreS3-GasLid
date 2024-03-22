@@ -2,7 +2,13 @@
 #define GUI_POPULATE_WIDGETS_H
 
 #include <lvgl.h>
-#include <ui.h>
+
+#ifdef GASLID
+#include <ui_gaslid/ui.h>
+#endif
+#ifdef SEPTICSENSOR
+#include <ui_septicsensor/ui.h>
+#endif
 
 extern lv_obj_t *ui_s7_panel1;
 extern lv_obj_t *ui_s7_bar1;
