@@ -82,6 +82,7 @@ public:
     void enableJacketHeater(bool enable);
     bool getJacketHeater(void);
     void enableWaterPump(bool enable);
+    void enable12VRelay(bool enable);
 
 private:
     Qwiic_Relay quadRelay = Qwiic_Relay(QUIIC_RELAY_ADDR); // Alternate address 0x6C

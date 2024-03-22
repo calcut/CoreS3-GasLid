@@ -289,9 +289,17 @@ void Outputs::init() {
     
     quadRelay.turnAllRelaysOff();
 
+#ifdef GASLID
+    pinMode(PORTB_PIN_0, OUTPUT);
+    pinMode(PORTB_PIN_1, OUTPUT);
+    enable12VRelay(false);
+#endif
+
+#ifdef SEPTICSENSOR
     // set pin 9 as an output (Jacket Heater), workaround while quadrelay isn't working
     pinMode(PIN_JACKET_RELAY, OUTPUT);
     digitalWrite(PIN_JACKET_RELAY, LOW);
+#endif
 
     ESP_LOGI("HAL", "Outputs init complete");
 }
@@ -340,6 +348,25 @@ void Outputs::enableWaterPump(bool enable) {
     quadRelay.turnRelayOn(WATER_PUMP_RELAY);
 }
 
+void Outputs::enable12VRelay(bool enable) {
+    if(enable){
+        digitalWrite(PORTB_PIN_0, LOW);
+        digitalWrite(PORTB_PIN_1, HIGH);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        digitalWrite(PORTB_PIN_0, LOW);
+        digitalWrite(PORTB_PIN_1, LOW);
+        ESP_LOGW("HAL", "12V Relay Enabled");
+    }
+    else{
+        digitalWrite(PORTB_PIN_0, HIGH);
+        digitalWrite(PORTB_PIN_1, LOW);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        digitalWrite(PORTB_PIN_0, LOW);
+        digitalWrite(PORTB_PIN_1, LOW);
+        ESP_LOGW("HAL", "12V Relay Disabled");
+    }
+}
+
 
 void Inputs::init(void){
 
@@ -367,11 +394,13 @@ void Inputs::init(void){
 
     err_sdm120_enabled = true;
 
+#ifdef SEPTICSENSOR
     err = initFlowMeters(PIN_PULSE_COUNT);
     if (err != ESP_OK){
         errorHandler(HAL_ERR_FLOWMETER);
     }
     else ESP_LOGI("HAL", "Flow meter initialised on pin %d", PIN_PULSE_COUNT);
+#endif
 
 
     err = initGasFlowADC();
