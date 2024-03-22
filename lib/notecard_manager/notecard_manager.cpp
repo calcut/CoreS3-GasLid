@@ -255,7 +255,7 @@ void NotecardManager::sendSensorData(std::unordered_map<std::string, float> data
 
     J *req = NoteNewRequest("note.add");
 
-    JAddStringToObject(req, "file", "inputs.qo");
+    JAddStringToObject(req, "file", NC_NOTEFILE);
     JAddBoolToObject(req, "sync", true);
 
     J *body = JCreateObject();
@@ -296,7 +296,7 @@ void NotecardManager::sendQueuedSensorData(void){
     // J *body = JCreateObject();
     J *req = NoteNewRequest("note.add");
     JAddBoolToObject(req, "sync", true);
-    JAddStringToObject(req, "file", "inputs.qo");
+    JAddStringToObject(req, "file", NC_NOTEFILE);
     JAddItemToObject(req, "body", notecardManager.queue);
 
     notecardManager.queue = JCreateObject();
