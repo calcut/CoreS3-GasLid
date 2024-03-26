@@ -40,16 +40,6 @@ void setupRtos(void){
         1, // priority
         NULL); // out pointer to task handle
 
-#ifdef SEPTICSENSOR
-    xTaskCreate(
-        readFlowMeters, // task function
-        "Read Flow Meters", // task name
-        16384, // stack size in bytes
-        NULL, // pointer to parameters
-        1, // priority
-        NULL); // out pointer to task handle
-#endif
-
     xTaskCreate(
         servicePID, // task function
         "Compute PID", // task name
