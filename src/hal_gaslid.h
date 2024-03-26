@@ -8,7 +8,6 @@
 
 #include <FFat.h>
 #include <Wire.h>
-#include <ArduinoModbus.h>
 
 //Display
 #include <M5GFX.h>
