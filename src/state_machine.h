@@ -3,9 +3,16 @@
 
 #ifdef WOKWI
 #include "hal_wokwi.h"
-#else
+#endif
+
+#ifdef SEPTICSENSOR
 #include "hal_coreS3.h"
 #endif
+
+#ifdef GASLID
+#include "hal_gaslid.h"
+#endif
+
 #include <QuickPID.h>
 #include <unordered_map>
 
@@ -63,6 +70,7 @@ public:
         {"gasPID_I", 0.01},
         {"gasPID_D", 0.001},
         {"GasFlowSetpoint", 1000}, // mL/minute
+        {"GasFlowManualSpeed", 50}, // Percent, used if PID not available
         {"GasFlowMin", 100}, //Something is broken if below this
         {"GasFlowMax", 1200}, //Something is broken if above this
     };

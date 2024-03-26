@@ -1,7 +1,13 @@
 #ifdef WOKWI
 #include "hal_wokwi.h"
-#else
+#endif
+
+#ifdef SEPTICSENSOR
 #include "hal_coreS3.h"
+#endif
+
+#ifdef GASLID
+#include "hal_gaslid.h"
 #endif
 
 #include "rtos_tasks.h"

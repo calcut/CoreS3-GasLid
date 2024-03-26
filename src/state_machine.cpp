@@ -38,24 +38,24 @@ void StateMachine::run(void){
 
     inputs.pollSensorData();
 
-    if(outputs.getJacketHeater()){
-        ESP_LOGD("SM", "Jacket Heater is on");
-        if(inputData.temperatureData["ts1"] > envVars["targetTempTank1"] 
-                                    + envVars["jacketHeaterHysteresis"]){
-            ESP_LOGD("SM", "Tank1 Heating Off");
-            ESP_LOGD("SM", "ts1= %f, target= %f", inputData.temperatureData["ts1"], envVars["targetTempTank1"]);
-            outputs.enableJacketHeater(false);
-        }
-    }
-    else{
-        ESP_LOGD("SM", "Jacket Heater is off");
-        if(inputData.temperatureData["ts1"] < envVars["targetTempTank1"] 
-                                - envVars["jacketHeaterHysteresis"]){
-        ESP_LOGD("SM", "Tank1 Heating On");
-        ESP_LOGD("SM", "ts1= %f, target= %f", inputData.temperatureData["ts1"], envVars["targetTempTank1"]);
-        outputs.enableJacketHeater(true);
-        }
-    }
+    // if(outputs.getJacketHeater()){
+    //     ESP_LOGD("SM", "Jacket Heater is on");
+    //     if(inputData.temperatureData["ts1"] > envVars["targetTempTank1"] 
+    //                                 + envVars["jacketHeaterHysteresis"]){
+    //         ESP_LOGD("SM", "Tank1 Heating Off");
+    //         ESP_LOGD("SM", "ts1= %f, target= %f", inputData.temperatureData["ts1"], envVars["targetTempTank1"]);
+    //         outputs.enableJacketHeater(false);
+    //     }
+    // }
+    // else{
+    //     ESP_LOGD("SM", "Jacket Heater is off");
+    //     if(inputData.temperatureData["ts1"] < envVars["targetTempTank1"] 
+    //                             - envVars["jacketHeaterHysteresis"]){
+    //     ESP_LOGD("SM", "Tank1 Heating On");
+    //     ESP_LOGD("SM", "ts1= %f, target= %f", inputData.temperatureData["ts1"], envVars["targetTempTank1"]);
+    //     outputs.enableJacketHeater(true);
+    //     }
+    // }
 }
 
 
@@ -81,7 +81,7 @@ void StateMachine::sampleGasCards(){
 
         ESP_LOGI("SM", "Opening valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::OPEN);
-        outputs.setReturnValve(i, outputs.ValveState::OPEN);
+        // outputs.setReturnValve(i, outputs.ValveState::OPEN);
         
         ESP_LOGI("SM", "Running pump for %d seconds", pumpTime_s);
         gasPumpEnabled = true;
@@ -93,16 +93,16 @@ void StateMachine::sampleGasCards(){
         inputs.pollGasSensors(i+1);
         ESP_LOGI("SM", "Closing valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::CLOSED);
-        outputs.setReturnValve(i, outputs.ValveState::CLOSED);
+        // outputs.setReturnValve(i, outputs.ValveState::CLOSED);
 
         ESP_LOGI("SM", "Purging for %d seconds", purgeTime_s);
-        outputs.setFlowValve(5, outputs.ValveState::OPEN);
-        outputs.setReturnValve(5, outputs.ValveState::OPEN);
+        outputs.setFlowValve(4, outputs.ValveState::OPEN);
+        // outputs.setReturnValve(5, outputs.ValveState::OPEN);
 
         vTaskDelay(purgeTime_s*1000 / portTICK_PERIOD_MS);
 
-        outputs.setFlowValve(5, outputs.ValveState::CLOSED);
-        outputs.setReturnValve(5, outputs.ValveState::CLOSED);
+        outputs.setFlowValve(4, outputs.ValveState::CLOSED);
+        // outputs.setReturnValve(5, outputs.ValveState::CLOSED);
 
 
         ESP_LOGI("SM", "Purge Complete");
@@ -113,36 +113,44 @@ void StateMachine::sampleGasCards(){
 
 void StateMachine::computePID(){
     //check if input is valid
-    if(isnan(*gasPIDinput) & gasPumpEnabled){
-        ESP_LOGW("RTOS", "Invalid PID input, gasPIDinput is nan, disabling gas pump");
-        gasPumpEnabled = false;
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
-    }
-    //Check if out of bounds
-    float max = envVars["GasFlowMax"];
-    float min = envVars["GasFlowMin"];
-    if (*gasPIDinput > max){
-        ESP_LOGW("RTOS", "PID Error, Gas flow too high");
-        gasPumpEnabled = false;
-    }
-    if (*gasPIDinput < min && gasPIDoutput > 40){
-        ESP_LOGW("RTOS", "PID Error, Gas flow too low - connection failure?");
-        gasPumpEnabled = false;
+    if(isnan(*gasPIDinput)){
+        gasPID->SetMode(QuickPID::Control::manual);
+
+        if(gasPumpEnabled){
+            outputs.setGasPumpSpeed(envVars["GasFlowManualSpeed"]);
+        }
+        else{
+            outputs.setGasPumpSpeed(0);
+        }
     }
 
-    if (gasPumpEnabled){
-        gasPID->SetMode(QuickPID::Control::automatic);
-        gasPID->Compute();
-    }
     else{
-        gasPID->SetMode(QuickPID::Control::manual);
-        gasPIDoutput = 0;
+        //Check if out of bounds
+        float max = envVars["GasFlowMax"];
+        float min = envVars["GasFlowMin"];
+        if (*gasPIDinput > max){
+            ESP_LOGW("RTOS", "PID Error, Gas flow too high");
+            gasPumpEnabled = false;
+        }
+        if (*gasPIDinput < min && gasPIDoutput > 40){
+            ESP_LOGW("RTOS", "PID Error, Gas flow too low - connection failure?");
+            gasPumpEnabled = false;
+        }
+
+        if (gasPumpEnabled){
+            gasPID->SetMode(QuickPID::Control::automatic);
+            gasPID->Compute();
+        }
+        else{
+            gasPID->SetMode(QuickPID::Control::manual);
+            gasPIDoutput = 0;
+        }
+        // ESP_LOGD("RTOS", "KP=%f, KI=%f, KD=%f", gasPID->GetKp(), gasPID->GetKi(), gasPID->GetKd());
+        // ESP_LOGD("RTOS", "PID input: %f", *gasPIDinput);
+        // ESP_LOGD("RTOS", "PID setpoint: %f", *gasPIDsetpoint);
+        // ESP_LOGD("RTOS", "PID output: %f", gasPIDoutput);
+        outputs.setGasPumpSpeed(gasPIDoutput);
     }
-    // ESP_LOGD("RTOS", "KP=%f, KI=%f, KD=%f", gasPID->GetKp(), gasPID->GetKi(), gasPID->GetKd());
-    // ESP_LOGD("RTOS", "PID input: %f", *gasPIDinput);
-    // ESP_LOGD("RTOS", "PID setpoint: %f", *gasPIDsetpoint);
-    // ESP_LOGD("RTOS", "PID output: %f", gasPIDoutput);
-    outputs.setGasPumpSpeed(gasPIDoutput);
 }
 
 int StateMachine::getGasSampleDelay(void){
