@@ -26,7 +26,7 @@
 #define ADC_PH_ADDR             0x49
 #define QUIIC_RELAY_ADDR        0x6C
 #define MOTOR_FEATHERWING_ADDR  0x6F
-#define M5_HBRIDGE_ADDR         0x20
+#define M5_HBRIDGE_ADDR         0x20 // or 0x54?? something funny with powerup sequence...
 #define M5_4_20MA_ADDR          0x55
 #define M5_KMETER_ADDR          0x11
 
