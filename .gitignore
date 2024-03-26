@@ -5,5 +5,5 @@
 .vscode/ipch
 *.binpack
 .DS_Store
-Squareline Projects/*/autosave/*.zip
-Squareline Projects/*/backup/*.zip
+Squareline/autosave/*.zip
+Squareline/backup/*.zip

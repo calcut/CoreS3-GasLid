@@ -3,14 +3,7 @@
 
 #include <lvgl.h>
 #include <math.h>
-
-#ifdef GASLID
-#include <ui_gaslid/ui.h>
-#endif
-#ifdef SEPTICSENSOR
-#include <ui_septicsensor/ui.h>
-#endif
-
+#include "ui.h"
 #include "gui_populate_widgets.h"
 #include "rtos_tasks.h"
 
