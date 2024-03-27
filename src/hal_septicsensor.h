@@ -1,5 +1,5 @@
-#ifndef HAL_CORES3_H
-#define HAL_CORES3_H
+#ifndef HAL_SEPTICSENSOR_H
+#define HAL_SEPTICSENSOR_H
 
 #include <M5Unified.h>
 #include "config.h"
@@ -154,4 +154,4 @@ extern Inputs inputs;
 extern char logBuffer[TERMINAL_LOG_LENGTH + 1];
 int serialLogger(const char* format, va_list args);
 
-#endif // HAL_CORES3_H
+#endif // HAL_SEPTICSENSOR_H

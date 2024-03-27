@@ -1,4 +1,4 @@
-#include "hal_coreS3.h"
+#include "hal_septicsensor.h"
 
 RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, -1, -1);
 Outputs outputs;
@@ -289,17 +289,9 @@ void Outputs::init() {
     
     quadRelay.turnAllRelaysOff();
 
-#ifdef GASLID
-    pinMode(PORTB_PIN_0, OUTPUT);
-    pinMode(PORTB_PIN_1, OUTPUT);
-    enable12VRelay(false);
-#endif
-
-#ifdef SEPTICSENSOR
     // set pin 9 as an output (Jacket Heater), workaround while quadrelay isn't working
     pinMode(PIN_JACKET_RELAY, OUTPUT);
     digitalWrite(PIN_JACKET_RELAY, LOW);
-#endif
 
     ESP_LOGI("HAL", "Outputs init complete");
 }
@@ -394,13 +386,11 @@ void Inputs::init(void){
 
     err_sdm120_enabled = true;
 
-#ifdef SEPTICSENSOR
     err = initFlowMeters(PIN_PULSE_COUNT);
     if (err != ESP_OK){
         errorHandler(HAL_ERR_FLOWMETER);
     }
     else ESP_LOGI("HAL", "Flow meter initialised on pin %d", PIN_PULSE_COUNT);
-#endif
 
 
     err = initGasFlowADC();

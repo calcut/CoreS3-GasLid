@@ -1,11 +1,7 @@
 #ifndef STATE_MACHINE_H
 #define STATE_MACHINE_H
 
-#ifdef WOKWI
-#include "hal_wokwi.h"
-#else
-#include "hal_coreS3.h"
-#endif
+#include "hal_septicsensor.h"
 #include <QuickPID.h>
 #include <unordered_map>
 

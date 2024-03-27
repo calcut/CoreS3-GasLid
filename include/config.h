@@ -73,11 +73,6 @@
 #define NC_INBOUND 1
 #define NC_OUTBOUND 1
 
-// defined in platformio.ini
-// #define NC_UID "dwt.ac.uk.heatpump"
-// #define NC_UID "dwt.ac.uk.septicsensor"
-// #define NC_UID "dwt.ac.uk.gaslid"
-
 #define RS485_BAUD 9600
 
 #define FLOAT_DECIMALS 1

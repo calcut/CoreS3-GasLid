@@ -3,14 +3,7 @@
 
 #include <lvgl.h>
 #include <math.h>
-
-#ifdef GASLID
-#include <ui_gaslid/ui.h>
-#endif
-#ifdef SEPTICSENSOR
-#include <ui_septicsensor/ui.h>
-#endif
-
+#include "ui.h"
 #include "gui_populate_widgets.h"
 #include "rtos_tasks.h"
 
@@ -26,7 +19,6 @@ void display_pressure_enthalpy(lv_timer_t * timer);
 void nc_info_screen_event_cb(lv_event_t * event);
 
 void jacketslider_cb(lv_event_t * e);
-void switchRelay_cb(lv_event_t * e);
 
 
 //Timer to update date/time on screen
