@@ -14,8 +14,6 @@ void serviceNotecard(void * pvParameters);
 void serviceSerialInput(void * pvParameters);
 void debugTask(void * pvParameters);
 void runStateMachine(void * pvParameters);
-void servicePID(void * pvParameters);
-void readFlowMeters(void *pvParameters);
 void serviceGasCards(void *pvParameters);
 void changeEnvVar(const char* key, const char* value);
 void refreshEnvironment(void);
