@@ -6,13 +6,13 @@ TimerHandle_t gasSampleTimer;
 
 void setupRtos(void){
 
-    esp_log_level_set("HAL", ESP_LOG_INFO);
-    esp_log_level_set("RTOS", ESP_LOG_INFO);
-    esp_log_level_set("SM", ESP_LOG_INFO);
-    esp_log_level_set("IN", ESP_LOG_INFO);
-    esp_log_level_set("OUT", ESP_LOG_INFO);
-    esp_log_level_set("a1019", ESP_LOG_INFO);
-    esp_log_level_set("NCARD", ESP_LOG_INFO);
+    // esp_log_level_set("HAL", ESP_LOG_INFO);
+    // esp_log_level_set("RTOS", ESP_LOG_INFO);
+    // esp_log_level_set("SM", ESP_LOG_INFO);
+    // esp_log_level_set("IN", ESP_LOG_INFO);
+    // esp_log_level_set("OUT", ESP_LOG_INFO);
+    // esp_log_level_set("a1019", ESP_LOG_INFO);
+    // esp_log_level_set("NCARD", ESP_LOG_INFO);
 
 
     xTaskCreate(
@@ -35,22 +35,6 @@ void setupRtos(void){
     xTaskCreate(
         serviceSerialInput, // task function
         "Service Serial Input", // task name
-        16384, // stack size in bytes
-        NULL, // pointer to parameters
-        1, // priority
-        NULL); // out pointer to task handle
-
-    xTaskCreate(
-        readFlowMeters, // task function
-        "Read Flow Meters", // task name
-        16384, // stack size in bytes
-        NULL, // pointer to parameters
-        1, // priority
-        NULL); // out pointer to task handle
-
-    xTaskCreate(
-        servicePID, // task function
-        "Compute PID", // task name
         16384, // stack size in bytes
         NULL, // pointer to parameters
         1, // priority
@@ -90,16 +74,6 @@ void setupRtos(void){
         NULL); // out pointer to task handle
 #endif
 
-#ifdef USE_GUI
-    xTaskCreate(
-        serviceGUI, // task function
-        "LVGL GUI Service", // task name
-        16384, // stack size in bytes
-        NULL, // pointer to parameters
-        1, // priority
-        NULL); // out pointer to task handle
-#endif
-
 #ifdef DEBUG
     xTaskCreate(
         debugTask, // task function
@@ -122,40 +96,6 @@ void runStateMachine(void * pvParameters){
     }
 }
 
-
-
-void servicePID(void * pvParameters){
-
-    while (!stateMachine.initComplete){
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-    }
-
-    while(1){
-        stateMachine.computePID();
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-    }
-}
-
-void readFlowMeters(void *pvParameters)
-{
-    while (1)
-    {
-        inputs.serviceFlowMeters();
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-    }
-}
-
-#ifdef USE_GUI
-void serviceGUI(void * pvParameters){
-
-    setupGui();
-    ESP_LOGI("RTOS", "GUI setup complete");
-    while(1){
-        int delay_ms = lv_timer_handler();
-        vTaskDelay(delay_ms / portTICK_PERIOD_MS);
-    }
-}
-#endif
 
 #ifdef USE_NOTECARD
 void serviceNotecard(void * pvParameters){
@@ -213,7 +153,8 @@ void sampleDataNotecard(void * pvParameters){
     while(1) {
     xSemaphoreTake(nc_mutex, portMAX_DELAY);
     ESP_LOGI("RTOS", "Notecard sampleSensorData...");
-    queueBatchSensorData();
+    int timestamp = getRTCTime();
+    queueBatchSensorData(timestamp);
 
 
     xSemaphoreGive(nc_mutex);
@@ -326,7 +267,8 @@ void debugTask(void * pvParameters){
             stateMachine.sampleGasCards();
             
             xSemaphoreTake(nc_mutex, portMAX_DELAY);
-            notecardManager.sendSensorData(inputData.gasData);
+            int timestamp = getRTCTime();
+            notecardManager.sendSensorData(inputData.gasData, timestamp);
             xSemaphoreGive(nc_mutex);
         }
 
@@ -348,7 +290,8 @@ void serviceGasCards(void * pvParameters){
         stateMachine.sampleGasCards();
 
         xSemaphoreTake(nc_mutex, portMAX_DELAY);
-        notecardManager.sendSensorData(inputData.gasData);
+        int timestamp = getRTCTime();
+        notecardManager.sendSensorData(inputData.gasData, timestamp);
         xSemaphoreGive(nc_mutex);
 
     }
@@ -395,12 +338,6 @@ void refreshEnvironment(void) {
         gasSampleTimer = xTimerCreate("gasSampleTimer", delay*1000 / portTICK_PERIOD_MS,
                                       pdFALSE, (void *)0, gasSampleTimerCallback);
         xTimerStart(gasSampleTimer, 0);
-
-        //Refresh the PID tuning
-        stateMachine.tunePID();
-
-        //update the GUI
-        display_refresh_envVars();
 
         notecardManager.newEnvVars = false;
     }

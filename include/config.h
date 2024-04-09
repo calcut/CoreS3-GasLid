@@ -1,10 +1,18 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+typedef enum {
+    ESP_OK = 0,
+    ESP_FAIL,
+} esp_err_t;
+
+#define ESP_LOGD(tag, format, ...) Serial.printf("D (%s): " format "\n", tag, ##__VA_ARGS__)
+#define ESP_LOGI(tag, format, ...) Serial.printf("I (%s): " format "\n", tag, ##__VA_ARGS__)
+#define ESP_LOGW(tag, format, ...) Serial.printf("w (%s): " format "\n", tag, ##__VA_ARGS__)
+#define ESP_LOGE(tag, format, ...) Serial.printf("E (%s): " format "\n", tag, ##__VA_ARGS__)
+
 // If DEBUG is defined, it won't boot without a USB cable
 #define DEBUG
-// #define USE_GUI
-// #define USE_NOTECARD
 
 // From Demo
 #define GC0308_ADDR  0x21 //Camera

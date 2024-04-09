@@ -9,6 +9,7 @@
 #include <Notecard.h>
 #include <unordered_map>
 #include "NotecardEnvVarManager.h"
+#include "config.h"
 
 void JAddFloatMapToObject(J *obj, std::unordered_map<std::string, float> map);
 
@@ -39,8 +40,8 @@ class NotecardManager {
         void deleteEnvironmentVar(const char *name);
         void setDefaultEnvironmentVar(const char *name, const char * text);
         void getTime();
-        void sendSensorData(std::unordered_map<std::string, float> DataMap);
-        void appendToQueue(std::unordered_map<std::string, float> floatMap);
+        void sendSensorData(std::unordered_map<std::string, float> DataMap, int timestamp);
+        void appendToQueue(std::unordered_map<std::string, float> floatMap, int timestamp);
         void sendQueuedSensorData(void);
 
         bool connected;
@@ -69,17 +70,5 @@ class NotecardManager {
 
 extern NotecardManager notecardManager;
 
-class SerialDebug : public HWCDC
-
-//Somewhere to send the notecard's setDebugOutputStream
-//https://stackoverflow.com/questions/60972073/customizing-the-standard-serial-print-functions-in-arduino
-{
-    using HWCDC::HWCDC; // Inherit constructors
-    public:
-        size_t write(const uint8_t *buffer, size_t size) override;   // Overriding base functionality
-        char tempBuffer[1024];
-        int tempBufferIndex = 0;
-};
-// extern SerialDebug serialDebug;
 
 #endif

@@ -2,7 +2,6 @@
 #define STATE_MACHINE_H
 
 #include "hal_septicsensor.h"
-#include <QuickPID.h>
 #include <unordered_map>
 
 class StateMachine {
@@ -55,22 +54,11 @@ public:
         {"targetTempTank2", 30},
         {"targetTempTank3", 30},
         {"jacketHeaterHysteresis", 1},
-        {"gasPID_P", 0.01},
-        {"gasPID_I", 0.01},
-        {"gasPID_D", 0.001},
         {"GasFlowSetpoint", 1000}, // mL/minute
         {"GasFlowMin", 100}, //Something is broken if below this
         {"GasFlowMax", 1200}, //Something is broken if above this
     };
 
-    // This will be equal to either flexStoreLow or flexStoreHigh
-    // Depending on whether the system is charging or discharging
-    float flexStoreThreshold = 20.0;
-
-    QuickPID* gasPID;
-    float* gasPIDinput;
-    float* gasPIDsetpoint;
-    float gasPIDoutput = 0.0;
     bool gasPumpEnabled = false;
 
 };

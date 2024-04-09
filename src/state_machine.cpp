@@ -1,32 +1,14 @@
 #include "state_machine.h"
 
-StateMachine stateMachine;
 
-void StateMachine::tunePID(void){
-    gasPID->SetTunings(envVars["gasPID_P"],
-                        envVars["gasPID_I"],
-                        envVars["gasPID_D"]);
-}
+StateMachine stateMachine;
 
 void StateMachine::init(void){
     ESP_LOGI("SM", "Init state machine");
 
     vTaskDelay(20 / portTICK_PERIOD_MS);
 
-    gasPIDinput = &inputData.flowData["GasFlow"];
-    gasPIDsetpoint = &envVars["GasFlowSetpoint"];
 
-    gasPID = new QuickPID(
-        gasPIDinput, // input
-        &gasPIDoutput, // output
-        gasPIDsetpoint, // setpoint
-        envVars["gasPID_P"],
-        envVars["gasPID_I"],
-        envVars["gasPID_D"],
-        QuickPID::Action::direct
-    );
-    // Dont enable PID yet because the input is not valid (nan)
-    gasPID->SetOutputLimits(0, 70);
 
     initComplete = true;
 
@@ -111,39 +93,7 @@ void StateMachine::sampleGasCards(){
     gasPumpEnabled = false;
 }
 
-void StateMachine::computePID(){
-    //check if input is valid
-    if(isnan(*gasPIDinput) & gasPumpEnabled){
-        ESP_LOGW("RTOS", "Invalid PID input, gasPIDinput is nan, disabling gas pump");
-        gasPumpEnabled = false;
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
-    }
-    //Check if out of bounds
-    float max = envVars["GasFlowMax"];
-    float min = envVars["GasFlowMin"];
-    if (*gasPIDinput > max){
-        ESP_LOGW("RTOS", "PID Error, Gas flow too high");
-        gasPumpEnabled = false;
-    }
-    if (*gasPIDinput < min && gasPIDoutput > 40){
-        ESP_LOGW("RTOS", "PID Error, Gas flow too low - connection failure?");
-        gasPumpEnabled = false;
-    }
 
-    if (gasPumpEnabled){
-        gasPID->SetMode(QuickPID::Control::automatic);
-        gasPID->Compute();
-    }
-    else{
-        gasPID->SetMode(QuickPID::Control::manual);
-        gasPIDoutput = 0;
-    }
-    // ESP_LOGD("RTOS", "KP=%f, KI=%f, KD=%f", gasPID->GetKp(), gasPID->GetKi(), gasPID->GetKd());
-    // ESP_LOGD("RTOS", "PID input: %f", *gasPIDinput);
-    // ESP_LOGD("RTOS", "PID setpoint: %f", *gasPIDsetpoint);
-    // ESP_LOGD("RTOS", "PID output: %f", gasPIDoutput);
-    outputs.setGasPumpSpeed(gasPIDoutput);
-}
 
 int StateMachine::getGasSampleDelay(void){
 
@@ -158,12 +108,6 @@ int StateMachine::getGasSampleDelay(void){
 
     // Define the three fixed times
     struct tm alarmTimes[3];
-    for (int i = 0; i < 3; i++) {
-        alarmTimes[i] = *now_tm; // copy current time structure
-    }
-    alarmTimes[0].tm_hour = envVars["sampleTime1_hour"];
-    alarmTimes[0].tm_min = envVars["sampleTime1_min"];
-    alarmTimes[0].tm_sec = 0;
 
     alarmTimes[1].tm_hour = envVars["sampleTime2_hour"];
     alarmTimes[1].tm_min = envVars["sampleTime2_min"];

@@ -3,12 +3,7 @@
 
 #include "config.h"
 #include "state_machine.h"
-#include "esp_log.h"
 #include "notecard_context.h"
-
-#ifdef USE_GUI
-    #include "ui/gui_helpers.h"
-#endif
 
 void setupRtos(void);
 
@@ -20,7 +15,6 @@ void serviceSerialInput(void * pvParameters);
 void debugTask(void * pvParameters);
 void runStateMachine(void * pvParameters);
 void servicePID(void * pvParameters);
-void serviceGUI(void * pvParameters);
 void readFlowMeters(void *pvParameters);
 void serviceGasCards(void *pvParameters);
 void changeEnvVar(const char* key, const char* value);

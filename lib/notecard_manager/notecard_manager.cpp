@@ -1,16 +1,13 @@
 #include "notecard_manager.h"
 
-
 NotecardManager notecardManager;
-SerialDebug serialDebug;
-
 
 NotecardManager::NotecardManager(){}
 
 void NotecardManager::begin(){
     notecard.begin(NOTE_I2C_ADDR_DEFAULT, NOTE_I2C_MAX_DEFAULT, Wire);
-    notecard.setDebugOutputStream(serialDebug);
-    // notecard.setDebugOutputStream(Serial);
+    // notecard.setDebugOutputStream(serialDebug);
+    notecard.setDebugOutputStream(Serial);
 
     envVarManager = NotecardEnvVarManager_alloc();
     if (envVarManager == NULL) {
@@ -244,14 +241,7 @@ void NotecardManager::setDefaultEnvironmentVar(const char *name, const char *tex
     notecard.sendRequest(req);
 }
 
-void NotecardManager::sendSensorData(std::unordered_map<std::string, float> dataMap){
-
-    // get unix timestamp from system time
-    char timestr[12];
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    int unixTime = tv.tv_sec;
-    sprintf(timestr, "%d", unixTime);
+void NotecardManager::sendSensorData(std::unordered_map<std::string, float> dataMap, int timestamp){
 
     J *req = NoteNewRequest("note.add");
 
@@ -261,19 +251,16 @@ void NotecardManager::sendSensorData(std::unordered_map<std::string, float> data
     J *body = JCreateObject();
 
     JAddFloatMapToObject(body, dataMap);
-    JAddNumberToObject(body, "Timestamp", unixTime);
+    JAddNumberToObject(body, "Timestamp", timestamp);
     JAddItemToObject(req, "body", body);
     NoteRequest(req);
 }
 
-void NotecardManager::appendToQueue(std::unordered_map<std::string, float> floatMap){
+void NotecardManager::appendToQueue(std::unordered_map<std::string, float> floatMap, int timestamp){
 
     // get unix timestamp from system time
     char timestr[12];
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    int unixTime = tv.tv_sec;
-    sprintf(timestr, "%d", unixTime);
+    sprintf(timestr, "%d", timestamp);
     ESP_LOGD("NCARD", "appendToQueue: %s", timestr); 
 
     J *entry = JCreateObject();
@@ -301,34 +288,6 @@ void NotecardManager::sendQueuedSensorData(void){
 
     notecardManager.queue = JCreateObject();
     NoteRequest(req);
-}
-
-size_t SerialDebug::write(const uint8_t *buffer, size_t size){
-
-    //Intended to intercept log messages from the notecard and translate them to ESP_LOGx messages
-    //Append the buffer to the tempBuffer
-
-    // if the tempBuffer will overflow, then print the current contents and reset the buffer
-    if(tempBufferIndex + size >= sizeof(tempBuffer)){
-        ESP_LOGD("NCARD", "Following log message is truncated");
-        size = sizeof(tempBuffer) - tempBufferIndex;
-        memcpy(&tempBuffer[tempBufferIndex], buffer, size);
-        ESP_LOGD("NCARD", "[Truncated] %s", tempBuffer);
-        tempBufferIndex = 0;
-    }
-    else{
-        memcpy(&tempBuffer[tempBufferIndex], buffer, size);
-        tempBufferIndex += size;
-
-        //if tempbuffer ends in a newline, then send it to the ESP_LOGD hander
-        if (tempBuffer[tempBufferIndex-1] == '\n'){
-            tempBuffer[tempBufferIndex-1] = '\0';
-            ESP_LOGD("NCARD", "%s", tempBuffer);
-            tempBufferIndex = 0;
-        }
-    }
-
-    return size;
 }
 
 void JAddFloatMapToObject(J *obj, std::unordered_map<std::string, float> map){

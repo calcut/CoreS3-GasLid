@@ -12,32 +12,32 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
     ESP_LOGD("NCARD", "received: key=%s, val=%s", key, val);
 
     //If the first character of the key is "*", parse as a log level change
-    if (key[0] == '*') {
+    // if (key[0] == '*') {
 
-        //drop the first character from the key
-        key++;
+    //     //drop the first character from the key
+    //     key++;
 
-        if (strcmp(val, "DEBUG") == 0) {
-            ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
-            esp_log_level_set(key, ESP_LOG_DEBUG);
-            return;
-        }
-        if (strcmp(val, "INFO") == 0) {
-            ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
-            esp_log_level_set(key, ESP_LOG_INFO);
-            return;
-        }
-        if (strcmp(val, "WARN") == 0) {
-            ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
-            esp_log_level_set(key, ESP_LOG_WARN);
-            return;
-        }
-        if (strcmp(val, "ERROR") == 0) {
-            ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
-            esp_log_level_set(key, ESP_LOG_ERROR);
-            return;
-        }
-    }
+    //     if (strcmp(val, "DEBUG") == 0) {
+    //         ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
+    //         esp_log_level_set(key, ESP_LOG_DEBUG);
+    //         return;
+    //     }
+    //     if (strcmp(val, "INFO") == 0) {
+    //         ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
+    //         esp_log_level_set(key, ESP_LOG_INFO);
+    //         return;
+    //     }
+    //     if (strcmp(val, "WARN") == 0) {
+    //         ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
+    //         esp_log_level_set(key, ESP_LOG_WARN);
+    //         return;
+    //     }
+    //     if (strcmp(val, "ERROR") == 0) {
+    //         ESP_LOGI("NCARD", "Setting %s log level to %s", key, val);
+    //         esp_log_level_set(key, ESP_LOG_ERROR);
+    //         return;
+    //     }
+    // }
 
     if(strcmp(key, "clearEnvVar") == 0)
     {
@@ -64,14 +64,10 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
     notecardManager.newEnvVars = true;
 }
 
-void queueBatchSensorData(){
+void queueBatchSensorData(int timestamp){
 
-    // get unix timestamp from system time
     char timestr[12];
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    int unixTime = tv.tv_sec;
-    sprintf(timestr, "%d", unixTime);
+    sprintf(timestr, "%d", timestamp);
     ESP_LOGD("NCARD", "queueBatchSensorData: %s", timestr); 
 
     J *entry = JCreateObject();

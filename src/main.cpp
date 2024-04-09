@@ -4,6 +4,7 @@
 void setup() {
     hal_setup();
     setupRtos();
+    vTaskStartScheduler();
 } 
 
 void loop() {

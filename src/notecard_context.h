@@ -4,4 +4,4 @@
 
 void myEnvVarCb(const char *key, const char *val, void *userCtx);
 void setDefaultEnvironment(void);
-void queueBatchSensorData();
+void queueBatchSensorData(int timestamp);
