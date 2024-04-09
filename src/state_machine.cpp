@@ -98,13 +98,12 @@ void StateMachine::sampleGasCards(){
 int StateMachine::getGasSampleDelay(void){
 
     // Get the current time
-    time_t now;
-    time(&now);
-    struct tm *now_tm = localtime(&now);
+    time_t now = getRTCTime();
+
     char logbuf1[80];
     char logbuf2[80];
 
-    ESP_LOGD("SM", "Current time: %s", asctime(now_tm));
+    ESP_LOGD("SM", "Current time: %s", ctime(&now));
 
     // Define the three fixed times
     struct tm alarmTimes[3];
