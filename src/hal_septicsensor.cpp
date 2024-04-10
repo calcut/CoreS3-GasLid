@@ -48,6 +48,16 @@ void errorHandler(hal_err_t err){
             }
             break;
 
+        case HAL_ERR_A1019_2:
+            inputs.err_a1019_2_count++;
+            ESP_LOGE("HAL", "A1019_2 not found, error count: %i", inputs.err_a1019_2_count);
+
+            if (inputs.err_a1019_2_count >= 5){
+                ESP_LOGE("HAL", "A1019_2 not found after 5 attempts. Disabling.");
+                inputs.err_a1019_2_enabled = false;
+            }
+            break;
+
         case HAL_ERR_SDM120:
             inputs.err_sdm120_count++;
             ESP_LOGE("HAL", "SDM120 not found, error count: %i", inputs.err_sdm120_count);
@@ -371,7 +381,7 @@ void Inputs::init(void){
     ESP_LOGI("HAL", "Inputs init");
     
     xSemaphoreTake(modbus_mutex, portMAX_DELAY);
-    err = mod_a1019.init();
+    err = mod_a1019.init(0);
     if(err != ESP_OK){
         errorHandler(HAL_ERR_A1019);
     }
@@ -386,6 +396,26 @@ void Inputs::init(void){
         mod_a1019.setType(6, Mod_a1019::TYPE_THERMOCOUPLE_K);
         mod_a1019.setType(7, Mod_a1019::TYPE_0_20MA);
         mod_a1019.getType();
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+    }
+    xSemaphoreGive(modbus_mutex);
+
+    xSemaphoreTake(modbus_mutex, portMAX_DELAY);
+    err = mod_a1019_2.init(4);
+    if(err != ESP_OK){
+        errorHandler(HAL_ERR_A1019);
+    }
+    else{
+        err_a1019_2_enabled = true;
+        mod_a1019_2.setType(0, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019_2.setType(1, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019_2.setType(2, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019_2.setType(3, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019_2.setType(4, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019_2.setType(5, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019_2.setType(6, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019_2.setType(7, Mod_a1019::TYPE_THERMOCOUPLE_K);
+        mod_a1019_2.getType();
         vTaskDelay(20 / portTICK_PERIOD_MS);
     }
     xSemaphoreGive(modbus_mutex);
@@ -414,14 +444,14 @@ void Inputs::init(void){
         err_ph_adc_enabled = true;
     }
 
-    err = initThermocoupleADCs();
-    if (err != ESP_OK){
-        errorHandler(HAL_ERR_THERMOCOUPLE_ADC);
-    }
-    else {
-        ESP_LOGI("HAL", "Thermocouple ADCs found");
-        err_thermocouple_adc_enabled = true;
-    }
+    // err = initThermocoupleADCs();
+    // if (err != ESP_OK){
+    //     errorHandler(HAL_ERR_THERMOCOUPLE_ADC);
+    // }
+    // else {
+    //     ESP_LOGI("HAL", "Thermocouple ADCs found");
+    //     err_thermocouple_adc_enabled = true;
+    // }
 
     ESP_LOGI("HAL", "Inputs init complete");
 
@@ -534,18 +564,38 @@ void Inputs::pollSensorData(void){
     inputData.temperatureData["tl2"]     = AI[4];
     inputData.temperatureData["tl3"]     = AI[5];
 
-    if(err_thermocouple_adc_enabled){
-        for (int i = 0; i < 3; i++){
-            if (tc_available[i]){
-                inputData.temperatureData["tc" + std::to_string(i)] = themocoupleBoard[i].getThermocoupleTemp();
-            }
-            else{
-                inputData.temperatureData["tc" + std::to_string(i)] = nan("0");
-            }
-        }
-        // inputData.temperatureData["tb1"]     = tempSensor.getThermocoupleTemp();
-        // inputData.temperatureData["ta1"]     = tempSensor.getAmbientTemp();
+    if(err_a1019_2_enabled){
+        xSemaphoreTake(modbus_mutex, portMAX_DELAY);
+        mod_a1019_2.getInputs_float(AI);
+        xSemaphoreGive(modbus_mutex);
+        // Delay seems to be needed to prevent Modbus errors
+        vTaskDelay(20 / portTICK_PERIOD_MS);
     }
+    else{
+        for (int i = 0; i < 8; i++) {
+            AI[i] = nan("0");
+        }
+    }
+
+    inputData.temperatureData["tb1"]     = AI[0];
+    inputData.temperatureData["tb2"]     = AI[1];
+    inputData.temperatureData["tb3"]     = AI[2];
+    inputData.temperatureData["tb4"]     = AI[3];
+    inputData.temperatureData["tb5"]     = AI[4];
+    inputData.temperatureData["tb6"]     = AI[5];
+
+    // if(err_thermocouple_adc_enabled){
+    //     for (int i = 0; i < 3; i++){
+    //         if (tc_available[i]){
+    //             inputData.temperatureData["tc" + std::to_string(i)] = themocoupleBoard[i].getThermocoupleTemp();
+    //         }
+    //         else{
+    //             inputData.temperatureData["tc" + std::to_string(i)] = nan("0");
+    //         }
+    //     }
+    //     // inputData.temperatureData["tb1"]     = tempSensor.getThermocoupleTemp();
+    //     // inputData.temperatureData["ta1"]     = tempSensor.getAmbientTemp();
+    // }
 
     if(err_ph_adc_enabled){
         inputData.pHData["pH1"] = phProbe1.read_ph();

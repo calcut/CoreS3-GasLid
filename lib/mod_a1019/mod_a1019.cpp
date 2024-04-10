@@ -87,10 +87,10 @@ void Mod_a1019::getType(){
     }
 }
 
-esp_err_t Mod_a1019::init(){
+esp_err_t Mod_a1019::init(int modbus_id){
     ESP_LOGI("a1019", "**** Mod_a1019 init ****");
 
-
+    id = modbus_id;
     if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                             MODULE_NAME_ADDR, 1)) {
         while (ModbusRTUClient.available()) {

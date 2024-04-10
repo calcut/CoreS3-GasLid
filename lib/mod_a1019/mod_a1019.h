@@ -14,7 +14,7 @@
 class Mod_a1019 {
 
     private:
-        int id = MOD_A1019_ADDRESS;
+        int id;
         bool isConnected = false;
 
     public:
@@ -31,7 +31,7 @@ class Mod_a1019 {
         void setTypeTC();
         void setType(int channel, channelType type);
         void getType();
-        esp_err_t init();
+        esp_err_t init(int id);
 };
 
 #endif

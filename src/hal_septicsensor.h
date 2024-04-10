@@ -48,6 +48,7 @@ typedef enum {
     HAL_ERR_PH_ADC,
     HAL_ERR_THERMOCOUPLE_ADC,
     HAL_ERR_A1019,
+    HAL_ERR_A1019_2,
     HAL_ERR_SDM120,
     HAL_ERR_FLOWMETER,
     HAL_ERR_4IN8OUT,
@@ -136,6 +137,9 @@ public:
     int err_a1019_count = 0;
     bool err_a1019_enabled = false;
 
+    int err_a1019_2_count = 0;
+    bool err_a1019_2_enabled = false;
+
     int err_sdm120_count = 0;
     bool err_sdm120_enabled = false;
 
@@ -149,6 +153,7 @@ private:
     float readADCvoltage(void);
 
     Mod_a1019 mod_a1019;
+    Mod_a1019 mod_a1019_2;
     Mod_sdm120 mod_sdm120;
     ADS1100 ads;
 
