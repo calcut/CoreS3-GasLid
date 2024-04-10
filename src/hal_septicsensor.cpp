@@ -403,7 +403,7 @@ void Inputs::init(void){
     xSemaphoreTake(modbus_mutex, portMAX_DELAY);
     err = mod_a1019_2.init(4);
     if(err != ESP_OK){
-        errorHandler(HAL_ERR_A1019);
+        errorHandler(HAL_ERR_A1019_2);
     }
     else{
         err_a1019_2_enabled = true;
