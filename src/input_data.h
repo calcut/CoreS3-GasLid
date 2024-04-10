@@ -43,6 +43,10 @@ public:
         {"pH3", nan("0")},
     };
 
+    std::unordered_map<std::string, float> moistureData = {
+        {"ms1", nan("0")},
+    };
+
     enum HandOffAuto {
         OFF,
         HAND,
@@ -55,10 +59,6 @@ public:
         DEFROST,
     };
 
-    struct PhysicalControls{
-        HandOffAuto handOffAuto;
-        ManualState manualState;
-    };
 };
 extern InputData inputData;
 

@@ -68,6 +68,12 @@ void errorHandler(hal_err_t err){
 
         case HAL_ERR_PH_ADC:
             ESP_LOGE("HAL", "pH ADC error");
+            inputs.err_ph_adc_enabled = false;
+            break;
+
+        case HAL_ERR_THERMOCOUPLE_ADC:
+            ESP_LOGE("HAL", "Thermocouple ADC error");
+            inputs.err_thermocouple_adc_enabled = false;
             break;
 
         case HAL_ERR_MOTORSHIELD:
@@ -135,7 +141,7 @@ void hal_setup(void){
     // M5.Power.Axp2101.setDLDO2(0);    // Not used
 
 
-    Wire.begin(PIN_SDA_I2C_EXT, PIN_SCL_I2C_EXT, 400000);  //Init I2C_EXT
+    Wire.begin(PIN_SDA_I2C_EXT, PIN_SCL_I2C_EXT, 100000);  //Init I2C_EXT
     Wire1.begin(PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, 400000);  //Init I2C_SYS
     
 
@@ -403,7 +409,19 @@ void Inputs::init(void){
     if (err != true){
         errorHandler(HAL_ERR_PH_ADC);
     }
-    else ESP_LOGI("HAL", "pH ADC found");
+    else {
+        ESP_LOGI("HAL", "pH ADC found");
+        err_ph_adc_enabled = true;
+    }
+
+    err = initThermocoupleADCs();
+    if (err != ESP_OK){
+        errorHandler(HAL_ERR_THERMOCOUPLE_ADC);
+    }
+    else {
+        ESP_LOGI("HAL", "Thermocouple ADCs found");
+        err_thermocouple_adc_enabled = true;
+    }
 
     ESP_LOGI("HAL", "Inputs init complete");
 
@@ -413,6 +431,20 @@ void Inputs::init(void){
 
     // bool pinModes[8] = {GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN};
     // gpioExpander.pinMode(pinModes);
+}
+
+esp_err_t Inputs::initThermocoupleADCs(){
+    //Thermocouple ADCs
+
+    int addresses[6] = {0x60, 0x61, 0x62, 0x63, 0x64, 0x65};
+
+    for (int i = 0; i < 6; i++){
+        themocoupleBoard[i].begin(addresses[i]);
+        tc_available[i] = themocoupleBoard[i].isConnected();
+        ESP_LOGI("HAL", "Thermocouple %d, address: %02X, available: %d", i, addresses[i], tc_available[i]);
+    }
+
+    return ESP_OK;
 }
 
 esp_err_t Inputs::initGasFlowADC(){
@@ -476,39 +508,6 @@ void Inputs::serviceFlowMeters(void){
     
 }
 
-void Inputs::pollPhysicalControls(void){
-
-    ESP_LOGD("HAL", "Polling physical controls");
-
-    bool gpioStatus[8];
-    uint8_t gpioval;
-    gpioval = gpioExpander.digitalReadPort(gpioStatus);
-
-    // if (gpioStatus[1] == 1){
-    //     physicalControls.handOffAuto = AUTO;
-    // }
-    // else if (gpioStatus[0] == 1){
-    //     physicalControls.handOffAuto = HAND;
-    // }
-    // else {
-    //     physicalControls.handOffAuto = OFF;
-    // }
-
-    // if (gpioStatus[7] == 1){
-    //     physicalControls.manualState = DISCHARGING;
-    // }
-    // else if (gpioStatus[6] == 1){
-    //     physicalControls.manualState = DEFROST;
-    // }
-    // else {
-    //     physicalControls.manualState = CHARGING;
-    // }
-
-    // ESP_LOGI("HAL", "HandOffAuto: %i, ManualState: %i", physicalControls.handOffAuto, physicalControls.manualState);
-    // physicalControls.handOffAuto = HAND;
-    // physicalControls.manualState = CHARGING;
-}
-
 void Inputs::pollSensorData(void){
     ESP_LOGD("HAL", "Polling Sensor Data");
 
@@ -534,6 +533,27 @@ void Inputs::pollSensorData(void){
     inputData.temperatureData["tl1"]     = AI[3];
     inputData.temperatureData["tl2"]     = AI[4];
     inputData.temperatureData["tl3"]     = AI[5];
+
+    if(err_thermocouple_adc_enabled){
+        for (int i = 0; i < 3; i++){
+            if (tc_available[i]){
+                inputData.temperatureData["tc" + std::to_string(i)] = themocoupleBoard[i].getThermocoupleTemp();
+            }
+            else{
+                inputData.temperatureData["tc" + std::to_string(i)] = nan("0");
+            }
+        }
+        // inputData.temperatureData["tb1"]     = tempSensor.getThermocoupleTemp();
+        // inputData.temperatureData["ta1"]     = tempSensor.getAmbientTemp();
+    }
+
+    if(err_ph_adc_enabled){
+        inputData.pHData["pH1"] = phProbe1.read_ph();
+        inputData.pHData["pH2"] = phProbe2.read_ph();
+        inputData.pHData["pH3"] = phProbe3.read_ph();
+        inputData.moistureData["ms1"] = moistureProbe1.readMoisture_pc();
+    }
+
     // inputData.temperatureData["T_flow"]     = AI[2];
     // inputData.temperatureData["T_rtrn"]     = AI[3];
     // inputData.temperatureData["T_biof"]     = AI[4];
@@ -541,9 +561,11 @@ void Inputs::pollSensorData(void){
     inputData.powerData["BatteryVoltage"]    = (float)M5.Power.getBatteryVoltage();
     inputData.powerData["BatteryLevel"]      = (float)M5.Power.getBatteryLevel();
     inputData.powerData["BatteryCurrent"]    = (float)M5.Power.getBatteryCurrent();
+    inputData.powerData["JacketOn"]          = (float)outputs.getJacketHeater();
 
-    xSemaphoreTake(modbus_mutex, portMAX_DELAY);
     if(err_sdm120_enabled){
+        xSemaphoreTake(modbus_mutex, portMAX_DELAY);
+
         if(mod_sdm120.isConnected()){
             inputData.powerData["Voltage"]           = mod_sdm120.readRegister(SDM120_VOLTAGE);
             inputData.powerData["Power"]             = mod_sdm120.readRegister(SDM120_ACTIVE_POWER);
@@ -553,14 +575,13 @@ void Inputs::pollSensorData(void){
         else{
             errorHandler(HAL_ERR_SDM120);
         }
+        xSemaphoreGive(modbus_mutex);
     }
-    xSemaphoreGive(modbus_mutex);
-    inputData.powerData["JacketOn"]          = (float)outputs.getJacketHeater();
 
 
-    inputData.pHData["pH1"] = phProbe1.read_ph();
-    inputData.pHData["pH2"] = phProbe2.read_ph();
-    inputData.pHData["pH3"] = phProbe3.read_ph();
+
+
+
 
     // adc0 = adc_pH.readVoltage(0);
 
@@ -725,4 +746,20 @@ float PHProbe::read_ph(){
     float ph = (voltage - neutralVoltage) * slope + 7;
 
     return ph;
+}
+
+MoistureProbe::MoistureProbe(int channel, ADS1115 *adc_ph){
+    _adc_ph = adc_ph;
+    _channel = channel;
+}
+float MoistureProbe::readMoisture_pc(){
+    _adc_ph->setGain(0);
+
+    int16_t counts = _adc_ph->readADC(_channel);  
+    float f = _adc_ph->toVoltage(1);  //  voltage factor
+    float voltage = counts * f;
+
+    float moisture_pc = 100 - ((voltage - waterVoltage) / (airVoltage - waterVoltage) * 100);
+
+    return moisture_pc;
 }

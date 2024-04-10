@@ -427,28 +427,41 @@ void display_sensor_info(lv_timer_t * timer){
         lv_bar_set_range(s9_bars[i], 0, 8);
         i++;
 
-        key = "BatteryVoltage";
-        sprintf(text_buffer, "%0.1f", inputData.powerData[key]);
-        lv_label_set_text(s9_values[i], text_buffer);
-        lv_label_set_text(s9_names[i], key);
-        lv_bar_set_value(s9_bars[i], inputData.powerData[key], LV_ANIM_OFF);
-        lv_bar_set_range(s9_bars[i], 0, 5);
-        i++;
+        // key = "BatteryVoltage";
+        // sprintf(text_buffer, "%0.1f", inputData.powerData[key]);
+        // lv_label_set_text(s9_values[i], text_buffer);
+        // lv_label_set_text(s9_names[i], key);
+        // lv_bar_set_value(s9_bars[i], inputData.powerData[key], LV_ANIM_OFF);
+        // lv_bar_set_range(s9_bars[i], 0, 5);
+        // i++;
 
-        key = "BatteryCurrent";
-        sprintf(text_buffer, "%0.1f", inputData.powerData[key]);
-        lv_label_set_text(s9_values[i], text_buffer);
-        lv_label_set_text(s9_names[i], key);
-        lv_bar_set_value(s9_bars[i], inputData.powerData[key], LV_ANIM_OFF);
-        lv_bar_set_range(s9_bars[i], 0, 8);
-        i++;
-        key = "BatteryLevel";
-        sprintf(text_buffer, "%0.1f", inputData.powerData[key]);
-        lv_label_set_text(s9_values[i], text_buffer);
-        lv_label_set_text(s9_names[i], key);
-        lv_bar_set_value(s9_bars[i], inputData.powerData[key], LV_ANIM_OFF);
-        lv_bar_set_range(s9_bars[i], 0, 100);
-        i++;
+        // key = "BatteryCurrent";
+        // sprintf(text_buffer, "%0.1f", inputData.powerData[key]);
+        // lv_label_set_text(s9_values[i], text_buffer);
+        // lv_label_set_text(s9_names[i], key);
+        // lv_bar_set_value(s9_bars[i], inputData.powerData[key], LV_ANIM_OFF);
+        // lv_bar_set_range(s9_bars[i], 0, 8);
+        // i++;
+        // key = "BatteryLevel";
+        // sprintf(text_buffer, "%0.1f", inputData.powerData[key]);
+        // lv_label_set_text(s9_values[i], text_buffer);
+        // lv_label_set_text(s9_names[i], key);
+        // lv_bar_set_value(s9_bars[i], inputData.powerData[key], LV_ANIM_OFF);
+        // lv_bar_set_range(s9_bars[i], 0, 100);
+        // i++;
+
+        for (auto& keyval : inputData.moistureData) {
+            key = const_cast<char*>(keyval.first.c_str());
+            sprintf(text_buffer, "%0.1f %%", keyval.second);
+            lv_label_set_text(s9_values[i], text_buffer);
+            lv_label_set_text(s9_names[i], key);
+            lv_bar_set_value(s9_bars[i], keyval.second, LV_ANIM_OFF);
+            lv_bar_set_range(s9_bars[i], 0, 14);
+            i++;
+            if (i >= 8) break;
+        }
+
+
     }
 }
 

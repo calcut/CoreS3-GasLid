@@ -22,7 +22,7 @@
 // INPUTS
 #include "mod_a1019.h"  //Temperature sensors
 #include "mod_sdm120.h" //Power meter
-#include "SparkFun_TCA9534.h" //GPIO Expander for physical Controls
+#include "SparkFun_MCP9600.h" //Thermocouple Amplifier
 #include <driver/pcnt.h> //ESP32 Pulse counter
 #include "M5_ADS1100.h" //ADC for gas flow meter
 #include "ADS1X15.h" //ADC for pH probes
@@ -46,6 +46,7 @@ typedef enum {
     HAL_ERR_ADC,
     HAL_ERR_GASFLOW_ADC,
     HAL_ERR_PH_ADC,
+    HAL_ERR_THERMOCOUPLE_ADC,
     HAL_ERR_A1019,
     HAL_ERR_SDM120,
     HAL_ERR_FLOWMETER,
@@ -110,6 +111,17 @@ class PHProbe{
 
 };
 
+class MoistureProbe{
+    public:
+        MoistureProbe(int channel, ADS1115 *adc_ph);
+        float readMoisture_pc();
+    private:
+        ADS1115 *_adc_ph;
+        int _channel;
+        float airVoltage = 3;
+        float waterVoltage = 0.5;
+};
+
 class Inputs {
 public:
 
@@ -117,7 +129,6 @@ public:
     void serviceFlowMeters(void);
     void pollSensorData(void);
     void pollGasSensors(int tankNumber);
-    void pollPhysicalControls(void);
 
     int err_gasflow_adc_count = 0;
     bool err_gasflow_adc_enabled = false;
@@ -128,20 +139,27 @@ public:
     int err_sdm120_count = 0;
     bool err_sdm120_enabled = false;
 
+    bool err_ph_adc_enabled = false;
+    int err_thermocouple_adc_enabled = false;
+
 private:
+    esp_err_t initThermocoupleADCs();
     esp_err_t initFlowMeters(int pin);
     esp_err_t initGasFlowADC();
     float readADCvoltage(void);
 
-    TCA9534 gpioExpander;
     Mod_a1019 mod_a1019;
     Mod_sdm120 mod_sdm120;
     ADS1100 ads;
+
+    MCP9600 themocoupleBoard[6];
+    int tc_available[6] = {false, false, false, false, false, false};
 
     ADS1115 adc_ph = ADS1115(ADC_PH_ADDR);
     PHProbe phProbe1 = PHProbe(0, &adc_ph);
     PHProbe phProbe2 = PHProbe(1, &adc_ph);
     PHProbe phProbe3 = PHProbe(2, &adc_ph);
+    MoistureProbe moistureProbe1 = MoistureProbe(3, &adc_ph);
 
     int previousPulseCount = 0;
     int previousPulseTime = 0;

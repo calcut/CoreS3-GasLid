@@ -77,6 +77,7 @@ void queueBatchSensorData(){
     J *entry = JCreateObject();
     JAddFloatMapToObject(entry, inputData.temperatureData);
     JAddFloatMapToObject(entry, inputData.pHData);
+    JAddFloatMapToObject(entry, inputData.moistureData);
     JAddFloatMapToObject(entry, inputData.powerData);
     JAddItemToObject(notecardManager.queue, timestr, entry);
 }
