@@ -6,30 +6,30 @@ TimerHandle_t gasSampleTimer;
 
 void setupRtos(void){
 
-    xTaskCreate(
-        runStateMachine, // task function
-        "State Machine", // task name
-        16384, // stack size in bytes
-        NULL, // pointer to parameters
-        1, // priority
-        NULL); // out pointer to task handle
+    // xTaskCreate(
+    //     runStateMachine, // task function
+    //     "State Machine", // task name
+    //     16384, // stack size in bytes
+    //     NULL, // pointer to parameters
+    //     1, // priority
+    //     NULL); // out pointer to task handle
 
 
-    xTaskCreate(
-        serviceGasCards, // task function
-        "Service Gas Cards", // task name
-        16384, // stack size in bytes
-        NULL, // pointer to parameters
-        1, // priority
-        NULL); // out pointer to task handle
+    // xTaskCreate(
+    //     serviceGasCards, // task function
+    //     "Service Gas Cards", // task name
+    //     16384, // stack size in bytes
+    //     NULL, // pointer to parameters
+    //     1, // priority
+    //     NULL); // out pointer to task handle
 
-    xTaskCreate(
-        serviceSerialInput, // task function
-        "Service Serial Input", // task name
-        16384, // stack size in bytes
-        NULL, // pointer to parameters
-        1, // priority
-        NULL); // out pointer to task handle
+    // xTaskCreate(
+    //     serviceSerialInput, // task function
+    //     "Service Serial Input", // task name
+    //     16384, // stack size in bytes
+    //     NULL, // pointer to parameters
+    //     1, // priority
+    //     NULL); // out pointer to task handle
 
 #ifdef USE_NOTECARD
     xTaskCreate(
@@ -65,15 +65,15 @@ void setupRtos(void){
         NULL); // out pointer to task handle
 #endif
 
-#ifdef DEBUG
-    xTaskCreate(
-        debugTask, // task function
-        "Debug Task", // task name
-        16384, // stack size in bytes
-        NULL, // pointer to parameters
-        1, // priority
-        NULL); // out pointer to task handle
-#endif
+// #ifdef DEBUG
+//     xTaskCreate(
+//         debugTask, // task function
+//         "Debug Task", // task name
+//         16384, // stack size in bytes
+//         NULL, // pointer to parameters
+//         1, // priority
+//         NULL); // out pointer to task handle
+// #endif
 }
 
 void runStateMachine(void * pvParameters){

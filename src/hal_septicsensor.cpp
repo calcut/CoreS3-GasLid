@@ -46,6 +46,7 @@ void hal_setup(void){
     Serial.println("Serial started");
 
     Wire.begin(); //Init I2C_SYS (default I2C bus
+    Wire.setClock(400000); // 400kHz
     // Wire.begin(PIN_SDA_I2C_EXT, PIN_SCL_I2C_EXT, 400000);  //Init I2C_EXT
     // Wire1.begin(PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, 400000);  //Init I2C_SYS
     
@@ -235,7 +236,7 @@ void initRTC(){
     hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
     hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
     if (HAL_RTC_Init(&hrtc) != HAL_OK) {
-        // Handle error
+        ESP_LOGE("HAL", "RTC init failed");
     }
 }
 
@@ -249,14 +250,14 @@ void setRTC(time_t epoch_time, int UTC_offset_minutes){
     
     // M5.Rtc.setDateTime(time_info);
     // setSystemTime();
-
+    ESP_LOGI("HAL", "Setting RTC");
 
     sTime.Hours = 12;
     sTime.Minutes = 34;
     sTime.Seconds = 56;
 
     if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN) != HAL_OK) {
-        // Handle error
+        ESP_LOGE("HAL", "RTC set time failed");
     }
     sDate.WeekDay = RTC_WEEKDAY_SATURDAY;
     sDate.Month = RTC_MONTH_MAY;
@@ -265,7 +266,7 @@ void setRTC(time_t epoch_time, int UTC_offset_minutes){
 
     if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK)
     {
-        Error_Handler();
+        ESP_LOGE("HAL", "RTC set date failed");
     }
 }
 
@@ -277,10 +278,21 @@ int getRTCTime(){
 
     char timeBuff[80];
 
-    sprintf(timeBuff,"%d,,,%d...%d\n", currTime.Hours, currTime.Minutes, currTime.Seconds);
-    Serial.println(timeBuff);
+    sprintf(timeBuff,"%02d:%02d:%02d", currTime.Hours, currTime.Minutes, currTime.Seconds);
+    ESP_LOGI("HAL", "RTC Time: %s", timeBuff);
 
-    return 123456789;
+    struct tm systemtime;
+
+    systemtime.tm_hour = currTime.Hours;
+    systemtime.tm_min = currTime.Minutes;
+    systemtime.tm_sec = currTime.Seconds;
+    systemtime.tm_mday = currDate.Date;
+    systemtime.tm_mon = currDate.Month;
+    systemtime.tm_year = currDate.Year;
+
+    time_t epochTime = mktime(&systemtime);
+
+    return epochTime;
 }
 
 void I2C_scan(){
