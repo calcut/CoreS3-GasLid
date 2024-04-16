@@ -18,6 +18,7 @@
 #include <Adafruit_MotorShield.h>
 #include <SparkFun_Qwiic_Relay.h>
 #include "MODULE_4IN8OUT.h"
+#include "Unit_4RELAY.h"
 
 // INPUTS
 #include "mod_a1019.h"  //Temperature sensors
@@ -86,10 +87,10 @@ public:
     void enableJacketHeater(bool enable);
     bool getJacketHeater(void);
     void enableWaterPump(bool enable);
-    void enable12VRelay(bool enable);
 
 private:
 
+    UNIT_4RELAY M5Relays;
     Adafruit_MotorShield MS1 = Adafruit_MotorShield(MOTOR_FEATHERWING_ADDR); //0x6F
     Adafruit_DCMotor *gasPump[1] = {
         MS1.getMotor(4),

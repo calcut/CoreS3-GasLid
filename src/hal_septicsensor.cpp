@@ -265,11 +265,18 @@ void Outputs::init() {
     setReturnValve(5, ValveState::CLOSED);
     setGasPumpSpeed(0); 
 
-    // if(!quadRelay.begin()){
-    //     errorHandler(HAL_ERR_QUADRELAY);
-    // } else ESP_LOGI("HAL", "Qwiic Relay Found.");
-    
-    // quadRelay.turnAllRelaysOff();
+    int error;
+    Wire.beginTransmission(M5_RELAYS_ADDR);
+    error = Wire.endTransmission();
+    if (error == 0)  // If the device is connected.
+    {
+        M5Relays.Init(1); // 1=synchronous mode, LEDs match relays
+        M5Relays.relayALL(0);
+        ESP_LOGI("HAL", "M5 Relays found.");\
+    }
+    else {
+        errorHandler(HAL_ERR_M5_RELAYS);
+    }
 
     // set pin 9 as an output (Jacket Heater), workaround while quadrelay isn't working
     pinMode(PIN_JACKET_RELAY, OUTPUT);
@@ -302,45 +309,33 @@ void Outputs::setGasPumpSpeed(float percent) {
 
 void Outputs::enableJacketHeater(bool enable) {
     if(enable){
-        // quadRelay.turnRelayOn(JACKET_HEATER_RELAY);
+        M5Relays.relayWrite(JACKET_HEATER_RELAY, 1);
         digitalWrite(PIN_JACKET_RELAY, HIGH);
     }
     else{
-        // quadRelay.turnRelayOff(JACKET_HEATER_RELAY);
+        M5Relays.relayWrite(JACKET_HEATER_RELAY, 0);
         digitalWrite(PIN_JACKET_RELAY, LOW);
     }
 }
 
 bool Outputs::getJacketHeater(void){
-    // return quadRelay.getState(JACKET_HEATER_RELAY);
+
+    Wire.beginTransmission(M5_RELAYS_ADDR);   // Initialize the Tx buffer
+    Wire.write(0x11);            // Put slave register address in Tx buffer
+    Wire.endTransmission();
+    Wire.requestFrom(M5_RELAYS_ADDR, 1);
+    uint8_t data = Wire.read();
+
+    bool state = data & (1 << JACKET_HEATER_RELAY);
+    ESP_LOGW("HAL", "Jacket Heater State: %d", state);
 
     // get state of PIN_JACKET_RELAY
     return digitalRead(PIN_JACKET_RELAY);
 }
 
 void Outputs::enableWaterPump(bool enable) {
-    // quadRelay.turnRelayOn(WATER_PUMP_RELAY);
+    M5Relays.relayWrite(WATER_PUMP_RELAY, enable);
 }
-
-void Outputs::enable12VRelay(bool enable) {
-    if(enable){
-        digitalWrite(PORTB_PIN_0, LOW);
-        digitalWrite(PORTB_PIN_1, HIGH);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-        digitalWrite(PORTB_PIN_0, LOW);
-        digitalWrite(PORTB_PIN_1, LOW);
-        ESP_LOGW("HAL", "12V Relay Enabled");
-    }
-    else{
-        digitalWrite(PORTB_PIN_0, HIGH);
-        digitalWrite(PORTB_PIN_1, LOW);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-        digitalWrite(PORTB_PIN_0, LOW);
-        digitalWrite(PORTB_PIN_1, LOW);
-        ESP_LOGW("HAL", "12V Relay Disabled");
-    }
-}
-
 
 void Inputs::init(void){
 
