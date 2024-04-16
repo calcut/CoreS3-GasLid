@@ -592,17 +592,6 @@ void Inputs::pollSensorData(void){
     }
 
 
-
-
-
-
-    // adc0 = adc_pH.readVoltage(0);
-
-    // ESP_LOGW("HAL", "pH Voltages: %d %d %d", adc_pH.readVoltage(0), adc_pH.readVoltage(1), adc_pH.readVoltage(2));
-    // inputData.powerData["Power"]            = 0.4;
-    // inputData.powerData["Energy"]           = 0.4;
-
-
 }
 
 void Inputs::pollGasSensors(int tankNumber){
@@ -745,6 +734,7 @@ void I2C_scan(){
 PHProbe::PHProbe(int channel, ADS1115 *adc_ph){
     _adc_ph = adc_ph;
     _channel = channel;
+    _adc_ph->setMode(0); // 0=Continuous Mode
 }
 
 float PHProbe::read_ph(){
@@ -764,15 +754,15 @@ float PHProbe::read_ph(){
     return ph;
 }
 
-MoistureProbe::MoistureProbe(int channel, ADS1115 *adc_ph){
-    _adc_ph = adc_ph;
+MoistureProbe::MoistureProbe(int channel, ADS1115 *adc){
+    _adc = adc;
     _channel = channel;
+    _adc->setMode(0); // 0=Continuous Mode
 }
 float MoistureProbe::readMoisture_pc(){
-    _adc_ph->setGain(0);
-
-    int16_t counts = _adc_ph->readADC(_channel);  
-    float f = _adc_ph->toVoltage(1);  //  voltage factor
+    _adc->setGain(0);
+    int16_t counts = _adc->readADC(_channel);  
+    float f = _adc->toVoltage(1);  //  voltage factor
     float voltage = counts * f;
 
     float moisture_pc = 100 - ((voltage - waterVoltage) / (airVoltage - waterVoltage) * 100);

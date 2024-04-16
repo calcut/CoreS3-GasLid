@@ -115,10 +115,10 @@ class PHProbe{
 
 class MoistureProbe{
     public:
-        MoistureProbe(int channel, ADS1115 *adc_moisture);
+        MoistureProbe(int channel, ADS1115 *adc);
         float readMoisture_pc();
     private:
-        ADS1115 *_adc_ph;
+        ADS1115 *_adc;
         int _channel;
         float airVoltage = 3;
         float waterVoltage = 0.5;
