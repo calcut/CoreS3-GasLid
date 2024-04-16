@@ -403,34 +403,30 @@ void Inputs::init(void){
     else ESP_LOGI("HAL", "Gas Flow ADC found");
 
     I2CMux.selectChannel(ADC_PH_MUX);
-    err = adc_ph.begin();
-    if (err != true){
-        errorHandler(HAL_ERR_PH_ADC);
-    }
-    else {
+    if (adc_ph.begin(ADC_PH_ADDR, &Wire))
+    {
         ESP_LOGI("HAL", "pH ADC found");
         err_ph_adc_enabled = true;
     }
+    else errorHandler(HAL_ERR_PH_ADC);
 
     I2CMux.selectChannel(ADC_MOISTURE_1_MUX);
-    err = adc_moisture_1.begin();
-    if (err != true){
-        errorHandler(HAL_ERR_MOISTURE_ADC_1);
-    }
-    else {
+    if (adc_moisture_1.begin(ADC_MOISTURE_1_ADDR, &Wire))
+    {
         ESP_LOGI("HAL", "Moisture ADC 1 found");
         err_moisture_adc_1_enabled = true;
     }
+    else errorHandler(HAL_ERR_MOISTURE_ADC_1);
+
 
     I2CMux.selectChannel(ADC_MOISTURE_2_MUX);
-    err = adc_moisture_2.begin();
-    if (err != true){
-        errorHandler(HAL_ERR_MOISTURE_ADC_2);
-    }
-    else {
+    if (adc_moisture_2.begin(ADC_MOISTURE_2_ADDR, &Wire))
+    {
         ESP_LOGI("HAL", "Moisture ADC 2 found");
         err_moisture_adc_2_enabled = true;
     }
+    else errorHandler(HAL_ERR_MOISTURE_ADC_2);
+
 
     I2CMux.disableAllChannels();
 
@@ -731,18 +727,15 @@ void I2C_scan(){
         Serial.println("done\n");
 }
 
-PHProbe::PHProbe(int channel, ADS1115 *adc_ph){
-    _adc_ph = adc_ph;
+PHProbe::PHProbe(int channel, Adafruit_ADS1115 *adc){
+    _adc = adc;
     _channel = channel;
-    _adc_ph->setMode(0); // 0=Continuous Mode
 }
 
 float PHProbe::read_ph(){
-    _adc_ph->setGain(0);
-
-    int16_t counts = _adc_ph->readADC(_channel);  
-    float f = _adc_ph->toVoltage(1);  //  voltage factor
-    float voltage = counts * f;
+    ESP_LOGD("HAL", "Reading pH Probe %d", _channel);
+    int counts = _adc->readADC_SingleEnded(_channel);
+    float voltage = _adc->computeVolts(counts);
 
     float slope = (7-4) / (neutralVoltage - acidVoltage); //pH/V
 
@@ -754,18 +747,15 @@ float PHProbe::read_ph(){
     return ph;
 }
 
-MoistureProbe::MoistureProbe(int channel, ADS1115 *adc){
+MoistureProbe::MoistureProbe(int channel, Adafruit_ADS1115 *adc){
     _adc = adc;
     _channel = channel;
-    _adc->setMode(0); // 0=Continuous Mode
 }
 float MoistureProbe::readMoisture_pc(){
-    _adc->setGain(0);
-    int16_t counts = _adc->readADC(_channel);  
-    float f = _adc->toVoltage(1);  //  voltage factor
-    float voltage = counts * f;
 
+    ESP_LOGD("HAL", "Reading Moisture Probe %d", _channel);
+    int counts = _adc->readADC_SingleEnded(_channel);
+    float voltage = _adc->computeVolts(counts);
     float moisture_pc = 100 - ((voltage - waterVoltage) / (airVoltage - waterVoltage) * 100);
-
     return moisture_pc;
 }

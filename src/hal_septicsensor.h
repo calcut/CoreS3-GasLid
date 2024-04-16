@@ -25,7 +25,7 @@
 #include "mod_sdm120.h" //Power meter
 #include <driver/pcnt.h> //ESP32 Pulse counter
 #include "M5_ADS1100.h" //ADC for gas flow meter
-#include "ADS1X15.h" //ADC for pH probes
+#include <Adafruit_ADS1X15.h>  //ADC for pH probes and moisture sensors
 #include "TCA9548.h" //I2C Multiplexer
 
 #ifndef TERMINAL_LOG_LENGTH
@@ -101,10 +101,10 @@ extern Outputs outputs;
 
 class PHProbe{
     public:
-        PHProbe(int channel, ADS1115 *adc_ph);
+        PHProbe(int channel, Adafruit_ADS1115 *adc);
         float read_ph();
     private:
-        ADS1115 *_adc_ph;
+        Adafruit_ADS1115 *_adc;
         int _channel;
         float neutralVoltage = 1.5;
         float acidVoltage = 2.03244;
@@ -115,10 +115,10 @@ class PHProbe{
 
 class MoistureProbe{
     public:
-        MoistureProbe(int channel, ADS1115 *adc);
+        MoistureProbe(int channel, Adafruit_ADS1115 *adc);
         float readMoisture_pc();
     private:
-        ADS1115 *_adc;
+        Adafruit_ADS1115 *_adc;
         int _channel;
         float airVoltage = 3;
         float waterVoltage = 0.5;
@@ -160,17 +160,18 @@ private:
     PCA9548 I2CMux = PCA9548(I2C_MUX_ADDR, &Wire);
     ADS1100 adc_gasflow;
 
-    ADS1115 adc_ph = ADS1115(ADC_PH_ADDR);
+    Adafruit_ADS1115 adc_ph;
+    Adafruit_ADS1115 adc_moisture_1;
+    Adafruit_ADS1115 adc_moisture_2;
+
     PHProbe phProbe1 = PHProbe(0, &adc_ph);
     PHProbe phProbe2 = PHProbe(1, &adc_ph);
     PHProbe phProbe3 = PHProbe(2, &adc_ph);
 
-    ADS1115 adc_moisture_1 = ADS1115(ADC_MOISTURE_1_ADDR);
     MoistureProbe moistureProbe1 = MoistureProbe(0, &adc_moisture_1);
     MoistureProbe moistureProbe2 = MoistureProbe(1, &adc_moisture_1);
     MoistureProbe moistureProbe3 = MoistureProbe(2, &adc_moisture_1);
 
-    ADS1115 adc_moisture_2 = ADS1115(ADC_MOISTURE_2_ADDR);
     MoistureProbe moistureProbe4 = MoistureProbe(0, &adc_moisture_2);
     MoistureProbe moistureProbe5 = MoistureProbe(1, &adc_moisture_2);
     MoistureProbe moistureProbe6 = MoistureProbe(2, &adc_moisture_2);
