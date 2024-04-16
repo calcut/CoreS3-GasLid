@@ -68,6 +68,10 @@ void errorHandler(hal_err_t err){
             }
             break;
 
+        case HAL_ERR_I2C_MUX:
+            ESP_LOGE("HAL", "I2C Multiplexer error");
+            break;
+
         case HAL_ERR_FLOWMETER:
             ESP_LOGE("HAL", "Flowmeter error");
             break;
@@ -77,21 +81,27 @@ void errorHandler(hal_err_t err){
             break;
 
         case HAL_ERR_PH_ADC:
-            ESP_LOGE("HAL", "pH ADC error");
+            ESP_LOGE("HAL", "pH ADC error, disabling");
             inputs.err_ph_adc_enabled = false;
             break;
 
-        case HAL_ERR_THERMOCOUPLE_ADC:
-            ESP_LOGE("HAL", "Thermocouple ADC error");
-            inputs.err_thermocouple_adc_enabled = false;
+        case HAL_ERR_MOISTURE_ADC_1:
+            ESP_LOGE("HAL", "Moisture ADC 1 error, disabling");
+            inputs.err_moisture_adc_1_enabled = false;
+            break;
+
+        case HAL_ERR_MOISTURE_ADC_2:
+            ESP_LOGE("HAL", "Moisture ADC 2 error, disabling");
+            inputs.err_moisture_adc_2_enabled = false;
             break;
 
         case HAL_ERR_MOTORSHIELD:
             ESP_LOGE("HAL", "Motorshield error");
             break;
 
-        case HAL_ERR_QUADRELAY:
-            ESP_LOGE("HAL", "Quad Relay error");
+        case HAL_ERR_M5_RELAYS:
+            ESP_LOGE("HAL", "M5 Relays error");
+            // Probably do something more serious here
             break;
 
         default:
@@ -215,50 +225,6 @@ int serialLogger(const char* format, va_list args){
     return ret;
 }
 
-// void logSDcard(const char* message){
-//     // Write message to log.txt on the SD card
-//     // If the file is larger than 1MB, remove lines from the top until it is less than 1MB
-//     // If the file does not exist, create it
-
-//     if (SD.exists("/log.txt")){
-//         File logFile = SD.open("/log.txt", FILE_APPEND);
-//         logFile.println(message);
-//         logFile.close();
-//     }
-//     else{
-//         File logFile = SD.open("/log.txt", FILE_WRITE);
-//         logFile.println(message);
-//         logFile.close();
-//     }
-
-//     File logFile = SD.open("/log.txt", FILE_READ);
-//     if (logFile.size() > 1000000){
-//         //If the file is larger than 1MB, remove lines from the top until it is less than 1MB
-//         logFile.seek(0);
-//         int lineCount = 0;
-//         while (logFile.available()){
-//             if (logFile.read() == '\n'){
-//                 lineCount++;
-//             }
-//             if (lineCount > 1000){
-//                 break;
-//             }
-//         }
-//         logFile.seek(0);
-//         File tempFile = SD.open("/temp.txt", FILE_WRITE);
-//         while (logFile.available()){
-//             tempFile.write(logFile.read());
-//         }
-//         logFile.close();
-//         tempFile.close();
-//         SD.remove("/log.txt");
-//         SD.rename("/temp.txt", "/log.txt");
-//     }
-
-
-
-// }
-
 void Outputs::init() {
     ESP_LOGI("HAL", "Outputs init");
 
@@ -299,11 +265,11 @@ void Outputs::init() {
     setReturnValve(5, ValveState::CLOSED);
     setGasPumpSpeed(0); 
 
-    if(!quadRelay.begin()){
-        errorHandler(HAL_ERR_QUADRELAY);
-    } else ESP_LOGI("HAL", "Qwiic Relay Found.");
+    // if(!quadRelay.begin()){
+    //     errorHandler(HAL_ERR_QUADRELAY);
+    // } else ESP_LOGI("HAL", "Qwiic Relay Found.");
     
-    quadRelay.turnAllRelaysOff();
+    // quadRelay.turnAllRelaysOff();
 
     // set pin 9 as an output (Jacket Heater), workaround while quadrelay isn't working
     pinMode(PIN_JACKET_RELAY, OUTPUT);
@@ -353,7 +319,7 @@ bool Outputs::getJacketHeater(void){
 }
 
 void Outputs::enableWaterPump(bool enable) {
-    quadRelay.turnRelayOn(WATER_PUMP_RELAY);
+    // quadRelay.turnRelayOn(WATER_PUMP_RELAY);
 }
 
 void Outputs::enable12VRelay(bool enable) {
@@ -381,7 +347,7 @@ void Inputs::init(void){
     ESP_LOGI("HAL", "Inputs init");
     
     xSemaphoreTake(modbus_mutex, portMAX_DELAY);
-    err = mod_a1019.init(0);
+    err = mod_a1019.init(MOD_A1019_1_ID);
     if(err != ESP_OK){
         errorHandler(HAL_ERR_A1019);
     }
@@ -401,7 +367,7 @@ void Inputs::init(void){
     xSemaphoreGive(modbus_mutex);
 
     xSemaphoreTake(modbus_mutex, portMAX_DELAY);
-    err = mod_a1019_2.init(4);
+    err = mod_a1019_2.init(MOD_A1019_2_ID);
     if(err != ESP_OK){
         errorHandler(HAL_ERR_A1019_2);
     }
@@ -422,19 +388,26 @@ void Inputs::init(void){
 
     err_sdm120_enabled = true;
 
+    if (I2CMux.begin() == false)
+    {
+        errorHandler(HAL_ERR_I2C_MUX);
+    }
+    else ESP_LOGI("HAL", "TCA9548 I2C multiplexer found.");
+
     err = initFlowMeters(PIN_PULSE_COUNT);
     if (err != ESP_OK){
         errorHandler(HAL_ERR_FLOWMETER);
     }
     else ESP_LOGI("HAL", "Flow meter initialised on pin %d", PIN_PULSE_COUNT);
 
-
+    I2CMux.selectChannel(ADC_GASFLOW_MUX);
     err = initGasFlowADC();
     if (err != ESP_OK){
         errorHandler(HAL_ERR_GASFLOW_ADC);
     }
     else ESP_LOGI("HAL", "Gas Flow ADC found");
 
+    I2CMux.selectChannel(ADC_PH_MUX);
     err = adc_ph.begin();
     if (err != true){
         errorHandler(HAL_ERR_PH_ADC);
@@ -444,56 +417,52 @@ void Inputs::init(void){
         err_ph_adc_enabled = true;
     }
 
-    // err = initThermocoupleADCs();
-    // if (err != ESP_OK){
-    //     errorHandler(HAL_ERR_THERMOCOUPLE_ADC);
-    // }
-    // else {
-    //     ESP_LOGI("HAL", "Thermocouple ADCs found");
-    //     err_thermocouple_adc_enabled = true;
-    // }
+    I2CMux.selectChannel(ADC_MOISTURE_1_MUX);
+    err = adc_moisture_1.begin();
+    if (err != true){
+        errorHandler(HAL_ERR_MOISTURE_ADC_1);
+    }
+    else {
+        ESP_LOGI("HAL", "Moisture ADC 1 found");
+        err_moisture_adc_1_enabled = true;
+    }
+
+    I2CMux.selectChannel(ADC_MOISTURE_2_MUX);
+    err = adc_moisture_2.begin();
+    if (err != true){
+        errorHandler(HAL_ERR_MOISTURE_ADC_2);
+    }
+    else {
+        ESP_LOGI("HAL", "Moisture ADC 2 found");
+        err_moisture_adc_2_enabled = true;
+    }
+
+    I2CMux.disableAllChannels();
 
     ESP_LOGI("HAL", "Inputs init complete");
 
-    // if (gpioExpander.begin() == false) {
-    //     Serial.println("Check Connections. No I2C GPIO Expander detected.");
-    // }
-
-    // bool pinModes[8] = {GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN, GPIO_IN};
-    // gpioExpander.pinMode(pinModes);
-}
-
-esp_err_t Inputs::initThermocoupleADCs(){
-    //Thermocouple ADCs
-
-    int addresses[6] = {0x60, 0x61, 0x62, 0x63, 0x64, 0x65};
-
-    for (int i = 0; i < 6; i++){
-        themocoupleBoard[i].begin(addresses[i]);
-        tc_available[i] = themocoupleBoard[i].isConnected();
-        ESP_LOGI("HAL", "Thermocouple %d, address: %02X, available: %d", i, addresses[i], tc_available[i]);
-    }
-
-    return ESP_OK;
 }
 
 esp_err_t Inputs::initGasFlowADC(){
     //ADC for gas flow meter 
     byte error;
-    Wire.beginTransmission(ads.ads_i2cAddress);
+    I2CMux.selectChannel(ADC_GASFLOW_MUX);
+    Wire.beginTransmission(ADC_GASFLOW_ADDR);
     error = Wire.endTransmission();
     if (error == 0){  // If the device is connected.
         err_gasflow_adc_enabled = true;
-        ads.setGain(GAIN_ONE);  // 1x gain(default)
-        ads.setMode(MODE_CONTIN);  // Continuous conversion mode (default)
-        ads.setRate(RATE_8);  // 8SPS (default)
-        ads.getAddr_ADS1100(
+        adc_gasflow.setGain(GAIN_ONE);  // 1x gain(default)
+        adc_gasflow.setMode(MODE_CONTIN);  // Continuous conversion mode (default)
+        adc_gasflow.setRate(RATE_8);  // 8SPS (default)
+        adc_gasflow.getAddr_ADS1100(
             ADS1100_DEFAULT_ADDRESS);
-        ads.setOSMode(
+        adc_gasflow.setOSMode(
             OSMODE_SINGLE);  // Set to start a single-conversion.
+        I2CMux.disableChannel(ADC_GASFLOW_MUX);
         return ESP_OK;
     }
     else{
+        I2CMux.disableChannel(ADC_GASFLOW_MUX);
         return ESP_FAIL;
     }
 }
@@ -521,7 +490,7 @@ esp_err_t Inputs::initFlowMeters(int pin){
 void Inputs::serviceFlowMeters(void){
 
     //Gas flow meter
-    inputData.flowData["GasFlow"] = readADCvoltage()*1000/5.0; //5000mV per litre per minute
+    inputData.flowData["GasFlow"] = readGasFlowADC()*1000/5.0; //5000mV per litre per minute
 
 
     pcnt_get_counter_value(PCNT_UNIT_0, &counterVal);
@@ -584,29 +553,28 @@ void Inputs::pollSensorData(void){
     inputData.temperatureData["tb5"]     = AI[4];
     inputData.temperatureData["tb6"]     = AI[5];
 
-    // if(err_thermocouple_adc_enabled){
-    //     for (int i = 0; i < 3; i++){
-    //         if (tc_available[i]){
-    //             inputData.temperatureData["tc" + std::to_string(i)] = themocoupleBoard[i].getThermocoupleTemp();
-    //         }
-    //         else{
-    //             inputData.temperatureData["tc" + std::to_string(i)] = nan("0");
-    //         }
-    //     }
-    //     // inputData.temperatureData["tb1"]     = tempSensor.getThermocoupleTemp();
-    //     // inputData.temperatureData["ta1"]     = tempSensor.getAmbientTemp();
-    // }
-
     if(err_ph_adc_enabled){
+        I2CMux.selectChannel(ADC_PH_MUX);
         inputData.pHData["pH1"] = phProbe1.read_ph();
         inputData.pHData["pH2"] = phProbe2.read_ph();
         inputData.pHData["pH3"] = phProbe3.read_ph();
-        inputData.moistureData["ms1"] = moistureProbe1.readMoisture_pc();
+        I2CMux.disableChannel(ADC_PH_MUX);
     }
 
-    // inputData.temperatureData["T_flow"]     = AI[2];
-    // inputData.temperatureData["T_rtrn"]     = AI[3];
-    // inputData.temperatureData["T_biof"]     = AI[4];
+    if(err_moisture_adc_1_enabled){
+        I2CMux.selectChannel(ADC_MOISTURE_1_MUX);
+        inputData.moistureData["ms1"] = moistureProbe1.readMoisture_pc();
+        inputData.moistureData["ms2"] = moistureProbe2.readMoisture_pc();
+        inputData.moistureData["ms3"] = moistureProbe3.readMoisture_pc();
+        I2CMux.disableChannel(ADC_MOISTURE_1_MUX);
+    }
+    if(err_moisture_adc_2_enabled){
+        I2CMux.selectChannel(ADC_MOISTURE_2_MUX);
+        inputData.moistureData["ms1"] = moistureProbe1.readMoisture_pc();
+        inputData.moistureData["ms2"] = moistureProbe2.readMoisture_pc();
+        inputData.moistureData["ms3"] = moistureProbe3.readMoisture_pc();
+        I2CMux.disableChannel(ADC_MOISTURE_2_MUX);
+    }
 
     inputData.powerData["BatteryVoltage"]    = (float)M5.Power.getBatteryVoltage();
     inputData.powerData["BatteryLevel"]      = (float)M5.Power.getBatteryLevel();
@@ -673,28 +641,31 @@ void Inputs::pollGasSensors(int tankNumber){
 
 }
 
-float Inputs::readADCvoltage(void){
+float Inputs::readGasFlowADC(void){
 
     if (err_gasflow_adc_enabled){
+        I2CMux.selectChannel(ADC_GASFLOW_MUX);  
         byte error;
-        Wire.beginTransmission(ads.ads_i2cAddress);
+        Wire.beginTransmission(adc_gasflow.ads_i2cAddress);
         error = Wire.endTransmission();
 
         if (error == 0)  // If the device is connected.
         {
             int16_t result_raw;
-            Wire.requestFrom(ads.ads_i2cAddress, (uint8_t)2);
+            Wire.requestFrom(adc_gasflow.ads_i2cAddress, (uint8_t)2);
             result_raw = (int16_t)((Wire.read() << 8) | Wire.read());
 
             // Reference voltage appears to be ~3.8V on these units. unsure why, should be 3.3V
             // Also, there is a divide by 4 resistor divider on the input.
             float result_volts = result_raw/32768.0 * ADS_REF_VOLTS * 4;
             ESP_LOGD("HAL", "ADC: %0.2f V", result_volts);
+            I2CMux.disableChannel(ADC_GASFLOW_MUX);
             return result_volts;
         } else {
             errorHandler(HAL_ERR_GASFLOW_ADC);
         }
     }
+    I2CMux.disableChannel(ADC_GASFLOW_MUX);
     return nan("0");
 }
 

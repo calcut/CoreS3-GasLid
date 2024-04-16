@@ -22,10 +22,10 @@
 // INPUTS
 #include "mod_a1019.h"  //Temperature sensors
 #include "mod_sdm120.h" //Power meter
-#include "SparkFun_MCP9600.h" //Thermocouple Amplifier
 #include <driver/pcnt.h> //ESP32 Pulse counter
 #include "M5_ADS1100.h" //ADC for gas flow meter
 #include "ADS1X15.h" //ADC for pH probes
+#include "TCA9548.h" //I2C Multiplexer
 
 #ifndef TERMINAL_LOG_LENGTH
 #define TERMINAL_LOG_LENGTH 512
@@ -46,14 +46,16 @@ typedef enum {
     HAL_ERR_ADC,
     HAL_ERR_GASFLOW_ADC,
     HAL_ERR_PH_ADC,
-    HAL_ERR_THERMOCOUPLE_ADC,
+    HAL_ERR_MOISTURE_ADC_1,
+    HAL_ERR_MOISTURE_ADC_2,
+    HAL_ERR_I2C_MUX,
     HAL_ERR_A1019,
     HAL_ERR_A1019_2,
     HAL_ERR_SDM120,
     HAL_ERR_FLOWMETER,
     HAL_ERR_4IN8OUT,
     HAL_ERR_MOTORSHIELD,
-    HAL_ERR_QUADRELAY,
+    HAL_ERR_M5_RELAYS,
 
 } hal_err_t;
 
@@ -87,10 +89,8 @@ public:
     void enable12VRelay(bool enable);
 
 private:
-    Qwiic_Relay quadRelay = Qwiic_Relay(QUIIC_RELAY_ADDR); // Alternate address 0x6C
 
     Adafruit_MotorShield MS1 = Adafruit_MotorShield(MOTOR_FEATHERWING_ADDR); //0x6F
-
     Adafruit_DCMotor *gasPump[1] = {
         MS1.getMotor(4),
     };
@@ -114,7 +114,7 @@ class PHProbe{
 
 class MoistureProbe{
     public:
-        MoistureProbe(int channel, ADS1115 *adc_ph);
+        MoistureProbe(int channel, ADS1115 *adc_moisture);
         float readMoisture_pc();
     private:
         ADS1115 *_adc_ph;
@@ -144,27 +144,36 @@ public:
     bool err_sdm120_enabled = false;
 
     bool err_ph_adc_enabled = false;
-    int err_thermocouple_adc_enabled = false;
+    bool err_moisture_adc_1_enabled = false;
+    bool err_moisture_adc_2_enabled = false;
 
 private:
-    esp_err_t initThermocoupleADCs();
     esp_err_t initFlowMeters(int pin);
     esp_err_t initGasFlowADC();
-    float readADCvoltage(void);
+    float readGasFlowADC(void);
 
     Mod_a1019 mod_a1019;
     Mod_a1019 mod_a1019_2;
     Mod_sdm120 mod_sdm120;
-    ADS1100 ads;
 
-    MCP9600 themocoupleBoard[6];
-    int tc_available[6] = {false, false, false, false, false, false};
+    PCA9548 I2CMux = PCA9548(I2C_MUX_ADDR, &Wire);
+    ADS1100 adc_gasflow;
 
     ADS1115 adc_ph = ADS1115(ADC_PH_ADDR);
     PHProbe phProbe1 = PHProbe(0, &adc_ph);
     PHProbe phProbe2 = PHProbe(1, &adc_ph);
     PHProbe phProbe3 = PHProbe(2, &adc_ph);
-    MoistureProbe moistureProbe1 = MoistureProbe(3, &adc_ph);
+
+    ADS1115 adc_moisture_1 = ADS1115(ADC_MOISTURE_1_ADDR);
+    MoistureProbe moistureProbe1 = MoistureProbe(0, &adc_moisture_1);
+    MoistureProbe moistureProbe2 = MoistureProbe(1, &adc_moisture_1);
+    MoistureProbe moistureProbe3 = MoistureProbe(2, &adc_moisture_1);
+
+    ADS1115 adc_moisture_2 = ADS1115(ADC_MOISTURE_2_ADDR);
+    MoistureProbe moistureProbe4 = MoistureProbe(0, &adc_moisture_2);
+    MoistureProbe moistureProbe5 = MoistureProbe(1, &adc_moisture_2);
+    MoistureProbe moistureProbe6 = MoistureProbe(2, &adc_moisture_2);
+
 
     int previousPulseCount = 0;
     int previousPulseTime = 0;

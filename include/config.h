@@ -22,13 +22,33 @@
 #define NOTECARD_ADDR           0x17 //Not actually applied, but this is the default
 #define MODULE_4IN8OUT_1_ADDR   0x45 
 #define MODULE_4IN8OUT_2_ADDR   0x46
-#define ADC_GAS_FLOW_ADDR       0x48
-#define ADC_PH_ADDR             0x49
-#define QUIIC_RELAY_ADDR        0x6C
 #define MOTOR_FEATHERWING_ADDR  0x6F
-#define M5_HBRIDGE_ADDR         0x20 // or 0x54?? something funny with powerup sequence...
-#define M5_4_20MA_ADDR          0x55
-#define M5_KMETER_ADDR          0x11
+#define M5_RELAYS_ADDR          0x26
+#define I2C_MUX_ADDR            0x70
+
+// Not used in this system
+// #define QUIIC_RELAY_ADDR        0x6C
+// #define M5_HBRIDGE_ADDR         0x20 // or 0x54?? something funny with powerup sequence...
+// #define M5_4_20MA_ADDR          0x55
+// #define M5_KMETER_ADDR          0x11
+
+//On EXT I2C Bus Mux1
+#define ADC_PH_ADDR             0x49
+#define ADC_PH_MUX              1
+
+//On EXT I2C Bus Mux2
+#define ADC_MOISTURE_1_ADDR     0x48
+#define ADC_MOISTURE_1_MUX      2
+#define ADC_MOISTURE_2_ADDR     0x49
+#define ADC_MOISTURE_2_MUX      2
+
+//On EXT I2C Bus Mux3
+#define ADC_GASFLOW_ADDR        0x48 //done
+#define ADC_GASFLOW_MUX         3
+
+// Modbus Slave IDs
+#define MOD_A1019_1_ID 0
+#define MOD_A1019_2_ID 4
 
 
 #define SYS_I2C_PORT 0
