@@ -565,9 +565,9 @@ void Inputs::pollSensorData(void){
     }
     if(err_moisture_adc_2_enabled){
         I2CMux.selectChannel(ADC_MOISTURE_2_MUX);
-        inputData.moistureData["ms1"] = moistureProbe1.readMoisture_pc();
-        inputData.moistureData["ms2"] = moistureProbe2.readMoisture_pc();
-        inputData.moistureData["ms3"] = moistureProbe3.readMoisture_pc();
+        inputData.moistureData["ms4"] = moistureProbe4.readMoisture_pc();
+        inputData.moistureData["ms5"] = moistureProbe5.readMoisture_pc();
+        inputData.moistureData["ms6"] = moistureProbe6.readMoisture_pc();
         I2CMux.disableChannel(ADC_MOISTURE_2_MUX);
     }
 
