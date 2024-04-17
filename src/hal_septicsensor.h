@@ -36,6 +36,10 @@
 #define WATER_PUMP_RELAY 2
 #define ADS_REF_VOLTS 3.72
 
+//To prevent concurrent access to I2C bus
+//Delcared extern so RTOS tasks can access it for managing notecard access
+extern SemaphoreHandle_t I2CMutex;
+
 // Sets up I2C, Serial, Display etc
 void hal_setup(void);
 

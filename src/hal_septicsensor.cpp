@@ -11,7 +11,7 @@ char logBuffer[TERMINAL_LOG_LENGTH + 1];
 esp_err_t err;
 
 SemaphoreHandle_t modbus_mutex = xSemaphoreCreateMutex();
-
+SemaphoreHandle_t I2CMutex = xSemaphoreCreateMutex();
 
 // RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, PIN_DE_RS485, -1);
 
@@ -161,7 +161,7 @@ void hal_setup(void){
     // M5.Power.Axp2101.setDLDO2(0);    // Not used
 
 
-    Wire.begin(PIN_SDA_I2C_EXT, PIN_SCL_I2C_EXT, 100000);  //Init I2C_EXT
+    Wire.begin(PIN_SDA_I2C_EXT, PIN_SCL_I2C_EXT, 400000);  //Init I2C_EXT
     Wire1.begin(PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, 400000);  //Init I2C_SYS
     
 
@@ -227,6 +227,7 @@ int serialLogger(const char* format, va_list args){
 
 void Outputs::init() {
     ESP_LOGI("HAL", "Outputs init");
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
 
     if(!moduleIO1.begin(&Wire, PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, MODULE_4IN8OUT_1_ADDR)){
         errorHandler(HAL_ERR_4IN8OUT);
@@ -282,6 +283,7 @@ void Outputs::init() {
     pinMode(PIN_JACKET_RELAY, OUTPUT);
     digitalWrite(PIN_JACKET_RELAY, LOW);
 
+    xSemaphoreGive(I2CMutex);
     ESP_LOGI("HAL", "Outputs init complete");
 }
 
@@ -289,25 +291,32 @@ void Outputs::init() {
 
 void Outputs::setFlowValve(int index, bool ValveState) {
 
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     bool result = moduleIO1.setOutput(index, ValveState);
     ESP_LOGI("HAL", "Flow Valve %d set to %d, success=%d", index, ValveState, result);
+    xSemaphoreGive(I2CMutex);
 
 }
 
 void Outputs::setReturnValve(int index, bool ValveState) {
+
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     moduleIO2.setAllOutput(false);
     bool result = moduleIO2.setOutput(index, ValveState);
-
     ESP_LOGI("HAL", "Return Valve %d set to %d, success=%d", index, ValveState, result);
+    xSemaphoreGive(I2CMutex);
 
 }
 
 void Outputs::setGasPumpSpeed(float percent) {
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     gasPump[0]->setSpeed(percent/100 * 255);
     gasPump[0]->run(FORWARD);
+    xSemaphoreGive(I2CMutex);
 }
 
 void Outputs::enableJacketHeater(bool enable) {
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     if(enable){
         M5Relays.relayWrite(JACKET_HEATER_RELAY, 1);
         digitalWrite(PIN_JACKET_RELAY, HIGH);
@@ -316,10 +325,11 @@ void Outputs::enableJacketHeater(bool enable) {
         M5Relays.relayWrite(JACKET_HEATER_RELAY, 0);
         digitalWrite(PIN_JACKET_RELAY, LOW);
     }
+    xSemaphoreGive(I2CMutex);
 }
 
 bool Outputs::getJacketHeater(void){
-
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     Wire.beginTransmission(M5_RELAYS_ADDR);   // Initialize the Tx buffer
     Wire.write(0x11);            // Put slave register address in Tx buffer
     Wire.endTransmission();
@@ -330,11 +340,14 @@ bool Outputs::getJacketHeater(void){
     ESP_LOGW("HAL", "Jacket Heater State: %d", state);
 
     // get state of PIN_JACKET_RELAY
+    xSemaphoreGive(I2CMutex);
     return digitalRead(PIN_JACKET_RELAY);
 }
 
 void Outputs::enableWaterPump(bool enable) {
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     M5Relays.relayWrite(WATER_PUMP_RELAY, enable);
+    xSemaphoreGive(I2CMutex);
 }
 
 void Inputs::init(void){
@@ -359,9 +372,6 @@ void Inputs::init(void){
         mod_a1019.getType();
         vTaskDelay(20 / portTICK_PERIOD_MS);
     }
-    xSemaphoreGive(modbus_mutex);
-
-    xSemaphoreTake(modbus_mutex, portMAX_DELAY);
     err = mod_a1019_2.init(MOD_A1019_2_ID);
     if(err != ESP_OK){
         errorHandler(HAL_ERR_A1019_2);
@@ -383,6 +393,7 @@ void Inputs::init(void){
 
     err_sdm120_enabled = true;
 
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     if (I2CMux.begin() == false)
     {
         errorHandler(HAL_ERR_I2C_MUX);
@@ -429,7 +440,7 @@ void Inputs::init(void){
 
 
     I2CMux.disableAllChannels();
-
+    xSemaphoreGive(I2CMutex);
     ESP_LOGI("HAL", "Inputs init complete");
 
 }
@@ -481,7 +492,9 @@ esp_err_t Inputs::initFlowMeters(int pin){
 void Inputs::serviceFlowMeters(void){
 
     //Gas flow meter
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     inputData.flowData["GasFlow"] = readGasFlowADC()*1000/5.0; //5000mV per litre per minute
+    xSemaphoreGive(I2CMutex);
 
 
     pcnt_get_counter_value(PCNT_UNIT_0, &counterVal);
@@ -544,6 +557,22 @@ void Inputs::pollSensorData(void){
     inputData.temperatureData["tb5"]     = AI[4];
     inputData.temperatureData["tb6"]     = AI[5];
 
+
+    if(err_sdm120_enabled){
+        xSemaphoreTake(modbus_mutex, portMAX_DELAY);
+        if(mod_sdm120.isConnected()){
+            inputData.powerData["Voltage"]           = mod_sdm120.readRegister(SDM120_VOLTAGE);
+            inputData.powerData["Power"]             = mod_sdm120.readRegister(SDM120_ACTIVE_POWER);
+            inputData.powerData["PowerApparent"]     = mod_sdm120.readRegister(SDM120_APPARENT_POWER);
+            inputData.powerData["Energy"]            = mod_sdm120.readRegister(SDM120_TOTAL_ACTIVE_ENERGY);
+        }
+        else{
+            errorHandler(HAL_ERR_SDM120);
+        }
+        xSemaphoreGive(modbus_mutex);
+    }
+
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     if(err_ph_adc_enabled){
         I2CMux.selectChannel(ADC_PH_MUX);
         inputData.pHData["pH1"] = phProbe1.read_ph();
@@ -572,21 +601,7 @@ void Inputs::pollSensorData(void){
     inputData.powerData["BatteryCurrent"]    = (float)M5.Power.getBatteryCurrent();
     inputData.powerData["JacketOn"]          = (float)outputs.getJacketHeater();
 
-    if(err_sdm120_enabled){
-        xSemaphoreTake(modbus_mutex, portMAX_DELAY);
-
-        if(mod_sdm120.isConnected()){
-            inputData.powerData["Voltage"]           = mod_sdm120.readRegister(SDM120_VOLTAGE);
-            inputData.powerData["Power"]             = mod_sdm120.readRegister(SDM120_ACTIVE_POWER);
-            inputData.powerData["PowerApparent"]     = mod_sdm120.readRegister(SDM120_APPARENT_POWER);
-            inputData.powerData["Energy"]            = mod_sdm120.readRegister(SDM120_TOTAL_ACTIVE_ENERGY);
-        }
-        else{
-            errorHandler(HAL_ERR_SDM120);
-        }
-        xSemaphoreGive(modbus_mutex);
-    }
-
+    xSemaphoreGive(I2CMutex);
 
 }
 
@@ -624,6 +639,7 @@ void Inputs::pollGasSensors(int tankNumber){
 float Inputs::readGasFlowADC(void){
 
     if (err_gasflow_adc_enabled){
+        xSemaphoreTake(I2CMutex, portMAX_DELAY);
         I2CMux.selectChannel(ADC_GASFLOW_MUX);  
         byte error;
         Wire.beginTransmission(adc_gasflow.ads_i2cAddress);
@@ -644,8 +660,9 @@ float Inputs::readGasFlowADC(void){
         } else {
             errorHandler(HAL_ERR_GASFLOW_ADC);
         }
+        I2CMux.disableChannel(ADC_GASFLOW_MUX);
+        xSemaphoreGive(I2CMutex);
     }
-    I2CMux.disableChannel(ADC_GASFLOW_MUX);
     return nan("0");
 }
 
@@ -692,6 +709,7 @@ void I2C_scan(){
     byte error, address;
     int nDevices;
 
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     Serial.println("Scanning...");
 
     nDevices = 0;
@@ -725,6 +743,7 @@ void I2C_scan(){
         Serial.println("No I2C devices found\n");
     else
         Serial.println("done\n");
+    xSemaphoreGive(I2CMutex);
 }
 
 PHProbe::PHProbe(int channel, Adafruit_ADS1115 *adc){
@@ -734,6 +753,7 @@ PHProbe::PHProbe(int channel, Adafruit_ADS1115 *adc){
 
 float PHProbe::read_ph(){
     ESP_LOGD("HAL", "Reading pH Probe %d", _channel);
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     int counts = _adc->readADC_SingleEnded(_channel);
     float voltage = _adc->computeVolts(counts);
 
@@ -743,6 +763,7 @@ float PHProbe::read_ph(){
     // slope = slope + (slope * temperatureCoefficient*(calibrationTemperature-temperature))
 
     float ph = (voltage - neutralVoltage) * slope + 7;
+    xSemaphoreGive(I2CMutex);
 
     return ph;
 }
@@ -752,10 +773,11 @@ MoistureProbe::MoistureProbe(int channel, Adafruit_ADS1115 *adc){
     _channel = channel;
 }
 float MoistureProbe::readMoisture_pc(){
-
     ESP_LOGD("HAL", "Reading Moisture Probe %d", _channel);
+    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     int counts = _adc->readADC_SingleEnded(_channel);
     float voltage = _adc->computeVolts(counts);
     float moisture_pc = 100 - ((voltage - waterVoltage) / (airVoltage - waterVoltage) * 100);
+    xSemaphoreGive(I2CMutex);
     return moisture_pc;
 }
