@@ -39,6 +39,7 @@
 //To prevent concurrent access to I2C bus
 //Delcared extern so RTOS tasks can access it for managing notecard access
 extern SemaphoreHandle_t I2CMutex;
+extern void takeI2CMutex();;
 
 // Sets up I2C, Serial, Display etc
 void hal_setup(void);
@@ -85,6 +86,7 @@ public:
     };
 
     void init();
+    void initRelays(void);
     void setFlowValve(int index, bool ValveState);
     void setReturnValve(int index, bool ValveState);
     void setGasPumpSpeed(float percent);

@@ -15,6 +15,13 @@ SemaphoreHandle_t I2CMutex = xSemaphoreCreateMutex();
 
 // RS485Class RS485(Serial2, PIN_RX_RS485, PIN_TX_RS485, PIN_DE_RS485, -1);
 
+void takeI2CMutex() {
+    if(xSemaphoreTake(I2CMutex, portMAX_DELAY) == pdTRUE) {
+        // TaskHandle_t currentTask = xTaskGetCurrentTaskHandle();
+        // ESP_LOGW("HAL", "I2C Mutex taken by %s", pcTaskGetTaskName(currentTask));
+    }
+}
+
 void errorHandler(hal_err_t err){
 
     //Strategy is:
@@ -227,7 +234,7 @@ int serialLogger(const char* format, va_list args){
 
 void Outputs::init() {
     ESP_LOGI("HAL", "Outputs init");
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
 
     if(!moduleIO1.begin(&Wire, PIN_SDA_I2C_SYS, PIN_SCL_I2C_SYS, MODULE_4IN8OUT_1_ADDR)){
         errorHandler(HAL_ERR_4IN8OUT);
@@ -250,6 +257,8 @@ void Outputs::init() {
     }
     else ESP_LOGI("HAL", "Motor Shield 1 found.");
 
+    initRelays();
+    xSemaphoreGive(I2CMutex);
 
     setFlowValve(0, ValveState::CLOSED);
     setFlowValve(1, ValveState::CLOSED);
@@ -266,6 +275,14 @@ void Outputs::init() {
     setReturnValve(5, ValveState::CLOSED);
     setGasPumpSpeed(0); 
 
+    // set pin 9 as an output (Jacket Heater), workaround while quadrelay isn't working
+    pinMode(PIN_JACKET_RELAY, OUTPUT);
+    digitalWrite(PIN_JACKET_RELAY, LOW);
+
+    ESP_LOGI("HAL", "Outputs init complete");
+}
+
+void Outputs::initRelays(void){
     int error;
     Wire.beginTransmission(M5_RELAYS_ADDR);
     error = Wire.endTransmission();
@@ -278,20 +295,11 @@ void Outputs::init() {
     else {
         errorHandler(HAL_ERR_M5_RELAYS);
     }
-
-    // set pin 9 as an output (Jacket Heater), workaround while quadrelay isn't working
-    pinMode(PIN_JACKET_RELAY, OUTPUT);
-    digitalWrite(PIN_JACKET_RELAY, LOW);
-
-    xSemaphoreGive(I2CMutex);
-    ESP_LOGI("HAL", "Outputs init complete");
 }
-
-
 
 void Outputs::setFlowValve(int index, bool ValveState) {
 
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     bool result = moduleIO1.setOutput(index, ValveState);
     ESP_LOGI("HAL", "Flow Valve %d set to %d, success=%d", index, ValveState, result);
     xSemaphoreGive(I2CMutex);
@@ -300,7 +308,7 @@ void Outputs::setFlowValve(int index, bool ValveState) {
 
 void Outputs::setReturnValve(int index, bool ValveState) {
 
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     moduleIO2.setAllOutput(false);
     bool result = moduleIO2.setOutput(index, ValveState);
     ESP_LOGI("HAL", "Return Valve %d set to %d, success=%d", index, ValveState, result);
@@ -309,14 +317,14 @@ void Outputs::setReturnValve(int index, bool ValveState) {
 }
 
 void Outputs::setGasPumpSpeed(float percent) {
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     gasPump[0]->setSpeed(percent/100 * 255);
     gasPump[0]->run(FORWARD);
     xSemaphoreGive(I2CMutex);
 }
 
 void Outputs::enableJacketHeater(bool enable) {
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     if(enable){
         M5Relays.relayWrite(JACKET_HEATER_RELAY, 1);
         digitalWrite(PIN_JACKET_RELAY, HIGH);
@@ -329,7 +337,7 @@ void Outputs::enableJacketHeater(bool enable) {
 }
 
 bool Outputs::getJacketHeater(void){
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     Wire.beginTransmission(M5_RELAYS_ADDR);   // Initialize the Tx buffer
     Wire.write(0x11);            // Put slave register address in Tx buffer
     Wire.endTransmission();
@@ -345,7 +353,7 @@ bool Outputs::getJacketHeater(void){
 }
 
 void Outputs::enableWaterPump(bool enable) {
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     M5Relays.relayWrite(WATER_PUMP_RELAY, enable);
     xSemaphoreGive(I2CMutex);
 }
@@ -393,7 +401,7 @@ void Inputs::init(void){
 
     err_sdm120_enabled = true;
 
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     if (I2CMux.begin() == false)
     {
         errorHandler(HAL_ERR_I2C_MUX);
@@ -447,6 +455,7 @@ void Inputs::init(void){
 
 esp_err_t Inputs::initGasFlowADC(){
     //ADC for gas flow meter 
+    // Intentionally not taking I2CMutex as it is taken in init function
     byte error;
     I2CMux.selectChannel(ADC_GASFLOW_MUX);
     Wire.beginTransmission(ADC_GASFLOW_ADDR);
@@ -492,10 +501,7 @@ esp_err_t Inputs::initFlowMeters(int pin){
 void Inputs::serviceFlowMeters(void){
 
     //Gas flow meter
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     inputData.flowData["GasFlow"] = readGasFlowADC()*1000/5.0; //5000mV per litre per minute
-    xSemaphoreGive(I2CMutex);
-
 
     pcnt_get_counter_value(PCNT_UNIT_0, &counterVal);
 
@@ -572,7 +578,6 @@ void Inputs::pollSensorData(void){
         xSemaphoreGive(modbus_mutex);
     }
 
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
     if(err_ph_adc_enabled){
         I2CMux.selectChannel(ADC_PH_MUX);
         inputData.pHData["pH1"] = phProbe1.read_ph();
@@ -601,7 +606,6 @@ void Inputs::pollSensorData(void){
     inputData.powerData["BatteryCurrent"]    = (float)M5.Power.getBatteryCurrent();
     inputData.powerData["JacketOn"]          = (float)outputs.getJacketHeater();
 
-    xSemaphoreGive(I2CMutex);
 
 }
 
@@ -638,8 +642,10 @@ void Inputs::pollGasSensors(int tankNumber){
 
 float Inputs::readGasFlowADC(void){
 
+    float result_volts = nan("0");
+
     if (err_gasflow_adc_enabled){
-        xSemaphoreTake(I2CMutex, portMAX_DELAY);
+        takeI2CMutex();
         I2CMux.selectChannel(ADC_GASFLOW_MUX);  
         byte error;
         Wire.beginTransmission(adc_gasflow.ads_i2cAddress);
@@ -653,17 +659,14 @@ float Inputs::readGasFlowADC(void){
 
             // Reference voltage appears to be ~3.8V on these units. unsure why, should be 3.3V
             // Also, there is a divide by 4 resistor divider on the input.
-            float result_volts = result_raw/32768.0 * ADS_REF_VOLTS * 4;
-            ESP_LOGD("HAL", "ADC: %0.2f V", result_volts);
-            I2CMux.disableChannel(ADC_GASFLOW_MUX);
-            return result_volts;
+            result_volts = result_raw/32768.0 * ADS_REF_VOLTS * 4;
         } else {
             errorHandler(HAL_ERR_GASFLOW_ADC);
         }
         I2CMux.disableChannel(ADC_GASFLOW_MUX);
         xSemaphoreGive(I2CMutex);
     }
-    return nan("0");
+    return result_volts;
 }
 
 void setSystemTime(){
@@ -709,7 +712,7 @@ void I2C_scan(){
     byte error, address;
     int nDevices;
 
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     Serial.println("Scanning...");
 
     nDevices = 0;
@@ -753,7 +756,7 @@ PHProbe::PHProbe(int channel, Adafruit_ADS1115 *adc){
 
 float PHProbe::read_ph(){
     ESP_LOGD("HAL", "Reading pH Probe %d", _channel);
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     int counts = _adc->readADC_SingleEnded(_channel);
     float voltage = _adc->computeVolts(counts);
 
@@ -774,7 +777,7 @@ MoistureProbe::MoistureProbe(int channel, Adafruit_ADS1115 *adc){
 }
 float MoistureProbe::readMoisture_pc(){
     ESP_LOGD("HAL", "Reading Moisture Probe %d", _channel);
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     int counts = _adc->readADC_SingleEnded(_channel);
     float voltage = _adc->computeVolts(counts);
     float moisture_pc = 100 - ((voltage - waterVoltage) / (airVoltage - waterVoltage) * 100);
