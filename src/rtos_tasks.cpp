@@ -137,6 +137,9 @@ void servicePID(void * pvParameters){
 
 void readFlowMeters(void *pvParameters)
 {
+    while (!stateMachine.initComplete){
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
     while (1)
     {
         inputs.serviceFlowMeters();
@@ -159,7 +162,7 @@ void serviceGUI(void * pvParameters){
 #ifdef USE_NOTECARD
 void serviceNotecard(void * pvParameters){
 
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     notecardManager.begin();
     notecardManager.cardWirelessPenaltyReset();
     // notecardManager.clearWifiConnection();
@@ -182,7 +185,7 @@ void serviceNotecard(void * pvParameters){
 
         if (notecardManager.serviceEnabled){
             ESP_LOGI("RTOS", "Notecard info service");
-            xSemaphoreTake(I2CMutex, portMAX_DELAY);
+            takeI2CMutex();
             notecardManager.hubGet();
             vTaskDelay(10 / portTICK_PERIOD_MS);
             notecardManager.cardStatus();
@@ -209,7 +212,7 @@ void serviceNotecard(void * pvParameters){
 
 void sampleDataNotecard(void * pvParameters){
     while(1) {
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     ESP_LOGI("RTOS", "Notecard sampleSensorData...");
     queueBatchSensorData();
 
@@ -221,7 +224,7 @@ void sampleDataNotecard(void * pvParameters){
 
 void sendDataNotecard(void * pvParameters){
   while(1) {
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
 
 
     ESP_LOGI("RTOS", "Notecard sendSensorData...");
@@ -236,7 +239,7 @@ void sendDataNotecard(void * pvParameters){
 
 void timeSyncNotecard(void * pvParameters){
   while(1) {
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     notecardManager.cardStatus();
 
     if(notecardManager.connected){
@@ -323,7 +326,7 @@ void debugTask(void * pvParameters){
         if (stateMachine.envVars["gasSampleNow"]){
             stateMachine.sampleGasCards();
             
-            xSemaphoreTake(I2CMutex, portMAX_DELAY);
+            takeI2CMutex();
             notecardManager.sendSensorData(inputData.gasData);
             xSemaphoreGive(I2CMutex);
         }
@@ -345,7 +348,7 @@ void serviceGasCards(void * pvParameters){
         xSemaphoreTake(gasSampleSemaphore, portMAX_DELAY);
         stateMachine.sampleGasCards();
 
-        xSemaphoreTake(I2CMutex, portMAX_DELAY);
+        takeI2CMutex();
         notecardManager.sendSensorData(inputData.gasData);
         xSemaphoreGive(I2CMutex);
 
@@ -361,7 +364,7 @@ void changeEnvVar(const char* key, const char* value){
     ESP_LOGI("RTOS", "Changing envVar %s to %s", key, value);
 
 #ifdef USE_NOTECARD
-    xSemaphoreTake(I2CMutex, portMAX_DELAY);
+    takeI2CMutex();
     notecardManager.setEnvironmentVar(key, value);
     notecardManager.getEnvironment();
     xSemaphoreGive(I2CMutex);
@@ -399,8 +402,10 @@ void refreshEnvironment(void) {
         //Refresh the PID tuning
         stateMachine.tunePID();
 
+#ifdef USE_GUI
         //update the GUI
         display_refresh_envVars();
+#endif
 
         notecardManager.newEnvVars = false;
     }
