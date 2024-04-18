@@ -14,6 +14,9 @@ void setupRtos(void){
     esp_log_level_set("NCARD", ESP_LOG_INFO);
 
 
+    esp_task_wdt_init(10, true);
+    // esp_task_wdt_init(TWDT_TIMEOUT_S, false);
+
     xTaskCreate(
         runStateMachine, // task function
         "State Machine", // task name
@@ -112,9 +115,11 @@ void setupRtos(void){
 
 void runStateMachine(void * pvParameters){
 
+    esp_task_wdt_add(NULL);
     stateMachine.init();
     
     while(1){
+        esp_task_wdt_reset();
         stateMachine.run();
         
         vTaskDelay(1000 / portTICK_PERIOD_MS);

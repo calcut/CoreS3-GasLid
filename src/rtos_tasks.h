@@ -4,6 +4,7 @@
 #include "config.h"
 #include "state_machine.h"
 #include "esp_log.h"
+#include "esp_task_wdt.h"
 #include "notecard_context.h"
 
 #ifdef USE_GUI

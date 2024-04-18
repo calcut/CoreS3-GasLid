@@ -18,12 +18,12 @@ SemaphoreHandle_t I2CMutex = xSemaphoreCreateMutex();
 bool takeI2CMutex(const char* callingFunction) {
     TaskHandle_t currentTask = xTaskGetCurrentTaskHandle();
 
-    if(xSemaphoreTake(I2CMutex, 10000/portTICK_PERIOD_MS) == pdTRUE) {
+    if(xSemaphoreTake(I2CMutex, 15000/portTICK_PERIOD_MS) == pdTRUE) {
         ESP_LOGD("HAL", "I2C Mutex taken by %s, %s", pcTaskGetTaskName(currentTask), callingFunction);
         return true;
     }
     else {
-        ESP_LOGE("HAL", "I2C Mutex timeout (10s) by %s, %s", pcTaskGetTaskName(currentTask), callingFunction);
+        ESP_LOGE("HAL", "I2C Mutex timeout (15s) by %s, %s", pcTaskGetTaskName(currentTask), callingFunction);
         return false;
     }
 }
