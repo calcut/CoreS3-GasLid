@@ -282,8 +282,8 @@ void Outputs::init() {
     setGasPumpSpeed(0); 
 
     // set pin 9 as an output (Jacket Heater), workaround while quadrelay isn't working
-    pinMode(PIN_JACKET_RELAY, OUTPUT);
-    digitalWrite(PIN_JACKET_RELAY, LOW);
+    // pinMode(PIN_JACKET_RELAY, OUTPUT);
+    // digitalWrite(PIN_JACKET_RELAY, LOW);
 
     ESP_LOGI("HAL", "Outputs init complete");
 }
@@ -333,11 +333,11 @@ void Outputs::enableJacketHeater(bool enable) {
     TAKE_I2C_MUTEX_OR_RETURN_VOID();
     if(enable){
         M5Relays.relayWrite(JACKET_HEATER_RELAY, 1);
-        digitalWrite(PIN_JACKET_RELAY, HIGH);
+        // digitalWrite(PIN_JACKET_RELAY, HIGH);
     }
     else{
         M5Relays.relayWrite(JACKET_HEATER_RELAY, 0);
-        digitalWrite(PIN_JACKET_RELAY, LOW);
+        // digitalWrite(PIN_JACKET_RELAY, LOW);
     }
     xSemaphoreGive(I2CMutex);
 }
@@ -351,11 +351,11 @@ bool Outputs::getJacketHeater(void){
     uint8_t data = Wire.read();
 
     bool state = data & (1 << JACKET_HEATER_RELAY);
-    ESP_LOGW("HAL", "Jacket Heater State: %d", state);
+    xSemaphoreGive(I2CMutex);
 
     // get state of PIN_JACKET_RELAY
-    xSemaphoreGive(I2CMutex);
-    return digitalRead(PIN_JACKET_RELAY);
+    // return digitalRead(PIN_JACKET_RELAY);
+    return state;
 }
 
 void Outputs::enableWaterPump(bool enable) {
