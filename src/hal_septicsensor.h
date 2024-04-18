@@ -39,7 +39,23 @@
 //To prevent concurrent access to I2C bus
 //Delcared extern so RTOS tasks can access it for managing notecard access
 extern SemaphoreHandle_t I2CMutex;
-extern void takeI2CMutex();;
+extern bool takeI2CMutex(const char* callingFunction);
+
+//Macro to simplify I2C mutex handling
+//Function will return if mutex is not available
+#define TAKE_I2C_MUTEX_OR_RETURN_ZERO() \
+do { \
+    if(!takeI2CMutex(__func__)) { \
+        return 0; \
+    } \
+} while(0)
+
+#define TAKE_I2C_MUTEX_OR_RETURN_VOID() \
+do { \
+    if(!takeI2CMutex(__func__)) { \
+        return; \
+    } \
+} while(0)
 
 // Sets up I2C, Serial, Display etc
 void hal_setup(void);
@@ -107,11 +123,13 @@ extern Outputs outputs;
 
 class PHProbe{
     public:
-        PHProbe(int channel, Adafruit_ADS1115 *adc);
+        PHProbe(int channel, Adafruit_ADS1115 *adc, int muxChannel, PCA9548 *mux);
         float read_ph();
     private:
         Adafruit_ADS1115 *_adc;
         int _channel;
+        PCA9548 *_mux;
+        int _muxChannel;
         float neutralVoltage = 1.5;
         float acidVoltage = 2.03244;
         float temperatureCoefficient = 0.00335;
@@ -121,11 +139,13 @@ class PHProbe{
 
 class MoistureProbe{
     public:
-        MoistureProbe(int channel, Adafruit_ADS1115 *adc);
+        MoistureProbe(int channel, Adafruit_ADS1115 *adc, int muxChannel, PCA9548 *mux);
         float readMoisture_pc();
     private:
         Adafruit_ADS1115 *_adc;
         int _channel;
+        PCA9548 *_mux;
+        int _muxChannel;
         float airVoltage = 3;
         float waterVoltage = 0.5;
 };
@@ -170,17 +190,17 @@ private:
     Adafruit_ADS1115 adc_moisture_1;
     Adafruit_ADS1115 adc_moisture_2;
 
-    PHProbe phProbe1 = PHProbe(0, &adc_ph);
-    PHProbe phProbe2 = PHProbe(1, &adc_ph);
-    PHProbe phProbe3 = PHProbe(2, &adc_ph);
+    PHProbe phProbe1 = PHProbe(0, &adc_ph, ADC_PH_MUX, &I2CMux);
+    PHProbe phProbe2 = PHProbe(1, &adc_ph, ADC_PH_MUX, &I2CMux);
+    PHProbe phProbe3 = PHProbe(2, &adc_ph, ADC_PH_MUX, &I2CMux);
 
-    MoistureProbe moistureProbe1 = MoistureProbe(0, &adc_moisture_1);
-    MoistureProbe moistureProbe2 = MoistureProbe(1, &adc_moisture_1);
-    MoistureProbe moistureProbe3 = MoistureProbe(2, &adc_moisture_1);
+    MoistureProbe moistureProbe1 = MoistureProbe(0, &adc_moisture_1, ADC_MOISTURE_1_MUX, &I2CMux);
+    MoistureProbe moistureProbe2 = MoistureProbe(1, &adc_moisture_1, ADC_MOISTURE_1_MUX, &I2CMux);
+    MoistureProbe moistureProbe3 = MoistureProbe(2, &adc_moisture_1, ADC_MOISTURE_1_MUX, &I2CMux);
 
-    MoistureProbe moistureProbe4 = MoistureProbe(0, &adc_moisture_2);
-    MoistureProbe moistureProbe5 = MoistureProbe(1, &adc_moisture_2);
-    MoistureProbe moistureProbe6 = MoistureProbe(2, &adc_moisture_2);
+    MoistureProbe moistureProbe4 = MoistureProbe(0, &adc_moisture_2, ADC_MOISTURE_2_MUX, &I2CMux);
+    MoistureProbe moistureProbe5 = MoistureProbe(1, &adc_moisture_2, ADC_MOISTURE_2_MUX, &I2CMux);
+    MoistureProbe moistureProbe6 = MoistureProbe(2, &adc_moisture_2, ADC_MOISTURE_2_MUX, &I2CMux);
 
 
     int previousPulseCount = 0;
