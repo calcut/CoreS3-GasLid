@@ -14,6 +14,16 @@ public:
         {"tl3", nan("0")},
     };
 
+    std::unordered_map<std::string, float> biofilterTemperatureData = {
+        {"tb1", nan("0")},
+        {"tb2", nan("0")},
+        {"tb3", nan("0")},
+        {"tb4", nan("0")},
+        {"tb5", nan("0")},
+        {"tb6", nan("0")},
+        {"tb7", nan("0")},
+        {"tb8", nan("0")},
+    };
     // std::unordered_map<std::string, float> pressureData = {
     //     {"Pr1", nan("0")},
     //     {"Pr2", nan("0")},

@@ -562,12 +562,14 @@ void Inputs::pollSensorData(void){
         }
     }
 
-    inputData.temperatureData["tb1"]     = AI[0];
-    inputData.temperatureData["tb2"]     = AI[1];
-    inputData.temperatureData["tb3"]     = AI[2];
-    inputData.temperatureData["tb4"]     = AI[3];
-    inputData.temperatureData["tb5"]     = AI[4];
-    inputData.temperatureData["tb6"]     = AI[5];
+    inputData.biofilterTemperatureData["tb1"]     = AI[0];
+    inputData.biofilterTemperatureData["tb2"]     = AI[1];
+    inputData.biofilterTemperatureData["tb3"]     = AI[2];
+    inputData.biofilterTemperatureData["tb4"]     = AI[3];
+    inputData.biofilterTemperatureData["tb5"]     = AI[4];
+    inputData.biofilterTemperatureData["tb6"]     = AI[5];
+    inputData.biofilterTemperatureData["tb7"]     = AI[6];
+    inputData.biofilterTemperatureData["tb8"]     = AI[7];
 
 
     if(err_sdm120_enabled){
