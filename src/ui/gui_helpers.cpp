@@ -244,7 +244,7 @@ void display_sensor_info(lv_timer_t * timer){
 
         for (auto& keyval : inputData.biofilterTemperatureData) {
             key = const_cast<char*>(keyval.first.c_str());
-            sprintf(text_buffer, "%0.1f %%", keyval.second);
+            sprintf(text_buffer, "%0.1f C", keyval.second);
             lv_label_set_text(s6_values[i], text_buffer);
             lv_label_set_text(s6_names[i], key);
             lv_bar_set_value(s6_bars[i], keyval.second, LV_ANIM_OFF);

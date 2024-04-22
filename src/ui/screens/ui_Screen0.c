@@ -89,7 +89,7 @@ lv_obj_set_height( ui_s0_Label06, 66);
 lv_obj_set_x( ui_s0_Label06, 104 );
 lv_obj_set_y( ui_s0_Label06, 0 );
 lv_obj_set_align( ui_s0_Label06, LV_ALIGN_CENTER );
-lv_label_set_text(ui_s0_Label06,"\nScreen\n6");
+lv_label_set_text(ui_s0_Label06,"\nBiofilter\nTemps");
 lv_obj_add_flag( ui_s0_Label06, LV_OBJ_FLAG_CLICKABLE );   /// Flags
 lv_obj_set_style_text_color(ui_s0_Label06, lv_color_hex(0x161414), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_s0_Label06, 255, LV_PART_MAIN| LV_STATE_DEFAULT);

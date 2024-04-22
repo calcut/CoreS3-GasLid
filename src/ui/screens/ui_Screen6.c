@@ -50,7 +50,7 @@ lv_obj_set_height( ui_s6_headerTitle, LV_SIZE_CONTENT);   /// 1
 lv_obj_set_x( ui_s6_headerTitle, 0 );
 lv_obj_set_y( ui_s6_headerTitle, -9 );
 lv_obj_set_align( ui_s6_headerTitle, LV_ALIGN_TOP_MID );
-lv_label_set_text(ui_s6_headerTitle,"Screen 6");
+lv_label_set_text(ui_s6_headerTitle,"Biofilter Temps");
 lv_obj_set_style_text_color(ui_s6_headerTitle, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
 lv_obj_set_style_text_opa(ui_s6_headerTitle, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 
