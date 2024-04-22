@@ -14,7 +14,6 @@ void display_sensor_info(lv_timer_t * timer);
 void display_pid_info(lv_timer_t * timer);
 void display_date_time_labels(lv_timer_t * timer);
 void display_log(lv_timer_t * timer);
-void display_pressure_enthalpy(lv_timer_t * timer);
 
 void nc_info_screen_event_cb(lv_event_t * event);
 

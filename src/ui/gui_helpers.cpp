@@ -17,7 +17,6 @@ void setupGui(){
     lv_timer_t * timer_notecard_info = lv_timer_create(display_notecard_info, 1000, NULL);
     lv_timer_t * timer_sensor_info = lv_timer_create(display_sensor_info, 1000, NULL);
     lv_timer_t * timer_pid_info = lv_timer_create(display_pid_info, 1000, NULL);
-    lv_timer_t * timer_pressure_enthalpy = lv_timer_create(display_pressure_enthalpy, 1000, NULL);
     lv_timer_t * timer_log = lv_timer_create(display_log, 250, NULL);
 
     lv_obj_add_event_cb(ui_Screen3, nc_info_screen_event_cb, LV_EVENT_SCREEN_LOAD_START, NULL);
@@ -29,18 +28,6 @@ void setupGui(){
 
     lv_obj_add_event_cb(ui_s2_GoButton, gas_sample_go_event_cb, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(ui_s2_StopButton, gas_sample_stop_event_cb, LV_EVENT_PRESSED, NULL);
-
-    lv_obj_set_style_size(ui_s6_Chart, 0, LV_PART_INDICATOR);
-
-    lv_chart_set_range( ui_s6_Chart, LV_CHART_AXIS_PRIMARY_X, 100, 800);
-    lv_chart_set_range( ui_s6_Chart, LV_CHART_AXIS_PRIMARY_Y, 0, 170);
-
-    lv_chart_set_point_count(ui_s6_Chart, 10);
-    lv_chart_series_t* ui_Chart1_series_1 = lv_chart_add_series(ui_s6_Chart, lv_color_hex(0x808080), LV_CHART_AXIS_PRIMARY_Y);
-    static lv_coord_t ui_Chart1_r290_xarray[] = { 100, 175, 280, 400, 500, 600, 630, 600, 550, 525,};
-    static lv_coord_t ui_Chart1_r290_yarray[] = {   0,  53, 103, 140, 160, 162, 141,  96,  36,   0,};
-    lv_chart_set_ext_y_array(ui_s6_Chart, ui_Chart1_series_1, ui_Chart1_r290_yarray);
-    lv_chart_set_ext_x_array(ui_s6_Chart, ui_Chart1_series_1, ui_Chart1_r290_xarray);
 
     populate_widgets();
     display_refresh_envVars();
@@ -74,37 +61,6 @@ void jacketslider_cb(lv_event_t * e)
     }
     else if (target == ui_s1_tempSlider3){
             changeEnvVar("targetTempTank3", temp);
-    }
-}
-
-void display_pressure_enthalpy(lv_timer_t * timer){
-
-    // R290 Enthalpy Dome Data from
-    // https://www.flycarpet.net/en/phonline
-    // x	    y	    log(y) *100
-    // 100	    1	      0
-    // 175	    3.4	     53
-    // 280	    10.7	103
-    // 400	    25.4	140
-    // 500	    40	    160
-    // 600	    42	    162
-    // 630	    25.8	141
-    // 600	    9.2	     96
-    // 550	    2.3	     36
-    // 525	    1	      0
-    if (lv_scr_act() == ui_Screen6){
-        /*Do not display points on the data*/
-        // lv_obj_set_style_size(ui_Chart1, 0, LV_PART_INDICATOR);
-
-        // lv_chart_set_range( ui_Chart1, LV_CHART_AXIS_PRIMARY_X, 100, 800);
-        // lv_chart_set_range( ui_Chart1, LV_CHART_AXIS_PRIMARY_Y, 0, 170);
-
-        // lv_chart_set_point_count(ui_Chart1, 10);
-        // lv_chart_series_t* ui_Chart1_series_1 = lv_chart_add_series(ui_Chart1, lv_color_hex(0x808080), LV_CHART_AXIS_PRIMARY_Y);
-        // static lv_coord_t ui_Chart1_r290_xarray[] = { 100, 175, 280, 400, 500, 600, 630, 600, 550, 525,};
-        // static lv_coord_t ui_Chart1_r290_yarray[] = {   0,  53, 103, 140, 160, 162, 141,  96,  36,   0,};
-        // lv_chart_set_ext_y_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_r290_yarray);
-        // lv_chart_set_ext_x_array(ui_Chart1, ui_Chart1_series_1, ui_Chart1_r290_xarray);
     }
 }
 
@@ -246,6 +202,60 @@ void display_notecard_info(lv_timer_t * timer){
 }
 
 void display_sensor_info(lv_timer_t * timer){
+
+    if (lv_scr_act() == ui_Screen6 )
+    {
+        // gather the ui objects into arrays for easier looping
+        lv_obj_t *s6_values[8] = {
+            ui_s6_value1,
+            ui_s6_value2,
+            ui_s6_value3,
+            ui_s6_value4,
+            ui_s6_value5,
+            ui_s6_value6,
+            ui_s6_value7,
+            ui_s6_value8
+        };
+
+        lv_obj_t *s6_names[8] = {
+            ui_s6_name1,
+            ui_s6_name2,
+            ui_s6_name3,
+            ui_s6_name4,
+            ui_s6_name5,
+            ui_s6_name6,
+            ui_s6_name7,
+            ui_s6_name8
+        };
+
+        lv_obj_t *s6_bars[8] = {
+            ui_s6_bar1,
+            ui_s6_bar2,
+            ui_s6_bar3,
+            ui_s6_bar4,
+            ui_s6_bar5,
+            ui_s6_bar6,
+            ui_s6_bar7,
+            ui_s6_bar8
+        };
+
+        const char* key;
+        int i = 0;
+
+        for (auto& keyval : inputData.biofilterTemperatureData) {
+            key = const_cast<char*>(keyval.first.c_str());
+            sprintf(text_buffer, "%0.1f %%", keyval.second);
+            lv_label_set_text(s6_values[i], text_buffer);
+            lv_label_set_text(s6_names[i], key);
+            lv_bar_set_value(s6_bars[i], keyval.second, LV_ANIM_OFF);
+            lv_bar_set_range(s6_bars[i], 0, 14);
+            i++;
+            if (i >= 8) break;
+        }
+
+
+    }
+
     if (lv_scr_act() == ui_Screen7 )
     {
         // gather the ui objects into arrays for easier looping
@@ -419,13 +429,13 @@ void display_sensor_info(lv_timer_t * timer){
         lv_bar_set_range(s9_bars[i], 0, 100);
         i++;
 
-        key = "WaterFlow";
-        sprintf(text_buffer, "%0.1f", inputData.flowData[key]);
-        lv_label_set_text(s9_values[i], text_buffer);
-        lv_label_set_text(s9_names[i], "WaterFlow (l/min)");
-        lv_bar_set_value(s9_bars[i], inputData.flowData[key], LV_ANIM_OFF);
-        lv_bar_set_range(s9_bars[i], 0, 8);
-        i++;
+        // key = "WaterFlow";
+        // sprintf(text_buffer, "%0.1f", inputData.flowData[key]);
+        // lv_label_set_text(s9_values[i], text_buffer);
+        // lv_label_set_text(s9_names[i], "WaterFlow (l/min)");
+        // lv_bar_set_value(s9_bars[i], inputData.flowData[key], LV_ANIM_OFF);
+        // lv_bar_set_range(s9_bars[i], 0, 8);
+        // i++;
 
         // key = "BatteryVoltage";
         // sprintf(text_buffer, "%0.1f", inputData.powerData[key]);

@@ -1,5 +1,38 @@
 #include "gui_populate_widgets.h"
 
+lv_obj_t *ui_s6_panel1;
+lv_obj_t *ui_s6_bar1;
+lv_obj_t *ui_s6_value1;
+lv_obj_t *ui_s6_name1;
+lv_obj_t *ui_s6_panel2;
+lv_obj_t *ui_s6_bar2;
+lv_obj_t *ui_s6_value2;
+lv_obj_t *ui_s6_name2;
+lv_obj_t *ui_s6_panel3;
+lv_obj_t *ui_s6_bar3;
+lv_obj_t *ui_s6_value3;
+lv_obj_t *ui_s6_name3;
+lv_obj_t *ui_s6_panel4;
+lv_obj_t *ui_s6_bar4;
+lv_obj_t *ui_s6_value4;
+lv_obj_t *ui_s6_name4;
+lv_obj_t *ui_s6_panel5;
+lv_obj_t *ui_s6_bar5;
+lv_obj_t *ui_s6_value5;
+lv_obj_t *ui_s6_name5;
+lv_obj_t *ui_s6_panel6;
+lv_obj_t *ui_s6_bar6;
+lv_obj_t *ui_s6_value6;
+lv_obj_t *ui_s6_name6;
+lv_obj_t *ui_s6_panel7;
+lv_obj_t *ui_s6_bar7;
+lv_obj_t *ui_s6_value7;
+lv_obj_t *ui_s6_name7;
+lv_obj_t *ui_s6_panel8;
+lv_obj_t *ui_s6_bar8;
+lv_obj_t *ui_s6_value8;
+lv_obj_t *ui_s6_name8;
+
 lv_obj_t *ui_s7_panel1;
 lv_obj_t *ui_s7_bar1;
 lv_obj_t *ui_s7_value1;
@@ -141,6 +174,102 @@ void build_row(lv_obj_t *panel, lv_obj_t *bar, lv_obj_t *labl_name, lv_obj_t *la
 }
 
 void populate_widgets(){
+
+    ui_s6_panel1= lv_obj_create(ui_Screen6);
+    ui_s6_bar1 = lv_bar_create(ui_s6_panel1);
+    ui_s6_value1 = lv_label_create(ui_s6_panel1);
+    ui_s6_name1 = lv_label_create(ui_s6_panel1);
+
+    ui_s6_panel2= lv_obj_create(ui_Screen6);
+    ui_s6_bar2 = lv_bar_create(ui_s6_panel2);
+    ui_s6_value2 = lv_label_create(ui_s6_panel2);
+    ui_s6_name2 = lv_label_create(ui_s6_panel2);
+
+    ui_s6_panel3= lv_obj_create(ui_Screen6);
+    ui_s6_bar3 = lv_bar_create(ui_s6_panel3);
+    ui_s6_value3 = lv_label_create(ui_s6_panel3);
+    ui_s6_name3 = lv_label_create(ui_s6_panel3);
+
+    ui_s6_panel4= lv_obj_create(ui_Screen6);
+    ui_s6_bar4 = lv_bar_create(ui_s6_panel4);
+    ui_s6_value4 = lv_label_create(ui_s6_panel4);
+    ui_s6_name4 = lv_label_create(ui_s6_panel4);
+
+    ui_s6_panel5= lv_obj_create(ui_Screen6);
+    ui_s6_bar5 = lv_bar_create(ui_s6_panel5);
+    ui_s6_value5 = lv_label_create(ui_s6_panel5);
+    ui_s6_name5 = lv_label_create(ui_s6_panel5);
+
+    ui_s6_panel6= lv_obj_create(ui_Screen6);
+    ui_s6_bar6 = lv_bar_create(ui_s6_panel6);
+    ui_s6_value6 = lv_label_create(ui_s6_panel6);
+    ui_s6_name6 = lv_label_create(ui_s6_panel6);
+
+    ui_s6_panel7= lv_obj_create(ui_Screen6);
+    ui_s6_bar7 = lv_bar_create(ui_s6_panel7);
+    ui_s6_value7 = lv_label_create(ui_s6_panel7);
+    ui_s6_name7 = lv_label_create(ui_s6_panel7);
+
+    ui_s6_panel8= lv_obj_create(ui_Screen6);
+    ui_s6_bar8 = lv_bar_create(ui_s6_panel8);
+    ui_s6_value8 = lv_label_create(ui_s6_panel8);
+    ui_s6_name8 = lv_label_create(ui_s6_panel8);
+
+    build_row(
+        ui_s6_panel1, 
+        ui_s6_bar1, 
+        ui_s6_name1, 
+        ui_s6_value1
+    );
+
+    build_row(
+        ui_s6_panel2, 
+        ui_s6_bar2, 
+        ui_s6_name2, 
+        ui_s6_value2
+    );
+
+    build_row(
+        ui_s6_panel3, 
+        ui_s6_bar3, 
+        ui_s6_name3, 
+        ui_s6_value3
+    );
+
+    build_row(
+        ui_s6_panel4, 
+        ui_s6_bar4, 
+        ui_s6_name4, 
+        ui_s6_value4
+    );
+
+    build_row(
+        ui_s6_panel5, 
+        ui_s6_bar5, 
+        ui_s6_name5, 
+        ui_s6_value5
+    );
+
+    build_row(
+        ui_s6_panel6, 
+        ui_s6_bar6, 
+        ui_s6_name6, 
+        ui_s6_value6
+    );
+
+    build_row(
+        ui_s6_panel7, 
+        ui_s6_bar7, 
+        ui_s6_name7, 
+        ui_s6_value7
+    );
+
+    build_row(
+        ui_s6_panel8, 
+        ui_s6_bar8, 
+        ui_s6_name8, 
+        ui_s6_value8
+    );
 
     ui_s7_panel2= lv_obj_create(ui_Screen7);
     ui_s7_bar2 = lv_bar_create(ui_s7_panel2);
@@ -426,6 +555,7 @@ void populate_widgets(){
     );
 
     //Keep back buttons on top so they can be pressed
+    lv_obj_move_foreground(ui_s6_backButton);
     lv_obj_move_foreground(ui_s7_backButton);
     lv_obj_move_foreground(ui_s8_backButton);
     lv_obj_move_foreground(ui_s9_backButton);

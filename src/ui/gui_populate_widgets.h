@@ -4,6 +4,39 @@
 #include <lvgl.h>
 #include "ui.h"
 
+extern lv_obj_t *ui_s6_panel1;
+extern lv_obj_t *ui_s6_bar1;
+extern lv_obj_t *ui_s6_value1;
+extern lv_obj_t *ui_s6_name1;
+extern lv_obj_t *ui_s6_panel2;
+extern lv_obj_t *ui_s6_bar2;
+extern lv_obj_t *ui_s6_value2;
+extern lv_obj_t *ui_s6_name2;
+extern lv_obj_t *ui_s6_panel3;
+extern lv_obj_t *ui_s6_bar3;
+extern lv_obj_t *ui_s6_value3;
+extern lv_obj_t *ui_s6_name3;
+extern lv_obj_t *ui_s6_panel4;
+extern lv_obj_t *ui_s6_bar4;
+extern lv_obj_t *ui_s6_value4;
+extern lv_obj_t *ui_s6_name4;
+extern lv_obj_t *ui_s6_panel5;
+extern lv_obj_t *ui_s6_bar5;
+extern lv_obj_t *ui_s6_value5;
+extern lv_obj_t *ui_s6_name5;
+extern lv_obj_t *ui_s6_panel6;
+extern lv_obj_t *ui_s6_bar6;
+extern lv_obj_t *ui_s6_value6;
+extern lv_obj_t *ui_s6_name6;
+extern lv_obj_t *ui_s6_panel7;
+extern lv_obj_t *ui_s6_bar7;
+extern lv_obj_t *ui_s6_value7;
+extern lv_obj_t *ui_s6_name7;
+extern lv_obj_t *ui_s6_panel8;
+extern lv_obj_t *ui_s6_bar8;
+extern lv_obj_t *ui_s6_value8;
+extern lv_obj_t *ui_s6_name8;
+
 extern lv_obj_t *ui_s7_panel1;
 extern lv_obj_t *ui_s7_bar1;
 extern lv_obj_t *ui_s7_value1;
