@@ -26,13 +26,13 @@ void setupRtos(void){
         NULL); // out pointer to task handle
 
 
-    xTaskCreate(
-        serviceGasCards, // task function
-        "Service Gas Cards", // task name
-        16384, // stack size in bytes
-        NULL, // pointer to parameters
-        1, // priority
-        NULL); // out pointer to task handle
+    // xTaskCreate(
+    //     serviceGasCards, // task function
+    //     "Service Gas Cards", // task name
+    //     16384, // stack size in bytes
+    //     NULL, // pointer to parameters
+    //     1, // priority
+    //     NULL); // out pointer to task handle
 
     xTaskCreate(
         serviceSerialInput, // task function
