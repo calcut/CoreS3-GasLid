@@ -162,7 +162,9 @@ void hal_setup(void){
     M5.In_I2C.bitOff(AW9523_ADDR, 0x03, 0b00000001, 100000L);  // CAM_RST = 0 //Camera Off
     // M5.In_I2C.bitOff(AW9523_ADDR, 0x03, 0b00000010, 100000L);  // LCD_RST = 0 //Screen OFF
 
-    
+    //Set Timezone
+    setenv("TZ", LOCAL_TIMEZONE, 1);
+    tzset();
 
     // M5.Power.Axp2101.setALDO1(0);    //VDD_1V8 for Audio Amp
     // M5.Power.Axp2101.setALDO2(0);    //VDDA_3V3 for Audio ADC
@@ -686,19 +688,37 @@ void setSystemTime(){
     time_info.tm_year = dt.date.year - 1900;
 
     struct timeval tv;
+
+    //Need to briefly switch to GMT0 so mktime knows that time_info is in GMT
+    setenv("TZ", "GMT0", 1);
+    tzset();
+
     tv.tv_sec = mktime(&time_info);
     tv.tv_usec = 0;
-    ESP_LOGI("HAL", "Setting sys time to %02d:%02d:%02d", dt.time.hours, dt.time.minutes, dt.time.seconds);
+
+    //then switch back to local timezone
+    setenv("TZ", LOCAL_TIMEZONE, 1);
+    tzset();
+
     settimeofday(&tv, NULL);
+
+    gettimeofday(&tv, NULL);
+    char localtime_str[12];
+    char utctime_str[12];
+    strftime(localtime_str, sizeof(localtime_str), "%X", localtime(&tv.tv_sec));
+    strftime(utctime_str, sizeof(utctime_str), "%X", gmtime(&tv.tv_sec));
+
+    ESP_LOGI("HAL", "Sys time set to %s UTC, %s local", utctime_str, localtime_str);
+
 }
 
 void setRTC(time_t epoch_time, int UTC_offset_minutes){
     //To set the on-board RTC chip from time obtained by notecard
     struct tm *time_info;
 
-    epoch_time += UTC_offset_minutes * 60;
-    time_info = localtime(&epoch_time);
+    time_info = gmtime(&epoch_time);
     
+    //RTC is set in GMT / UTC only, as it is not timezone aware
     M5.Rtc.setDateTime(time_info);
     setSystemTime();
 }

@@ -1,6 +1,7 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define LOCAL_TIMEZONE "GMT0BST,M3.5.0/1,M10.5.0" // Europe/London
 
 // From Demo
 #define GC0308_ADDR  0x21 //Camera
