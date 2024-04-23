@@ -146,8 +146,8 @@ class MoistureProbe{
         int _channel;
         PCA9548 *_mux;
         int _muxChannel;
-        float airVoltage = 3;
-        float waterVoltage = 0.5;
+        float airVoltage = 2.25;
+        float waterVoltage = 0;
 };
 
 class Inputs {
