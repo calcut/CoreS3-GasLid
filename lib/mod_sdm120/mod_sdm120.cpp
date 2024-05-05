@@ -22,7 +22,7 @@ float Mod_sdm120::readRegister(int reg) {
         ESP_LOGD("SDM120", "Floatval: %f", floatval);
     }
     else {
-        ESP_LOGE("SDM120", "failed! %s", ModbusRTUClient.lastError());
+        ESP_LOGE("SDM120", "failed! %s while reading register %d", ModbusRTUClient.lastError(), reg);
     }
     return floatval;
 }
@@ -33,7 +33,7 @@ void Mod_sdm120::writeRegister(int reg, int value) {
                                         reg, 1);
     ModbusRTUClient.write(value);
     if (!ModbusRTUClient.endTransmission()) {
-        ESP_LOGE("SDM120", "failed! %s", ModbusRTUClient.lastError());
+        ESP_LOGE("SDM120", "failed! %s while writing register %d", ModbusRTUClient.lastError(), reg);
     } else {
         ESP_LOGD("SDM120", "Success");
     }
