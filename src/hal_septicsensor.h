@@ -40,6 +40,7 @@
 //Delcared extern so RTOS tasks can access it for managing notecard access
 extern SemaphoreHandle_t I2CMutex;
 extern bool takeI2CMutex(const char* callingFunction);
+extern bool takeModbusMutex(const char* callingFunction);
 
 //Macro to simplify I2C mutex handling
 //Function will return if mutex is not available
