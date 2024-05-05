@@ -57,6 +57,20 @@ do { \
     } \
 } while(0)
 
+#define TAKE_MODBUS_MUTEX_OR_RETURN_ZERO() \
+do { \
+    if(!takeModbusMutex(__func__)) { \
+        return 0; \
+    } \
+} while(0)
+
+#define TAKE_MODBUS_MUTEX_OR_RETURN_VOID() \
+do { \
+    if(!takeModbusMutex(__func__)) { \
+        return; \
+    } \
+} while(0)
+
 // Sets up I2C, Serial, Display etc
 void hal_setup(void);
 

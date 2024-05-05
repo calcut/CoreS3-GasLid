@@ -11,6 +11,7 @@ void setupRtos(void){
     esp_log_level_set("IN", ESP_LOG_INFO);
     esp_log_level_set("OUT", ESP_LOG_INFO);
     esp_log_level_set("a1019", ESP_LOG_INFO);
+    esp_log_level_set("SDM120", ESP_LOG_INFO);
     esp_log_level_set("NCARD", ESP_LOG_INFO);
 
 

@@ -28,6 +28,25 @@ bool takeI2CMutex(const char* callingFunction) {
     }
 }
 
+bool takeModbusMutex(const char* callingFunction) {
+    TaskHandle_t currentTask = xTaskGetCurrentTaskHandle();
+
+
+    if(xSemaphoreTake(modbus_mutex, 15000/portTICK_PERIOD_MS) == pdTRUE) {
+
+        //This can prevent modbus errors, under investigation
+        //Seems to be needed when changing to talk to a different modbus device
+        vTaskDelay(20 / portTICK_PERIOD_MS);
+
+        ESP_LOGD("HAL", "Modbus Mutex taken by %s, %s", pcTaskGetTaskName(currentTask), callingFunction);
+        return true;
+    }
+    else {
+        ESP_LOGE("HAL", "Modbus Mutex timeout (15s) by %s, %s", pcTaskGetTaskName(currentTask), callingFunction);
+        return false;
+    }
+}
+
 void errorHandler(hal_err_t err){
 
     //Strategy is:
@@ -369,8 +388,8 @@ void Outputs::enableWaterPump(bool enable) {
 void Inputs::init(void){
 
     ESP_LOGI("HAL", "Inputs init");
-    
-    xSemaphoreTake(modbus_mutex, portMAX_DELAY);
+
+    TAKE_MODBUS_MUTEX_OR_RETURN_VOID();
     err = mod_a1019.init(MOD_A1019_1_ID);
     if(err != ESP_OK){
         errorHandler(HAL_ERR_A1019);
@@ -388,6 +407,9 @@ void Inputs::init(void){
         mod_a1019.getType();
         vTaskDelay(20 / portTICK_PERIOD_MS);
     }
+    xSemaphoreGive(modbus_mutex);
+
+    TAKE_MODBUS_MUTEX_OR_RETURN_VOID();
     err = mod_a1019_2.init(MOD_A1019_2_ID);
     if(err != ESP_OK){
         errorHandler(HAL_ERR_A1019_2);
@@ -532,11 +554,9 @@ void Inputs::pollSensorData(void){
     float voltage;
 
     if(err_a1019_enabled){
-        xSemaphoreTake(modbus_mutex, portMAX_DELAY);
+        TAKE_MODBUS_MUTEX_OR_RETURN_VOID();
         mod_a1019.getInputs_float(AI);
         xSemaphoreGive(modbus_mutex);
-        // Delay seems to be needed to prevent Modbus errors
-        vTaskDelay(20 / portTICK_PERIOD_MS);
     }
     else{
         for (int i = 0; i < 8; i++) {
@@ -552,11 +572,9 @@ void Inputs::pollSensorData(void){
     inputData.temperatureData["tl3"]     = AI[5];
 
     if(err_a1019_2_enabled){
-        xSemaphoreTake(modbus_mutex, portMAX_DELAY);
+        TAKE_MODBUS_MUTEX_OR_RETURN_VOID();
         mod_a1019_2.getInputs_float(AI);
         xSemaphoreGive(modbus_mutex);
-        // Delay seems to be needed to prevent Modbus errors
-        vTaskDelay(20 / portTICK_PERIOD_MS);
     }
     else{
         for (int i = 0; i < 8; i++) {
@@ -575,7 +593,7 @@ void Inputs::pollSensorData(void){
 
 
     if(err_sdm120_enabled){
-        xSemaphoreTake(modbus_mutex, portMAX_DELAY);
+        TAKE_MODBUS_MUTEX_OR_RETURN_VOID();
         if(mod_sdm120.isConnected()){
             inputData.powerData["Voltage"]           = mod_sdm120.readRegister(SDM120_VOLTAGE);
             inputData.powerData["Power"]             = mod_sdm120.readRegister(SDM120_ACTIVE_POWER);
@@ -617,11 +635,9 @@ void Inputs::pollGasSensors(int tankNumber){
     float AI[8];
 
     if(err_a1019_enabled){
-        xSemaphoreTake(modbus_mutex, portMAX_DELAY);
+        TAKE_MODBUS_MUTEX_OR_RETURN_VOID();
         mod_a1019.getInputs_float(AI);
         xSemaphoreGive(modbus_mutex);
-        // Delay seems to be needed to prevent Modbus errors
-        vTaskDelay(20 / portTICK_PERIOD_MS);
     }
     else{
         for (int i = 0; i < 8; i++) {
