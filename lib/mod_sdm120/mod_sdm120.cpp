@@ -2,7 +2,7 @@
 
 
 float Mod_sdm120::readRegister(int reg) {
-    // Serial.printf("Reading register %i, ", reg);
+    delay(1); //this "Delay between polls" can prevent errors
     ESP_LOGD("SDM120", "Reading register %i, ", reg);
     float floatval = -1;
 
@@ -28,6 +28,7 @@ float Mod_sdm120::readRegister(int reg) {
 }
 
 void Mod_sdm120::writeRegister(int reg, int value) {
+    delay(1); //this "Delay between polls" can prevent errors
     ESP_LOGD("SDM120", "Writing register %i = %i, ", reg, value);
     ModbusRTUClient.beginTransmission(id, HOLDING_REGISTERS,
                                         reg, 1);
@@ -42,6 +43,7 @@ void Mod_sdm120::writeRegister(int reg, int value) {
 bool Mod_sdm120::isConnected() {
     int reg = 0;
     bool connected = false;
+    delay(1); //this "Delay between polls" can prevent errors
     if (ModbusRTUClient.requestFrom(id, INPUT_REGISTERS, reg, 2))
     {        
         uint16_t msbs = ModbusRTUClient.read();
