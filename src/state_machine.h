@@ -8,14 +8,6 @@
 class StateMachine {
 public:
 
-    enum State {
-        STANDBY,
-        CHARGING,
-        DISCHARGING, 
-        DEFROST,
-        ERROR
-    };
-
     void init(void);
     void run();
     void sampleGasCards();
@@ -23,19 +15,7 @@ public:
     void tunePID(void);
     void computePID();
 
-
     bool initComplete = false;
-
-
-    State currentState;
-    State previousState;
-    // Inputs::SensorData sensorData;
-    // Inputs::SensorData sensorDataLimitsMax;
-    // Inputs::SensorData sensorDataLimitsMin;
-
-    float* demandSensor;
-    float* defrostSensor;
-    float* flexStoreSensor;
 
     std::unordered_map<std::string, float> envVars = {
         {"gasSampleNow", 0},
@@ -62,10 +42,6 @@ public:
         {"GasFlowMin", 100}, //Something is broken if below this
         {"GasFlowMax", 1200}, //Something is broken if above this
     };
-
-    // This will be equal to either flexStoreLow or flexStoreHigh
-    // Depending on whether the system is charging or discharging
-    float flexStoreThreshold = 20.0;
 
     QuickPID* gasPID;
     float* gasPIDinput;
