@@ -67,16 +67,12 @@ void StateMachine::sampleGasCards(){
     int purgeTime_s = envVars["gasPurgeTime_s"];
     int sampleChannels = envVars["gasSampleChannels"];
 
+    // If we got here from a manual sample request, reset the flag
     if (envVars["gasSampleNow"] == 1){
         envVars["gasSampleNow"] = 0;
     }
 
-    ESP_LOGI("SM", "Running Biofilter gas transfer cycle");
-    ESP_LOGI("SM", "Opening valves flow 0 and return 3");
-    outputs.setFlowValve(0, outputs.ValveState::OPEN);
-    outputs.setReturnValve(3, outputs.ValveState::OPEN);
-    gasPumpEnabled = true;
-    vTaskDelay(pumpTime_s*1000 / portTICK_PERIOD_MS);
+    //Stopping Gas Transfer cycle
     gasPumpEnabled = false;
     outputs.setFlowValve(0, outputs.ValveState::CLOSED);
     outputs.setReturnValve(3, outputs.ValveState::CLOSED);
@@ -84,8 +80,7 @@ void StateMachine::sampleGasCards(){
 
     for (int i = 0; i < sampleChannels; i++){
 
-
-
+        //This should be done smarter, currently it waits for a full cycle to complete
         if (envVars["gasSampleStop"] == 1){
             envVars["gasSampleStop"] = 0;
             gasPumpEnabled = false;
@@ -121,7 +116,13 @@ void StateMachine::sampleGasCards(){
         ESP_LOGI("SM", "Purge Complete");
 
     }
-    gasPumpEnabled = false;
+    // gasPumpEnabled = false;
+
+    ESP_LOGI("SM", "Running Biofilter gas transfer cycle");
+    ESP_LOGI("SM", "Opening valves flow 0 and return 3");
+    outputs.setFlowValve(0, outputs.ValveState::OPEN);
+    outputs.setReturnValve(3, outputs.ValveState::OPEN);
+    gasPumpEnabled = true;
 }
 
 void StateMachine::computePID(){
