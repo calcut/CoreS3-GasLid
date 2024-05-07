@@ -11,6 +11,7 @@ public:
     void init(void);
     void run();
     void sampleGasCards();
+    void gasTransferMode();
     int getGasSampleDelay();
     void tunePID(void);
     void computePID();

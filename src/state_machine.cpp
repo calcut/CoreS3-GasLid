@@ -62,13 +62,20 @@ void StateMachine::run(void){
     }
 }
 
+void StateMachine::gasTransferMode(){
+
+    ESP_LOGI("SM", "Running Biofilter gas transfer cycle");
+    ESP_LOGI("SM", "Opening valves flow 0 and return 3");
+    outputs.setFlowValve(0, outputs.ValveState::OPEN);
+    outputs.setReturnValve(3, outputs.ValveState::OPEN);
+    gasPumpEnabled = true;
+}
 
 void StateMachine::sampleGasCards(){
 
     ESP_LOGI("SM", "Gas Card Sample Sequence starting...");
     gasSampleInProgress = true;
     gasPumpEnabled = true;
-
 
     int pumpTime_s = envVars["gasPumpTime_s"];
     int purgeTime_s = envVars["gasPurgeTime_s"];
@@ -95,13 +102,13 @@ void StateMachine::sampleGasCards(){
 
     for (int i = 0; i < sampleChannels; i++){
 
-        //This should be done smarter, currently it waits for a full cycle to complete
-        if (envVars["gasSampleStop"] == 1){
-            envVars["gasSampleStop"] = 0;
-            // gasPumpEnabled = false;
-            gasSampleInProgress = false;
-            return;
-        }
+        // //This should be done smarter, currently it waits for a full cycle to complete
+        // if (envVars["gasSampleStop"] == 1){
+        //     envVars["gasSampleStop"] = 0;
+        //     // gasPumpEnabled = false;
+        //     gasSampleInProgress = false;
+        //     return;
+        // }
 
         ESP_LOGI("SM", "Opening valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::OPEN);
@@ -131,14 +138,8 @@ void StateMachine::sampleGasCards(){
         ESP_LOGI("SM", "Purge Complete");
 
     }
-    // gasPumpEnabled = false;
-
-    ESP_LOGI("SM", "Running Biofilter gas transfer cycle");
-    ESP_LOGI("SM", "Opening valves flow 0 and return 3");
-    outputs.setFlowValve(0, outputs.ValveState::OPEN);
-    outputs.setReturnValve(3, outputs.ValveState::OPEN);
-    gasPumpEnabled = true;
     gasSampleInProgress = false;
+    gasPumpEnabled = false;
 
 }
 

@@ -348,9 +348,11 @@ void serviceGasCards(void * pvParameters){
     while (!stateMachine.initComplete){
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
-    stateMachine.gasPumpEnabled = true;
 
     while(1){
+
+        stateMachine.gasTransferMode();
+
         // Wait for the semaphore to be given
         xSemaphoreTake(gasSampleSemaphore, portMAX_DELAY);
         stateMachine.sampleGasCards();
