@@ -353,14 +353,7 @@ void Outputs::setGasPumpSpeed(float percent) {
 
 void Outputs::enableJacketHeater(bool enable) {
     TAKE_I2C_MUTEX_OR_RETURN_VOID();
-    if(enable){
-        M5Relays.relayWrite(JACKET_HEATER_RELAY, 1);
-        // digitalWrite(PIN_JACKET_RELAY, HIGH);
-    }
-    else{
-        M5Relays.relayWrite(JACKET_HEATER_RELAY, 0);
-        // digitalWrite(PIN_JACKET_RELAY, LOW);
-    }
+    M5Relays.relayWrite(JACKET_HEATER_RELAY, enable);
     xSemaphoreGive(I2CMutex);
 }
 
