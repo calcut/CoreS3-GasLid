@@ -26,6 +26,14 @@ void setupRtos(void){
         1, // priority
         NULL); // out pointer to task handle
 
+    xTaskCreate(
+        waterPumpTask, // task function
+        "Water Pump Task", // task name
+        4096, // stack size in bytes
+        NULL, // pointer to parameters
+        1, // priority
+        NULL); // out pointer to task handle
+
 
     xTaskCreate(
         serviceGasCards, // task function
@@ -127,6 +135,37 @@ void runStateMachine(void * pvParameters){
     }
 }
 
+void waterPumpTask(void * pvParameters){
+
+    while (!stateMachine.initComplete){
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+
+    TickType_t LastWakeTime;
+    TickType_t Interval;
+    
+    // Initialize the xLastWakeTime variable with the current time.
+    LastWakeTime = xTaskGetTickCount();
+    
+    while(1){
+
+        // Turn on the water pump
+        outputs.enableWaterPump(true);
+        ESP_LOGI("RTOS", "Water pump enabled");
+
+        // Wait for the pump time
+        vTaskDelay(pdMS_TO_TICKS(stateMachine.envVars["WaterPumpTime_s"] * 1000));
+
+        // Turn off the water pump
+        outputs.enableWaterPump(false);
+        ESP_LOGI("RTOS", "Water pump disabled");
+
+        // Wait for the next cycle.
+        Interval = pdMS_TO_TICKS(stateMachine.envVars["WaterPumpInterval_s"] * 1000); // convert seconds to ticks
+        ESP_LOGE("RTOS", "Water pump interval: %f, %d ", stateMachine.envVars["WaterPumpInterval_s"], Interval);
+        // xTaskDelayUntil(&LastWakeTime, Interval);
+    }
+}
 
 
 void servicePID(void * pvParameters){

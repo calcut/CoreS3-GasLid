@@ -20,6 +20,7 @@ void serviceNotecard(void * pvParameters);
 void serviceSerialInput(void * pvParameters);
 void debugTask(void * pvParameters);
 void runStateMachine(void * pvParameters);
+void waterPumpTask(void * pvParameters);
 void servicePID(void * pvParameters);
 void serviceGUI(void * pvParameters);
 void readFlowMeters(void *pvParameters);
