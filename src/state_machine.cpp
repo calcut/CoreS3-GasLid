@@ -38,6 +38,10 @@ void StateMachine::run(void){
 
     inputs.pollSensorData();
 
+    if (!gasSampleInProgress){
+        inputs.pollGasSensors(0);
+    }
+
     if(outputs.getJacketHeater()){
         ESP_LOGD("SM", "Jacket Heater is on");
         if(inputData.temperatureData["ts1"] > envVars["targetTempTank1"] 
@@ -62,6 +66,9 @@ void StateMachine::run(void){
 void StateMachine::sampleGasCards(){
 
     ESP_LOGI("SM", "Gas Card Sample Sequence starting...");
+    gasSampleInProgress = true;
+    gasPumpEnabled = true;
+
 
     int pumpTime_s = envVars["gasPumpTime_s"];
     int purgeTime_s = envVars["gasPurgeTime_s"];
@@ -73,9 +80,17 @@ void StateMachine::sampleGasCards(){
     }
 
     //Stopping Gas Transfer cycle
-    gasPumpEnabled = false;
     outputs.setFlowValve(0, outputs.ValveState::CLOSED);
     outputs.setReturnValve(3, outputs.ValveState::CLOSED);
+
+    ESP_LOGI("SM", "Purging for %d seconds", purgeTime_s);
+    outputs.setFlowValve(5, outputs.ValveState::OPEN);
+    outputs.setReturnValve(5, outputs.ValveState::OPEN);
+
+    vTaskDelay(purgeTime_s*1000 / portTICK_PERIOD_MS);
+
+    outputs.setFlowValve(5, outputs.ValveState::CLOSED);
+    outputs.setReturnValve(5, outputs.ValveState::CLOSED);
 
 
     for (int i = 0; i < sampleChannels; i++){
@@ -83,7 +98,8 @@ void StateMachine::sampleGasCards(){
         //This should be done smarter, currently it waits for a full cycle to complete
         if (envVars["gasSampleStop"] == 1){
             envVars["gasSampleStop"] = 0;
-            gasPumpEnabled = false;
+            // gasPumpEnabled = false;
+            gasSampleInProgress = false;
             return;
         }
 
@@ -92,7 +108,6 @@ void StateMachine::sampleGasCards(){
         outputs.setReturnValve(i, outputs.ValveState::OPEN);
         
         ESP_LOGI("SM", "Running pump for %d seconds", pumpTime_s);
-        gasPumpEnabled = true;
 
         vTaskDelay(pumpTime_s*1000 / portTICK_PERIOD_MS);
 
@@ -123,14 +138,18 @@ void StateMachine::sampleGasCards(){
     outputs.setFlowValve(0, outputs.ValveState::OPEN);
     outputs.setReturnValve(3, outputs.ValveState::OPEN);
     gasPumpEnabled = true;
+    gasSampleInProgress = false;
+
 }
 
 void StateMachine::computePID(){
     //check if input is valid
     if(isnan(*gasPIDinput) & gasPumpEnabled){
-        ESP_LOGW("RTOS", "Invalid PID input, gasPIDinput is nan, disabling gas pump");
-        gasPumpEnabled = false;
+        ESP_LOGW("RTOS", "Invalid PID input, gasPIDinput is nan, setting to manualGasPumpSpeed");
+        // gasPumpEnabled = false;
+        outputs.setGasPumpSpeed(envVars["GasPumpManualSpeed_pc"]);
         vTaskDelay(5000 / portTICK_PERIOD_MS);
+        return;
     }
     //Check if out of bounds
     float max = envVars["GasFlowMax"];

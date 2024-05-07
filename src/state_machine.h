@@ -39,6 +39,7 @@ public:
         {"gasPID_I", 0.01},
         {"gasPID_D", 0.001},
         {"GasFlowSetpoint", 1000}, // mL/minute
+        {"GasPumpManualSpeed_pc", 50}, // used if flow meter is not available
         {"GasFlowMin", 100}, //Something is broken if below this
         {"GasFlowMax", 1200}, //Something is broken if above this
     };
@@ -48,6 +49,7 @@ public:
     float* gasPIDsetpoint;
     float gasPIDoutput = 0.0;
     bool gasPumpEnabled = false;
+    bool gasSampleInProgress = false;
 
 };
 

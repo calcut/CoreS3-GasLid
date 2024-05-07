@@ -277,8 +277,9 @@ void Outputs::init() {
     
     moduleIO2.setAllOutput(false);
 
-    if (!MS1.begin()) {         // create with the default frequency 1.6KHz
-        // if (!MS1.begin(1000)) {  // OR with a different frequency, say 1KHz
+    // if (!MS1.begin()) {         // create with the default frequency 1.6KHz
+    if (!MS1.begin(400)) {  // OR with a different frequency, say 400Hz
+    //400Hz appear to be more stable, less "hunting"
         ESP_LOGW("HAL", "Could not find Motor Shield 1. Check wiring.");
         errorHandler(HAL_ERR_MOTORSHIELD);
     }

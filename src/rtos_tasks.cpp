@@ -27,13 +27,13 @@ void setupRtos(void){
         NULL); // out pointer to task handle
 
 
-    // xTaskCreate(
-    //     serviceGasCards, // task function
-    //     "Service Gas Cards", // task name
-    //     16384, // stack size in bytes
-    //     NULL, // pointer to parameters
-    //     1, // priority
-    //     NULL); // out pointer to task handle
+    xTaskCreate(
+        serviceGasCards, // task function
+        "Service Gas Cards", // task name
+        16384, // stack size in bytes
+        NULL, // pointer to parameters
+        1, // priority
+        NULL); // out pointer to task handle
 
     xTaskCreate(
         serviceSerialInput, // task function
@@ -348,6 +348,7 @@ void serviceGasCards(void * pvParameters){
     while (!stateMachine.initComplete){
         vTaskDelay(100 / portTICK_PERIOD_MS);
     }
+    stateMachine.gasPumpEnabled = true;
 
     while(1){
         // Wait for the semaphore to be given

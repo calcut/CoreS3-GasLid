@@ -42,6 +42,7 @@ public:
     };
 
     std::unordered_map<std::string, float> gasData = {
+        {"gc0", nan("0")},
         {"gc1", nan("0")},
         {"gc2", nan("0")},
         {"gc3", nan("0")},

@@ -80,6 +80,12 @@ void queueBatchSensorData(){
     JAddFloatMapToObject(entry, inputData.pHData);
     JAddFloatMapToObject(entry, inputData.moistureData);
     JAddFloatMapToObject(entry, inputData.powerData);
+    JAddFloatMapToObject(entry, inputData.flowData);
+    if(!stateMachine.gasSampleInProgress){
+        char gc0_str[12];
+        dtostrf(inputData.gasData["gc0"], 0, 2, gc0_str);
+        JAddStringToObject(entry, "gc0", gc0_str);
+    }
     JAddItemToObject(notecardManager.queue, timestr, entry);
 }
 
