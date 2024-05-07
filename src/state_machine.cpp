@@ -144,12 +144,18 @@ void StateMachine::sampleGasCards(){
 }
 
 void StateMachine::computePID(){
+
+    // If no gas flow ADC is available, use manual speed
+    if (!inputs.err_gasflow_adc_enabled & gasPumpEnabled){
+        ESP_LOGD("RTOS", "Gas flow ADC not available, using manual speed for gas pump");
+        outputs.setGasPumpSpeed(envVars["GasPumpManualSpeed_pc"]);
+        return;
+    }
     //check if input is valid
     if(isnan(*gasPIDinput) & gasPumpEnabled){
-        ESP_LOGW("RTOS", "Invalid PID input, gasPIDinput is nan, setting to manualGasPumpSpeed");
-        // gasPumpEnabled = false;
-        outputs.setGasPumpSpeed(envVars["GasPumpManualSpeed_pc"]);
-        vTaskDelay(5000 / portTICK_PERIOD_MS);
+        ESP_LOGW("RTOS", "Invalid PID input, gasPIDinput is nan, raising error");
+        errorHandler(HAL_ERR_GASFLOW_ADC);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
         return;
     }
     //Check if out of bounds
