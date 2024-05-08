@@ -1,6 +1,6 @@
 #include "mod_a1019.h"
 
-void Mod_a1019::getInputs_float(float_t channel[8]) {
+void Mod_a1019::getInputs_float(void) {
     ESP_LOGD("a1019", "Reading input values");
     if (ModbusRTUClient.requestFrom(id, HOLDING_REGISTERS,
                                 736, 16)) {  //ABCD
@@ -15,12 +15,15 @@ void Mod_a1019::getInputs_float(float_t channel[8]) {
             memcpy(&byte_array[0], &lsbs, 2);
 
             // Convert to float and print
-            memcpy(&channel[i], &byte_array, 4);
-            ESP_LOGD("a1019", "channel[%i]: %0.2f", i, channel[i]);
+            memcpy(&AI[i], &byte_array, 4);
+            ESP_LOGD("a1019", "AI[%i]: %0.2f", i, AI[i]);
         }
     }
     else {
         ESP_LOGE("a1019", "failed! %s", ModbusRTUClient.lastError());
+        for (int i = 0; i < 8; i++) {
+            AI[i] = nan("0");
+        }
     }
 }
 void Mod_a1019::readTC_int(int32_t tc[8]) {

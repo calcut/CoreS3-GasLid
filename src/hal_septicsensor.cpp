@@ -544,46 +544,47 @@ void Inputs::serviceFlowMeters(void){
 void Inputs::pollSensorData(void){
     ESP_LOGD("HAL", "Polling Sensor Data");
 
-    float AI[8];
     float voltage;
 
     if(err_a1019_enabled){
         TAKE_MODBUS_MUTEX_OR_RETURN_VOID();
-        mod_a1019.getInputs_float(AI);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        mod_a1019.getInputs_float();
         xSemaphoreGive(modbus_mutex);
     }
     else{
         for (int i = 0; i < 8; i++) {
-            AI[i] = nan("0");
+            mod_a1019.AI[i] = nan("0");
         }
     }
 
-    inputData.temperatureData["ts1"]     = AI[0];
-    inputData.temperatureData["ts2"]     = AI[1];
-    inputData.temperatureData["ts3"]     = AI[2];
-    inputData.temperatureData["tl1"]     = AI[3];
-    inputData.temperatureData["tl2"]     = AI[4];
-    inputData.temperatureData["tl3"]     = AI[5];
+    inputData.temperatureData["ts1"]     = mod_a1019.AI[0];
+    inputData.temperatureData["ts2"]     = mod_a1019.AI[1];
+    inputData.temperatureData["ts3"]     = mod_a1019.AI[2];
+    inputData.temperatureData["tl1"]     = mod_a1019.AI[3];
+    inputData.temperatureData["tl2"]     = mod_a1019.AI[4];
+    inputData.temperatureData["tl3"]     = mod_a1019.AI[5];
 
     if(err_a1019_2_enabled){
         TAKE_MODBUS_MUTEX_OR_RETURN_VOID();
-        mod_a1019_2.getInputs_float(AI);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+        mod_a1019_2.getInputs_float();
         xSemaphoreGive(modbus_mutex);
     }
     else{
         for (int i = 0; i < 8; i++) {
-            AI[i] = nan("0");
+            mod_a1019_2.AI[i] = nan("0");
         }
     }
 
-    inputData.biofilterTemperatureData["tb1"]     = AI[0];
-    inputData.biofilterTemperatureData["tb2"]     = AI[1];
-    inputData.biofilterTemperatureData["tb3"]     = AI[2];
-    inputData.biofilterTemperatureData["tb4"]     = AI[3];
-    inputData.biofilterTemperatureData["tb5"]     = AI[4];
-    inputData.biofilterTemperatureData["tb6"]     = AI[5];
-    inputData.biofilterTemperatureData["tb7"]     = AI[6];
-    inputData.biofilterTemperatureData["tb8"]     = AI[7];
+    inputData.biofilterTemperatureData["tb1"]     = mod_a1019_2.AI[0];
+    inputData.biofilterTemperatureData["tb2"]     = mod_a1019_2.AI[1];
+    inputData.biofilterTemperatureData["tb3"]     = mod_a1019_2.AI[2];
+    inputData.biofilterTemperatureData["tb4"]     = mod_a1019_2.AI[3];
+    inputData.biofilterTemperatureData["tb5"]     = mod_a1019_2.AI[4];
+    inputData.biofilterTemperatureData["tb6"]     = mod_a1019_2.AI[5];
+    inputData.biofilterTemperatureData["tb7"]     = mod_a1019_2.AI[6];
+    inputData.biofilterTemperatureData["tb8"]     = mod_a1019_2.AI[7];
 
 
     if(err_sdm120_enabled){
@@ -626,21 +627,20 @@ void Inputs::pollSensorData(void){
 }
 
 void Inputs::pollGasSensors(int tankNumber){
-    float AI[8];
 
     if(err_a1019_enabled){
         TAKE_MODBUS_MUTEX_OR_RETURN_VOID();
-        mod_a1019.getInputs_float(AI);
+        mod_a1019.getInputs_float();
         xSemaphoreGive(modbus_mutex);
     }
     else{
         for (int i = 0; i < 8; i++) {
-            AI[i] = nan("0");
+            mod_a1019.AI[i] = nan("0");
         }
     }
 
     //Gascard data is 4-20mA, so 20mA = 100% gas, 4mA = 0% gas
-    float current = AI[7];
+    float current = mod_a1019.AI[7];
     float gasPercent = (current - 4) / 16 * 100;
 
     // inputData.gasData["CH4"]                = AI[5];
