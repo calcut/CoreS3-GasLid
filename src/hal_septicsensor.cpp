@@ -555,7 +555,6 @@ void Inputs::pollSensorData(void){
 
     if(err_a1019_enabled){
         TAKE_MODBUS_MUTEX_OR_RETURN_VOID();
-        vTaskDelay(100 / portTICK_PERIOD_MS);
         mod_a1019.getInputs_float();
         xSemaphoreGive(modbus_mutex);
     }
@@ -574,7 +573,6 @@ void Inputs::pollSensorData(void){
 
     if(err_a1019_2_enabled){
         TAKE_MODBUS_MUTEX_OR_RETURN_VOID();
-        vTaskDelay(100 / portTICK_PERIOD_MS);
         mod_a1019_2.getInputs_float();
         xSemaphoreGive(modbus_mutex);
     }

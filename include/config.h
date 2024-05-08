@@ -44,7 +44,7 @@
 #define ADC_GASFLOW_MUX         3
 
 // Modbus Slave IDs
-#define MOD_A1019_1_ID 0
+#define MOD_A1019_1_ID 3
 #define MOD_A1019_2_ID 4
 
 
