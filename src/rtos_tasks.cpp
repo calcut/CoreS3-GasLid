@@ -149,21 +149,36 @@ void waterPumpTask(void * pvParameters){
     
     while(1){
 
-        // Turn on the water pump
-        outputs.enableWaterPump(true);
-        ESP_LOGI("RTOS", "Water pump enabled");
+        bool compostIsDry = true;
+        for (int i = 1; i <= 6; i++) {
+            if (inputData.moistureData["ms" + std::to_string(i)] >= stateMachine.envVars["WaterPumpMoistureThreshold_pc"]) {
+                compostIsDry = false;
+                break;
+            }
+        }
 
-        // Wait for the pump time
-        vTaskDelay(pdMS_TO_TICKS(stateMachine.envVars["WaterPumpTime_s"] * 1000));
+        if(stateMachine.envVars["WaterPumpEnabled"] && compostIsDry){
 
-        // Turn off the water pump
-        outputs.enableWaterPump(false);
-        ESP_LOGI("RTOS", "Water pump disabled");
+            // Turn on the water pump
+            outputs.enableWaterPump(true);
+            ESP_LOGI("RTOS", "Water pump enabled");
 
-        // Wait for the next cycle.
-        Interval = pdMS_TO_TICKS(stateMachine.envVars["WaterPumpInterval_s"] * 1000); // convert seconds to ticks
-        ESP_LOGE("RTOS", "Water pump interval: %f, %d ", stateMachine.envVars["WaterPumpInterval_s"], Interval);
-        xTaskDelayUntil(&LastWakeTime, Interval);
+            // Wait for the pump time
+            vTaskDelay(pdMS_TO_TICKS(stateMachine.envVars["WaterPumpTime_s"] * 1000));
+
+            // Turn off the water pump
+            outputs.enableWaterPump(false);
+            ESP_LOGI("RTOS", "Water pump disabled");
+
+            // Wait for the next cycle.
+            Interval = pdMS_TO_TICKS(stateMachine.envVars["WaterPumpInterval_s"] * 1000); // convert seconds to ticks
+            ESP_LOGE("RTOS", "Water pump interval: %f, %d ", stateMachine.envVars["WaterPumpInterval_s"], Interval);
+            xTaskDelayUntil(&LastWakeTime, Interval);
+        }
+        else{
+            outputs.enableWaterPump(false);
+            vTaskDelay(pdMS_TO_TICKS(1 * 1000));
+        }
     }
 }
 

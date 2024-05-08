@@ -43,9 +43,10 @@ public:
         {"GasPumpManualSpeed_pc", 50}, // used if flow meter is not available
         {"GasFlowMin", 100}, //Something is broken if below this
         {"GasFlowMax", 1200}, //Something is broken if above this
-        {"WaterPumpTime_s", 20},
+        {"WaterPumpTime_s", 10},
         {"WaterPumpInterval_s", 60},
-        {"WaterPumpEnabled", 1}
+        {"WaterPumpEnabled", 1},
+        {"WaterPumpMoistureThreshold_pc", 60}
     };
 
     QuickPID* gasPID;
