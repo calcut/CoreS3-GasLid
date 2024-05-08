@@ -120,6 +120,7 @@ public:
     void initRelays(void);
     void setFlowValve(int index, bool ValveState);
     void setReturnValve(int index, bool ValveState);
+    void setTransferValve(bool ValveState);
     void setGasPumpSpeed(float percent);
     void enableJacketHeater(bool enable);
     bool getJacketHeater(void);
@@ -132,6 +133,8 @@ private:
     Adafruit_DCMotor *gasPump[1] = {
         MS1.getMotor(4),
     };
+    Adafruit_DCMotor *transferValve = MS1.getMotor(3);
+
 
 };
 extern Outputs outputs;

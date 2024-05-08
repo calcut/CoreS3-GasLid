@@ -294,8 +294,6 @@ void Outputs::init() {
     setFlowValve(3, ValveState::CLOSED);
     setFlowValve(4, ValveState::CLOSED);
     setFlowValve(5, ValveState::CLOSED);
-    setFlowValve(6, ValveState::CLOSED);
-    setFlowValve(7, ValveState::CLOSED);
     
     setReturnValve(0, ValveState::CLOSED);
     setReturnValve(1, ValveState::CLOSED);
@@ -344,6 +342,13 @@ void Outputs::setReturnValve(int index, bool ValveState) {
     ESP_LOGI("HAL", "Return Valve %d set to %d, success=%d", index, ValveState, result);
     xSemaphoreGive(I2CMutex);
 
+}
+
+void Outputs::setTransferValve(bool ValveState) {
+    TAKE_I2C_MUTEX_OR_RETURN_VOID();
+    transferValve->setSpeed(ValveState * 255);
+    transferValve->run(FORWARD);
+    xSemaphoreGive(I2CMutex);
 }
 
 void Outputs::setGasPumpSpeed(float percent) {
