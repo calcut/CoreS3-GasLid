@@ -207,7 +207,7 @@ int StateMachine::getGasSampleDelay(void){
     ESP_LOGD("SM", "Current time: %s", asctime(now_tm));
 
     // Define the three fixed times
-    struct tm alarmTimes[3];
+    struct tm alarmTimes[4];
     for (int i = 0; i < 3; i++) {
         alarmTimes[i] = *now_tm; // copy current time structure
     }
@@ -223,9 +223,13 @@ int StateMachine::getGasSampleDelay(void){
     alarmTimes[2].tm_min = envVars["sampleTime3_min"];
     alarmTimes[2].tm_sec = 0;
 
+    alarmTimes[3].tm_hour = envVars["sampleTime4_hour"];
+    alarmTimes[3].tm_min = envVars["sampleTime4_min"];
+    alarmTimes[3].tm_sec = 0;
+
     // Calculate the delay for the next run by finding the smallest delay to alarm
     uint32_t delay = UINT32_MAX;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         time_t alarmTime = mktime(&alarmTimes[i]);
         if (alarmTime < now) {
             alarmTime += 24 * 60 * 60; // add 24 hours if the time has passed today
