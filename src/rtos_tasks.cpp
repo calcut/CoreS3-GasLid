@@ -15,7 +15,7 @@ void setupRtos(void){
     esp_log_level_set("NCARD", ESP_LOG_INFO);
 
 
-    esp_task_wdt_init(12, true);
+    esp_task_wdt_init(15, true);
     // esp_task_wdt_init(TWDT_TIMEOUT_S, false);
 
     xTaskCreate(

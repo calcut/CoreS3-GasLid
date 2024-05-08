@@ -208,7 +208,7 @@ int StateMachine::getGasSampleDelay(void){
 
     // Define the three fixed times
     struct tm alarmTimes[4];
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         alarmTimes[i] = *now_tm; // copy current time structure
     }
     alarmTimes[0].tm_hour = envVars["sampleTime1_hour"];
