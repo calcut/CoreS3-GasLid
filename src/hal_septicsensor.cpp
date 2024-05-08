@@ -294,6 +294,8 @@ void Outputs::init() {
     setFlowValve(3, ValveState::CLOSED);
     setFlowValve(4, ValveState::CLOSED);
     setFlowValve(5, ValveState::CLOSED);
+    setFlowValve(6, ValveState::CLOSED);
+    setFlowValve(7, ValveState::CLOSED);
     
     setReturnValve(0, ValveState::CLOSED);
     setReturnValve(1, ValveState::CLOSED);

@@ -68,6 +68,9 @@ void StateMachine::gasTransferMode(){
     ESP_LOGI("SM", "Opening valves flow 0 and return 3");
     outputs.setFlowValve(0, outputs.ValveState::OPEN);
     outputs.setReturnValve(3, outputs.ValveState::OPEN);
+
+    //This is the extra valve to send the biofilter top gas back to ST1
+    outputs.setFlowValve(7, outputs.ValveState::OPEN);
     gasPumpEnabled = true;
 }
 
@@ -89,6 +92,8 @@ void StateMachine::sampleGasCards(){
     //Stopping Gas Transfer cycle
     outputs.setFlowValve(0, outputs.ValveState::CLOSED);
     outputs.setReturnValve(3, outputs.ValveState::CLOSED);
+    outputs.setFlowValve(7, outputs.ValveState::CLOSED);
+
 
     ESP_LOGI("SM", "Purging for %d seconds", purgeTime_s);
     outputs.setFlowValve(5, outputs.ValveState::OPEN);
