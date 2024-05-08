@@ -163,11 +163,11 @@ void StateMachine::computePID(){
     float min = envVars["GasFlowMin"];
     if (*gasPIDinput > max){
         ESP_LOGW("RTOS", "PID Error, Gas flow too high");
-        gasPumpEnabled = false;
+        // gasPumpEnabled = false;
     }
     if (*gasPIDinput < min && gasPIDoutput > 40){
         ESP_LOGW("RTOS", "PID Error, Gas flow too low - connection failure?");
-        gasPumpEnabled = false;
+        // gasPumpEnabled = false;
     }
 
     if (gasPumpEnabled){
