@@ -163,7 +163,7 @@ void waterPumpTask(void * pvParameters){
         // Wait for the next cycle.
         Interval = pdMS_TO_TICKS(stateMachine.envVars["WaterPumpInterval_s"] * 1000); // convert seconds to ticks
         ESP_LOGE("RTOS", "Water pump interval: %f, %d ", stateMachine.envVars["WaterPumpInterval_s"], Interval);
-        // xTaskDelayUntil(&LastWakeTime, Interval);
+        xTaskDelayUntil(&LastWakeTime, Interval);
     }
 }
 

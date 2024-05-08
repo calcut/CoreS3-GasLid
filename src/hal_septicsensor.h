@@ -33,7 +33,7 @@
 #endif
 
 #define JACKET_HEATER_RELAY 0
-#define WATER_PUMP_RELAY 2
+#define WATER_PUMP_RELAY 1
 #define ADS_REF_VOLTS 3.72
 
 //To prevent concurrent access to I2C bus
