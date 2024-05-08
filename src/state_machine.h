@@ -46,7 +46,7 @@ public:
         {"WaterPumpTime_s", 10},
         {"WaterPumpInterval_s", 60},
         {"WaterPumpEnabled", 1},
-        {"WaterPumpMoistureThreshold_pc", 60}
+        {"WaterPumpMoistureThreshold_pc", 60} //If any moisture sensors are above this, it won't pump water.
     };
 
     QuickPID* gasPID;
