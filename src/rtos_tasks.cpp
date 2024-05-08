@@ -152,7 +152,7 @@ void waterPumpTask(void * pvParameters){
         bool compostIsDry = true;
         for (int i = 1; i <= 6; i++) {
             float moisture = inputData.moistureData["ms" + std::to_string(i)];
-            ESP_LOGW("RTOS", "moisture %d = %f", i, moisture);
+            ESP_LOGD("RTOS", "moisture %d = %f", i, moisture);
 
             //check for edge case readings and don't pump if so
             if (moisture == 0 || std::isnan(moisture)) {
