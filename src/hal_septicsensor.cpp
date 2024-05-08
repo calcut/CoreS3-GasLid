@@ -648,6 +648,8 @@ void Inputs::pollGasSensors(int tankNumber){
     float current = mod_a1019.AI[7];
     float gasPercent = (current - 4) / 16 * 100;
 
+    ESP_LOGD("HAL", "gaspoll current=%f, percent=%f, tank=%d", current, gasPercent, tankNumber);
+
     // inputData.gasData["CH4"]                = AI[5];
     // inputData.gasData["CO2"]                = AI[6];
     // inputData.gasData["N2O"]                = AI[7];
