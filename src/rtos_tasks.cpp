@@ -421,6 +421,9 @@ void serviceGasCards(void * pvParameters){
         notecardManager.sendSensorData(inputData.gasData);
         xSemaphoreGive(I2CMutex);
 
+        // Restart the Semaphore timer
+        int delay = stateMachine.getGasSampleDelay();
+        xTimerChangePeriodFromISR(gasSampleTimer, delay*1000 / portTICK_PERIOD_MS, 0);
     }
 }
 
