@@ -94,10 +94,10 @@ void errorHandler(hal_err_t err){
             inputs.err_sdm120_count++;
             ESP_LOGE("HAL", "SDM120 not found, error count: %i", inputs.err_sdm120_count);
 
-            if (inputs.err_sdm120_count >= 5){
-                ESP_LOGE("HAL", "SDM120 not found after 5 attempts. Disabling.");
-                inputs.err_sdm120_enabled = false;
-            }
+            // if (inputs.err_sdm120_count >= 5){
+            //     ESP_LOGE("HAL", "SDM120 not found after 5 attempts. Disabling.");
+            //     inputs.err_sdm120_enabled = false;
+            // }
             break;
 
         case HAL_ERR_I2C_MUX:
