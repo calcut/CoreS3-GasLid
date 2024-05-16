@@ -117,6 +117,8 @@ void StateMachine::sampleGasCards(){
 
         // skip STINS2 and STINS3
         if (i == 1 || i == 2){
+            inputData.gasData["gc2"] = nan("0");
+            inputData.gasData["gc3"] = nan("0");
             continue;
         }
 
