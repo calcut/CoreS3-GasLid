@@ -411,7 +411,7 @@ void serviceGasCards(void * pvParameters){
 
     while(1){
 
-        stateMachine.gasTransferMode();
+        // stateMachine.gasTransferMode();
 
         // Wait for the semaphore to be given
         xSemaphoreTake(gasSampleSemaphore, portMAX_DELAY);
