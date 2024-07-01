@@ -77,6 +77,12 @@ void StateMachine::gasTransferMode(){
 void StateMachine::sampleGasCards(){
 
     ESP_LOGI("SM", "Gas Card Sample Sequence starting...");
+
+    if (gasSampleInProgress){
+        ESP_LOGW("SM", "Gas sample already in progress, aborting");
+        return;
+    }
+
     gasSampleInProgress = true;
     gasPumpEnabled = true;
 

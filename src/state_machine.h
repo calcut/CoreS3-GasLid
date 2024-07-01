@@ -21,6 +21,7 @@ public:
 
     std::unordered_map<std::string, float> envVars = {
         {"gasSampleNow", 0},
+        {"gasTransferEnabled", 0}, //for transfer from ST to biofilter
         {"gasSampleStop", 0},
         {"gasPurgeTime_s", 10},
         {"gasPumpTime_s", 10},
