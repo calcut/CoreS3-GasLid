@@ -128,7 +128,13 @@ void StateMachine::sampleGasCards(){
         
         ESP_LOGI("SM", "Running pump for %d seconds", pumpTime_s);
 
-        vTaskDelay(pumpTime_s*1000 / portTICK_PERIOD_MS);
+        //Delay but check every second if it needs to stop sampling
+        for (int j = 0; j < pumpTime_s; j++) {
+            if (envVars["gasSampleStop"] == 1){
+                stopSample();
+            }
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+        }
 
         ESP_LOGI("SM", "Sampling gas cards now %d", i);
         //Actually sample the gas cards here
@@ -141,7 +147,13 @@ void StateMachine::sampleGasCards(){
         outputs.setFlowValve(5, outputs.ValveState::OPEN);
         outputs.setReturnValve(5, outputs.ValveState::OPEN);
 
-        vTaskDelay(purgeTime_s*1000 / portTICK_PERIOD_MS);
+        //Delay but check every second if it needs to stop sampling
+        for (int j = 0; j < purgeTime_s; j++) {
+            if (envVars["gasSampleStop"] == 1){
+                stopSample();
+            }
+            vTaskDelay(1000 / portTICK_PERIOD_MS);
+        }
 
         outputs.setFlowValve(5, outputs.ValveState::CLOSED);
         outputs.setReturnValve(5, outputs.ValveState::CLOSED);
@@ -153,6 +165,20 @@ void StateMachine::sampleGasCards(){
     gasSampleInProgress = false;
     gasPumpEnabled = false;
 
+}
+
+void StateMachine::stopSample(){
+    envVars["gasSampleStop"] = 0;
+    gasSampleInProgress = false;
+    gasPumpEnabled = false;
+    ESP_LOGI("SM", "Stopping gas sample sequence and closing all valves");
+
+    for (int i = 0; i < envVars["gasSampleChannels"]; i++){
+        outputs.setFlowValve(i, outputs.ValveState::CLOSED);
+        outputs.setReturnValve(i, outputs.ValveState::CLOSED);
+    }
+    outputs.setTransferValve(outputs.ValveState::CLOSED);
+    
 }
 
 void StateMachine::computePID(){
