@@ -107,13 +107,6 @@ void StateMachine::sampleGasCards(){
 
     for (int i = 0; i < sampleChannels; i++){
 
-        // //This should be done smarter, currently it waits for a full cycle to complete
-        // if (envVars["gasSampleStop"] == 1){
-        //     envVars["gasSampleStop"] = 0;
-        //     // gasPumpEnabled = false;
-        //     gasSampleInProgress = false;
-        //     return;
-        // }
 
         // skip STINS2 and STINS3
         if (i == 1 || i == 2){
@@ -133,6 +126,7 @@ void StateMachine::sampleGasCards(){
             if (envVars["gasSampleStop"] == 1){
                 stopSample();
             }
+            inputs.pollGasSensors(0);
             vTaskDelay(1000 / portTICK_PERIOD_MS);
         }
 
@@ -152,6 +146,7 @@ void StateMachine::sampleGasCards(){
             if (envVars["gasSampleStop"] == 1){
                 stopSample();
             }
+            inputs.pollGasSensors(0);
             vTaskDelay(1000 / portTICK_PERIOD_MS);
         }
 
