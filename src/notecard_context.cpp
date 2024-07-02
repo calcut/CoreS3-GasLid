@@ -49,7 +49,7 @@ void myEnvVarCb(const char *key, const char *val, void *userCtx){
 
     try{
         stateMachine.envVars.at(key) = atof(val);
-        ESP_LOGD("NCARD", "set stateMachine.envVars[\"%s\"]=%d",
+        ESP_LOGD("NCARD", "set stateMachine.envVars[\"%s\"]=%f",
                          key, stateMachine.envVars.at(key));
     } catch(std::out_of_range& e){}
 

@@ -353,7 +353,9 @@ void Outputs::setTransferValve(bool ValveState) {
 
 void Outputs::setGasPumpSpeed(float percent) {
     TAKE_I2C_MUTEX_OR_RETURN_VOID();
-    gasPump[0]->setSpeed(percent/100 * 255);
+    uint8_t speed = static_cast<uint8_t>(percent / 100 * 255);
+    ESP_LOGW("HAL", "Gas Pump Speed: %d", speed);
+    gasPump[0]->setSpeed(speed);
     gasPump[0]->run(FORWARD);
     xSemaphoreGive(I2CMutex);
 }
@@ -469,7 +471,7 @@ void Inputs::init(void){
     else errorHandler(HAL_ERR_MOISTURE_ADC_1);
 
 
-    I2CMux.selectChannel(ADC_MOISTURE_2_MUX);
+    I2CMux.selectChannel(ADC_MOISTURE_2_MUX); 
     if (adc_moisture_2.begin(ADC_MOISTURE_2_ADDR, &Wire))
     {
         ESP_LOGI("HAL", "Moisture ADC 2 found");

@@ -64,6 +64,7 @@ class NotecardManager {
             {"timeSyncInterval_s", 10},
             {"noteSendInterval_s", 60},
             {"noteSampleInterval_s", 15},
+            {"envVarsSynced", 0}, //can use to determine if we've got the latest values from notehub
         };
 };
 

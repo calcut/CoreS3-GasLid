@@ -405,13 +405,15 @@ void debugTask(void * pvParameters){
 
 void serviceGasCards(void * pvParameters){
 
-    while (!stateMachine.initComplete){
-        vTaskDelay(100 / portTICK_PERIOD_MS);
+    // while (!stateMachine.initComplete){
+    while (notecardManager.envVars["envVarsSynced"] == 0){
+        ESP_LOGI("RTOS", "Waiting for envar sync to complete");
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 
     while(1){
-
-        if(stateMachine.envVars["gasTransferEnabled"]){
+        ESP_LOGI("RTOS", "Service Gas Cards");
+        if(stateMachine.envVars["gasTransferEnabled"] == 1.0f){
             stateMachine.gasTransferMode();
         }
 
