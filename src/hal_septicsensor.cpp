@@ -354,7 +354,6 @@ void Outputs::setTransferValve(bool ValveState) {
 void Outputs::setGasPumpSpeed(float percent) {
     TAKE_I2C_MUTEX_OR_RETURN_VOID();
     uint8_t speed = static_cast<uint8_t>(percent / 100 * 255);
-    ESP_LOGW("HAL", "Gas Pump Speed: %d", speed);
     gasPump[0]->setSpeed(speed);
     gasPump[0]->run(FORWARD);
     xSemaphoreGive(I2CMutex);
