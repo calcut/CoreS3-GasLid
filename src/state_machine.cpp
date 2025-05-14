@@ -26,7 +26,7 @@ void StateMachine::init(void){
         QuickPID::Action::direct
     );
     // Dont enable PID yet because the input is not valid (nan)
-    gasPID->SetOutputLimits(0, 70);
+    gasPID->SetOutputLimits(0, 100);
 
     initComplete = true;
 
@@ -114,12 +114,12 @@ void StateMachine::sampleGasCards(){
     for (int i = 0; i < sampleChannels; i++){
 
 
-        // skip STINS2 and STINS3
-        if (i == 1 || i == 2){
-            inputData.gasData["gc2"] = nan("0");
-            inputData.gasData["gc3"] = nan("0");
-            continue;
-        }
+        // // skip STINS2 and STINS3
+        // if (i == 1 || i == 2){
+        //     inputData.gasData["gc2"] = nan("0");
+        //     inputData.gasData["gc3"] = nan("0");
+        //     continue;
+        // }
 
         ESP_LOGI("SM", "Opening valves %d", i);
         outputs.setFlowValve(i, outputs.ValveState::OPEN);
